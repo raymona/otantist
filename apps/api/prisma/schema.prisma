@@ -1,0 +1,462 @@
+// ===========================================
+// Otantist Database Schema
+// ===========================================
+// Prisma schema for PostgreSQL
+// Run: npx prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// Enums
+// ===========================================
+
+enum AccountType {
+  adult
+  parent_managed
+}
+
+enum AccountStatus {
+  pending
+  active
+  suspended
+}
+
+enum LanguageCode {
+  fr
+  en
+}
+
+enum AgeGroup {
+  age_14_17 @map("14-17")
+  age_18_25 @map("18-25")
+  age_26_40 @map("26-40")
+  age_40_plus @map("40+")
+}
+
+enum ProfileVisibility {
+  visible
+  limited
+  hidden
+}
+
+enum TonePreference {
+  gentle
+  direct
+  enthusiastic
+  formal
+}
+
+enum ColorIntensity {
+  standard
+  reduced
+  minimal
+}
+
+enum SocialEnergyLevel {
+  high
+  medium
+  low
+}
+
+enum MessageType {
+  text
+  emoji
+  system
+}
+
+enum MessageStatus {
+  queued
+  sent
+  delivered
+  read
+}
+
+enum ConversationStatus {
+  active
+  blocked
+  archived
+}
+
+enum FlagSource {
+  user
+  ai
+  moderator
+  system
+}
+
+enum ModerationStatus {
+  pending
+  reviewing
+  resolved
+}
+
+enum ModerationPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum ModerationAction {
+  dismissed
+  warned
+  removed
+  suspended
+}
+
+enum ReportReason {
+  harassment
+  inappropriate
+  spam
+  safety_concern
+  other
+}
+
+enum AlertType {
+  flagged_message
+  stress_indicator
+  prolonged_calm_mode
+  inactivity
+}
+
+enum AlertSeverity {
+  info
+  warning
+  urgent
+}
+
+enum ParentRelationship {
+  parent
+  legal_guardian
+  other
+}
+
+enum RelationshipStatus {
+  pending
+  active
+  ended
+}
+
+// ===========================================
+// Core Models
+// ===========================================
+
+model Account {
+  id               String        @id @default(uuid())
+  email            String        @unique
+  passwordHash     String        @map("password_hash")
+  accountType      AccountType   @map("account_type")
+  status           AccountStatus @default(pending)
+  emailVerified    Boolean       @default(false) @map("email_verified")
+  inviteCodeUsed   String?       @map("invite_code_used")
+  legalAcceptedAt  DateTime?     @map("legal_accepted_at")
+  preferredLanguage LanguageCode @default(fr) @map("preferred_language")
+  createdAt        DateTime      @default(now()) @map("created_at")
+  lastLogin        DateTime?     @map("last_login")
+
+  // Relations
+  user                    User?
+  parentManagedAsParent   ParentManagedAccount[] @relation("ParentAccount")
+  parentManagedAsMember   ParentManagedAccount[] @relation("MemberAccount")
+  inviteCodesCreated      InviteCode[]           @relation("CreatedBy")
+  moderationReviews       ModerationQueue[]      @relation("ReviewedBy")
+  parentAlerts            ParentAlert[]
+
+  @@map("accounts")
+}
+
+model User {
+  id                 String            @id @default(uuid())
+  accountId          String            @unique @map("account_id")
+  displayName        String?           @map("display_name") @db.VarChar(50)
+  ageGroup           AgeGroup?         @map("age_group")
+  profileVisibility  ProfileVisibility @default(visible) @map("profile_visibility")
+  onboardingComplete Boolean           @default(false) @map("onboarding_complete")
+  onboardingStep     String?           @map("onboarding_step") @db.VarChar(50)
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  account                Account                  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  communicationPrefs     CommunicationPreference?
+  sensoryPrefs           SensoryPreference?
+  conversationStarters   ConversationStarter?
+  timeBoundaries         TimeBoundary[]
+  state                  UserState?
+  conversationsAsUserA   Conversation[]           @relation("UserA")
+  conversationsAsUserB   Conversation[]           @relation("UserB")
+  messagesSent           Message[]
+  blockedUsers           BlockedUser[]            @relation("Blocker")
+  blockedByUsers         BlockedUser[]            @relation("Blocked")
+  reportsSubmitted       UserReport[]             @relation("Reporter")
+  reportsReceived        UserReport[]             @relation("ReportedUser")
+  parentAlerts           ParentAlert[]
+  memberIndicators       MemberIndicator[]
+
+  @@map("users")
+}
+
+model InviteCode {
+  id          String    @id @default(uuid())
+  code        String    @unique @db.VarChar(50)
+  createdById String?   @map("created_by")
+  maxUses     Int       @default(1) @map("max_uses")
+  currentUses Int       @default(0) @map("current_uses")
+  expiresAt   DateTime? @map("expires_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  createdBy Account? @relation("CreatedBy", fields: [createdById], references: [id])
+
+  @@map("invite_codes")
+}
+
+model ParentManagedAccount {
+  id              String             @id @default(uuid())
+  parentAccountId String             @map("parent_account_id")
+  memberAccountId String             @map("member_account_id")
+  relationship    ParentRelationship
+  consentGivenAt  DateTime?          @map("consent_given_at")
+  status          RelationshipStatus @default(pending)
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  // Relations
+  parentAccount Account @relation("ParentAccount", fields: [parentAccountId], references: [id])
+  memberAccount Account @relation("MemberAccount", fields: [memberAccountId], references: [id])
+
+  @@unique([parentAccountId, memberAccountId])
+  @@map("parent_managed_accounts")
+}
+
+// ===========================================
+// Preferences
+// ===========================================
+
+model CommunicationPreference {
+  id               String          @id @default(uuid())
+  userId           String          @unique @map("user_id")
+  commModes        String[]        @map("comm_modes")
+  preferredTone    TonePreference? @map("preferred_tone")
+  slowRepliesOk    Boolean?        @map("slow_replies_ok")
+  oneMessageAtTime Boolean?        @map("one_message_at_time")
+  readWithoutReply Boolean?        @map("read_without_reply")
+  sectionComplete  Boolean         @default(false) @map("section_complete")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("communication_preferences")
+}
+
+model TimeBoundary {
+  id             String @id @default(uuid())
+  userId         String @map("user_id")
+  dayOfWeek      Int    @map("day_of_week") @db.SmallInt
+  availableStart String @map("available_start") @db.VarChar(5) // HH:MM
+  availableEnd   String @map("available_end") @db.VarChar(5)   // HH:MM
+  timezone       String @default("America/Montreal") @db.VarChar(50)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("time_boundaries")
+}
+
+model ConversationStarter {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  goodTopics      String[] @map("good_topics")
+  avoidTopics     String[] @map("avoid_topics")
+  interactionTips String[] @map("interaction_tips")
+  sectionComplete Boolean  @default(false) @map("section_complete")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("conversation_starters")
+}
+
+model SensoryPreference {
+  id                  String          @id @default(uuid())
+  userId              String          @unique @map("user_id")
+  enableAnimations    Boolean         @default(false) @map("enable_animations")
+  colorIntensity      ColorIntensity? @map("color_intensity")
+  soundEnabled        Boolean         @default(false) @map("sound_enabled")
+  notificationLimit   Int?            @map("notification_limit") @db.SmallInt
+  notificationGrouped Boolean         @default(true) @map("notification_grouped")
+  sectionComplete     Boolean         @default(false) @map("section_complete")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sensory_preferences")
+}
+
+model UserState {
+  id              String            @id @default(uuid())
+  userId          String            @unique @map("user_id")
+  socialEnergy    SocialEnergyLevel? @map("social_energy")
+  energyUpdatedAt DateTime?         @map("energy_updated_at")
+  calmModeActive  Boolean           @default(false) @map("calm_mode_active")
+  calmModeStarted DateTime?         @map("calm_mode_started")
+  isOnline        Boolean           @default(false) @map("is_online")
+  lastSeen        DateTime?         @map("last_seen")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_state")
+}
+
+// ===========================================
+// Messaging
+// ===========================================
+
+model Conversation {
+  id        String             @id @default(uuid())
+  userAId   String             @map("user_a_id")
+  userBId   String             @map("user_b_id")
+  status    ConversationStatus @default(active)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  userA    User      @relation("UserA", fields: [userAId], references: [id])
+  userB    User      @relation("UserB", fields: [userBId], references: [id])
+  messages Message[]
+
+  @@unique([userAId, userBId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String        @id @default(uuid())
+  conversationId String        @map("conversation_id")
+  senderId       String        @map("sender_id")
+  messageType    MessageType   @default(text) @map("message_type")
+  content        String
+  status         MessageStatus @default(sent)
+  queuedReason   String?       @map("queued_reason") @db.VarChar(100)
+  deliverAt      DateTime?     @map("deliver_at")
+  flagged        Boolean       @default(false)
+  flaggedBy      FlagSource?   @map("flagged_by")
+  flaggedReason  String?       @map("flagged_reason") @db.VarChar(255)
+  createdAt      DateTime      @default(now()) @map("created_at")
+  deliveredAt    DateTime?     @map("delivered_at")
+  readAt         DateTime?     @map("read_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id])
+  reports      UserReport[] @relation("ReportedMessage")
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model BlockedUser {
+  id        String   @id @default(uuid())
+  blockerId String   @map("blocker_id")
+  blockedId String   @map("blocked_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  blocker User @relation("Blocker", fields: [blockerId], references: [id])
+  blocked User @relation("Blocked", fields: [blockedId], references: [id])
+
+  @@unique([blockerId, blockedId])
+  @@map("blocked_users")
+}
+
+// ===========================================
+// Moderation
+// ===========================================
+
+model ModerationQueue {
+  id              String             @id @default(uuid())
+  itemType        String             @map("item_type") @db.VarChar(20)
+  itemId          String             @map("item_id")
+  flaggedBy       FlagSource         @map("flagged_by")
+  flagReason      String?            @map("flag_reason") @db.VarChar(255)
+  aiConfidence    Decimal?           @map("ai_confidence") @db.Decimal(3, 2)
+  status          ModerationStatus   @default(pending)
+  priority        ModerationPriority @default(medium)
+  reviewedById    String?            @map("reviewed_by")
+  actionTaken     ModerationAction?  @map("action_taken")
+  resolutionNotes String?            @map("resolution_notes")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  resolvedAt      DateTime?          @map("resolved_at")
+
+  // Relations
+  reviewedBy Account? @relation("ReviewedBy", fields: [reviewedById], references: [id])
+
+  @@index([status, priority])
+  @@map("moderation_queue")
+}
+
+model UserReport {
+  id                String       @id @default(uuid())
+  reporterId        String       @map("reporter_id")
+  reportedUserId    String?      @map("reported_user_id")
+  reportedMessageId String?      @map("reported_message_id")
+  reason            ReportReason
+  description       String?
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  // Relations
+  reporter        User     @relation("Reporter", fields: [reporterId], references: [id])
+  reportedUser    User?    @relation("ReportedUser", fields: [reportedUserId], references: [id])
+  reportedMessage Message? @relation("ReportedMessage", fields: [reportedMessageId], references: [id])
+
+  @@map("user_reports")
+}
+
+// ===========================================
+// Parent Dashboard
+// ===========================================
+
+model ParentAlert {
+  id              String        @id @default(uuid())
+  parentAccountId String        @map("parent_account_id")
+  memberUserId    String        @map("member_user_id")
+  alertType       AlertType     @map("alert_type")
+  severity        AlertSeverity
+  messageFr       String        @map("message_fr")
+  messageEn       String        @map("message_en")
+  acknowledged    Boolean       @default(false)
+  acknowledgedAt  DateTime?     @map("acknowledged_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  parentAccount Account @relation(fields: [parentAccountId], references: [id])
+  memberUser    User    @relation(fields: [memberUserId], references: [id])
+
+  @@index([parentAccountId, acknowledged])
+  @@map("parent_alerts")
+}
+
+model MemberIndicator {
+  id               String            @id @default(uuid())
+  userId           String            @map("user_id")
+  recordedAt       DateTime          @map("recorded_at") @db.Date
+  socialEnergyAvg  SocialEnergyLevel? @map("social_energy_avg")
+  calmModeMinutes  Int               @default(0) @map("calm_mode_minutes")
+  messagesSent     Int               @default(0) @map("messages_sent")
+  messagesReceived Int               @default(0) @map("messages_received")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recordedAt])
+  @@map("member_indicators")
+}

@@ -1,0 +1,17 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "prisma.prisma",
+    "mikestead.dotenv",
+    "formulahendry.auto-rename-tag",
+    "streetsidesoftware.code-spell-checker",
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-docker",
+    "christian-kohler.path-intellisense",
+    "usernamehw.errorlens",
+    "yoavbls.pretty-ts-errors",
+    "dsznajder.es7-react-js-snippets"
+  ]
+}

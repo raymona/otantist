@@ -1,0 +1,49 @@
+{
+  "name": "otantist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Otantist - Emotionally safe social platform for autistic individuals",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run dev -w @otantist/api",
+    "dev:web": "npm run dev -w @otantist/web",
+    "dev:mobile": "npm run dev -w @otantist/mobile",
+    "build": "npm run build --workspaces --if-present",
+    "build:api": "npm run build -w @otantist/api",
+    "build:web": "npm run build -w @otantist/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @otantist/api",
+    "db:seed": "npm run db:seed -w @otantist/api",
+    "db:studio": "npm run db:studio -w @otantist/api",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
