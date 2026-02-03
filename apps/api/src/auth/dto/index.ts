@@ -1,40 +1,40 @@
-import { IsEmail, IsString, MinLength, MaxLength, IsIn } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsIn, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: 'SecureP@ss123', minLength: 8 })
   @IsString()
   @MinLength(8)
   @MaxLength(100)
-  password: string;
+  password!: string;
 
   @ApiProperty({ example: 'INVITE2024' })
   @IsString()
   @MinLength(4)
   @MaxLength(50)
-  inviteCode: string;
+  inviteCode!: string;
 
   @ApiProperty({ example: 'fr', enum: ['fr', 'en'] })
   @IsIn(['fr', 'en'])
-  language: 'fr' | 'en';
+  language!: 'fr' | 'en';
 }
 
 export class LoginDto {
   @ApiProperty({ example: 'user@example.com' })
   @IsEmail()
-  email: string;
+  email!: string;
 
   @ApiProperty({ example: 'SecureP@ss123' })
   @IsString()
-  password: string;
+  password!: string;
 }
 
 export class RefreshTokenDto {
   @ApiProperty()
   @IsString()
-  refreshToken: string;
+  refreshToken!: string;
 }
