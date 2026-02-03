@@ -1,9 +1,7 @@
 # Otantist Developer Guide
 
-## Environment Setup & Onboarding
-
-**Version:** 1.0  
-**Last Updated:** January 2026
+**Environment Setup & Onboarding**  
+**Version 2.0 — Updated February 2026**
 
 ---
 
@@ -18,7 +16,7 @@
 7. [Testing](#7-testing)
 8. [Coding Standards](#8-coding-standards)
 9. [Troubleshooting](#9-troubleshooting)
-10. [Useful Commands](#10-useful-commands)
+10. [Quick Reference](#10-quick-reference)
 
 ---
 
@@ -26,26 +24,23 @@
 
 ### Required Software
 
-| Software | Version | Installation |
-|----------|---------|--------------|
-| Node.js | 20.x LTS | [nodejs.org](https://nodejs.org) or use `nvm` |
-| npm | 10.x+ | Comes with Node.js |
-| Docker | 24.x+ | [docker.com](https://docker.com) |
-| Docker Compose | 2.x+ | Included with Docker Desktop |
-| Git | 2.x+ | [git-scm.com](https://git-scm.com) |
+| Software | Version | Notes |
+|----------|---------|-------|
+| Node.js | 20.x LTS | Use nvm for version management |
+| npm | 10.x | Comes with Node.js |
+| Docker Desktop | Latest | Required for PostgreSQL, Redis, Mailhog |
+| Git | Latest | Version control |
+| VS Code | Latest | Recommended editor |
 
-### Recommended Tools
+### Windows-Specific Requirements
 
-| Tool | Purpose |
-|------|---------|
-| VS Code | IDE with great TypeScript support |
-| TablePlus or pgAdmin | Database GUI |
-| Postman or Insomnia | API testing |
-| React Native Debugger | Mobile debugging |
+> ⚠️ **Important for Windows Users**
+> 
+> - Install WSL 2 (Windows Subsystem for Linux) for best Docker performance
+> - Docker Desktop must be configured to use WSL 2 backend
+> - Some Docker caching issues may occur on Windows (see Troubleshooting)
 
-### VS Code Extensions
-
-Install the recommended extensions when you open the project:
+### Recommended VS Code Extensions
 
 ```
 dbaeumer.vscode-eslint
@@ -92,7 +87,7 @@ npm run docker:up
 docker ps
 ```
 
-You should see:
+You should see these containers:
 - `otantist-postgres` on port 5432
 - `otantist-redis` on port 6379
 - `otantist-mailhog` on ports 1025 (SMTP) and 8025 (Web UI)
@@ -100,8 +95,9 @@ You should see:
 ### Step 5: Initialize the Database
 
 ```bash
-# Generate Prisma client
 cd apps/api
+
+# Generate Prisma client
 npx prisma generate
 
 # Run migrations
@@ -111,25 +107,42 @@ npx prisma migrate dev
 npm run db:seed
 ```
 
-### Step 6: Start Development Servers
+### Step 6: Open Prisma Studio
 
 ```bash
+# In apps/api directory
+npx prisma studio
+```
+
+This opens a database GUI at http://localhost:5555
+
+> 💡 **Tip:** Use Prisma Studio instead of pgAdmin. It's simpler and already configured.
+
+### Step 7: Start Development Servers
+
+You need **two terminal windows**:
+
+**Terminal 1 — API Server:**
+```bash
 # From root directory
-cd ../..
-
-# Start API server
 npm run dev:api
+```
 
-# In another terminal, start web app
+**Terminal 2 — Web Application:**
+```bash
+# From root directory
 npm run dev:web
 ```
 
-### Step 7: Verify Everything Works
+### Step 8: Verify Everything Works
 
-- **API**: http://localhost:3001/api/docs (Swagger UI)
-- **Web**: http://localhost:3000
-- **Mailhog**: http://localhost:8025 (view sent emails)
-- **pgAdmin**: http://localhost:5050 (database admin)
+| Service | URL | What to Check |
+|---------|-----|---------------|
+| API | http://localhost:3001 | Should return JSON |
+| Swagger Docs | http://localhost:3001/api/docs | API documentation |
+| Web App | http://localhost:3000 | Next.js application |
+| Mailhog | http://localhost:8025 | Email testing UI |
+| Prisma Studio | http://localhost:5555 | Database GUI |
 
 ---
 
@@ -141,7 +154,8 @@ otantist/
 │   ├── api/                    # NestJS backend
 │   │   ├── prisma/
 │   │   │   ├── schema.prisma   # Database schema
-│   │   │   └── migrations/     # Database migrations
+│   │   │   ├── migrations/     # Database migrations
+│   │   │   └── seed.ts         # Seed data
 │   │   ├── src/
 │   │   │   ├── auth/           # Authentication module
 │   │   │   ├── users/          # User management
@@ -161,7 +175,7 @@ otantist/
 │   │   ├── lib/
 │   │   └── public/
 │   │
-│   └── mobile/                 # React Native + Expo
+│   └── mobile/                 # React Native + Expo (Phase 2)
 │       ├── app/                # Expo router
 │       ├── components/
 │       └── lib/
@@ -175,8 +189,8 @@ otantist/
 │   └── ui/                     # Shared UI components
 │       └── src/
 │
-├── scripts/                    # Utility scripts
 ├── docs/                       # Documentation
+├── scripts/                    # Utility scripts
 ├── docker-compose.yml
 ├── package.json                # Root package.json (workspaces)
 └── .env.example
@@ -248,17 +262,18 @@ npx prisma studio
 3. Prisma generates migration SQL and updates client
 4. Commit both schema and migration files
 
-### Connecting to Database
+### Connecting to Database Directly
 
 **Via psql:**
 ```bash
 psql postgresql://otantist:otantist_dev@localhost:5432/otantist_dev
 ```
 
-**Via pgAdmin:**
-- URL: http://localhost:5050
-- Login: admin@otantist.local / admin
-- Add server: host=postgres, port=5432, user=otantist
+**Via Prisma Studio (Recommended):**
+```bash
+cd apps/api
+npx prisma studio
+```
 
 ---
 
@@ -277,17 +292,25 @@ npx nest generate service feature-name
 
 ### API Documentation
 
-- Swagger UI: http://localhost:3001/api/docs
-- Use decorators to document endpoints:
+Swagger UI is available at http://localhost:3001/api/docs
+
+Use decorators to document endpoints:
 
 ```typescript
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+
 @ApiTags('messaging')
-@ApiOperation({ summary: 'Send a message' })
-@ApiResponse({ status: 201, description: 'Message sent' })
-@ApiBearerAuth()
-@Post()
-async sendMessage(@Body() dto: SendMessageDto) {
-  // ...
+@Controller('messages')
+export class MessagesController {
+  
+  @ApiOperation({ summary: 'Send a message' })
+  @ApiResponse({ status: 201, description: 'Message sent successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid input' })
+  @ApiBearerAuth()
+  @Post()
+  async sendMessage(@Body() dto: SendMessageDto) {
+    // ...
+  }
 }
 ```
 
@@ -333,9 +356,9 @@ apps/api/
 ├── src/
 │   └── auth/
 │       ├── auth.service.ts
-│       └── auth.service.spec.ts  # Unit test
+│       └── auth.service.spec.ts    # Unit test
 └── test/
-    ├── auth.e2e-spec.ts          # E2E test
+    ├── auth.e2e-spec.ts            # E2E test
     └── jest-e2e.json
 ```
 
@@ -393,12 +416,14 @@ describe('AuthService', () => {
 | Files | kebab-case | `user-preferences.service.ts` |
 | Classes | PascalCase | `UserPreferencesService` |
 | Functions | camelCase | `getUserPreferences()` |
-| Constants | SCREAMING_SNAKE | `MAX_MESSAGE_LENGTH` |
-| Database tables | snake_case | `user_preferences` |
+| Variables | camelCase | `userPreferences` |
+| Constants | UPPER_SNAKE | `MAX_MESSAGE_LENGTH` |
+| Interfaces | PascalCase | `UserPreferences` |
+| Enums | PascalCase | `AccountStatus` |
 
 ### Bilingual Content
 
-All user-facing strings must support FR/EN:
+All user-facing strings must support French and English:
 
 ```typescript
 // ❌ Bad
@@ -431,8 +456,8 @@ npm run docker:up
 
 **Port already in use:**
 ```bash
-# Find process using port 5432
-lsof -i :5432
+# Windows - find process using port 5432
+netstat -ano | findstr :5432
 
 # Kill it or change port in docker-compose.yml
 ```
@@ -454,6 +479,39 @@ npx prisma migrate resolve --rolled-back migration_name
 npx prisma generate
 ```
 
+### TypeScript Compilation Errors
+
+**Unused variables in seed.ts:**
+
+If you see warnings about unused variables in `seed.ts`, this is expected. The seed script creates data that may not be immediately used. You can either:
+- Prefix unused variables with underscore: `const _unused = ...`
+- Add `// @ts-ignore` comment
+- Use the variables in console.log for verification
+
+### pgAdmin Issues
+
+> 💡 **Recommendation:** Skip pgAdmin and use Prisma Studio instead.
+
+If pgAdmin won't connect or has issues:
+1. Don't waste time troubleshooting it
+2. Use `npx prisma studio` instead (runs on http://localhost:5555)
+3. Prisma Studio is simpler and already configured
+
+### Docker Caching Issues (Windows)
+
+> ⚠️ **Windows-Specific Issue**
+
+If you're seeing stale data or containers not updating:
+
+```bash
+# Nuclear option - removes all data
+docker-compose down -v
+docker system prune -a --volumes
+npm run docker:up
+```
+
+**Warning:** This deletes all Docker volumes including database data.
+
 ### Node/npm Issues
 
 **Dependency conflicts:**
@@ -472,45 +530,59 @@ nvm use 20
 
 ---
 
-## 10. Useful Commands
+## 10. Quick Reference
 
-### Quick Reference
+### Daily Development Commands
 
 ```bash
 # Start all services
 npm run docker:up
-npm run dev:api
-npm run dev:web
+npm run dev:api      # Terminal 1
+npm run dev:web      # Terminal 2
+```
 
-# Database
-npm run db:migrate      # Run migrations
-npm run db:studio       # Open Prisma Studio
-npm run db:seed         # Seed test data
+### Database Commands
 
-# Testing
-npm test               # Run all tests
-npm run lint           # Lint all code
+```bash
+cd apps/api
+npm run db:migrate   # Run migrations
+npm run db:studio    # Open Prisma Studio
+npm run db:seed      # Seed test data
+```
 
-# Docker
-npm run docker:up      # Start containers
-npm run docker:down    # Stop containers
-npm run docker:logs    # View logs
+### Testing Commands
 
-# Build
-npm run build          # Build all apps
-npm run build:api      # Build API only
+```bash
+npm test             # Run all tests
+npm run lint         # Lint all code
+```
+
+### Docker Commands
+
+```bash
+npm run docker:up    # Start containers
+npm run docker:down  # Stop containers
+npm run docker:logs  # View logs
+```
+
+### Build Commands
+
+```bash
+npm run build        # Build all apps
+npm run build:api    # Build API only
 ```
 
 ### Environment URLs
 
 | Service | URL |
 |---------|-----|
-| API | http://localhost:3001 |
-| API Docs | http://localhost:3001/api/docs |
+| API Server | http://localhost:3001 |
+| Swagger Docs | http://localhost:3001/api/docs |
 | Web App | http://localhost:3000 |
-| Mailhog | http://localhost:8025 |
-| pgAdmin | http://localhost:5050 |
 | Prisma Studio | http://localhost:5555 |
+| Mailhog | http://localhost:8025 |
+| PostgreSQL | localhost:5432 |
+| Redis | localhost:6379 |
 
 ---
 
@@ -523,4 +595,6 @@ npm run build:api      # Build API only
 
 ---
 
+*Document Version: 2.0*  
+*Updated: February 2026*  
 *Happy coding! 🚀*
