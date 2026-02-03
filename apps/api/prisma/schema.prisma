@@ -199,6 +199,7 @@ model User {
   reportsReceived        UserReport[]             @relation("ReportedUser")
   parentAlerts           ParentAlert[]
   memberIndicators       MemberIndicator[]
+  interests              Interest[]
 
   @@map("users")
 }
@@ -316,6 +317,20 @@ model UserState {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_state")
+}
+
+model Interest {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  interest  String   @db.VarChar(100)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, interest])
+  @@map("interests")
 }
 
 // ===========================================
