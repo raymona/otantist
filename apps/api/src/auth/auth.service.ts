@@ -2,7 +2,9 @@ import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
@@ -10,6 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {}
 
   async register(data: {
@@ -76,12 +79,186 @@ export class AuthService {
       return newAccount;
     });
 
-    // TODO: Send verification email
+    // Send verification email
+    await this.sendVerificationEmail(account.id, account.email, data.language);
 
     return {
       accountId: account.id,
       verificationSent: true,
     };
+  }
+
+  private generateToken(): string {
+    return crypto.randomBytes(32).toString('hex');
+  }
+
+  private async sendVerificationEmail(
+    accountId: string,
+    email: string,
+    language: 'fr' | 'en',
+  ): Promise<void> {
+    // Delete any existing verification tokens for this account
+    await this.prisma.authToken.deleteMany({
+      where: {
+        accountId,
+        type: 'email_verification',
+      },
+    });
+
+    // Create new verification token (expires in 24 hours)
+    const token = this.generateToken();
+    await this.prisma.authToken.create({
+      data: {
+        accountId,
+        token,
+        type: 'email_verification',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // Send the email
+    await this.emailService.sendVerificationEmail(email, token, language);
+  }
+
+  async verifyEmail(token: string): Promise<{ verified: boolean }> {
+    const authToken = await this.prisma.authToken.findUnique({
+      where: { token },
+      include: { account: true },
+    });
+
+    if (!authToken) {
+      throw new BadRequestException('Invalid verification token');
+    }
+
+    if (authToken.type !== 'email_verification') {
+      throw new BadRequestException('Invalid token type');
+    }
+
+    if (authToken.expiresAt < new Date()) {
+      throw new BadRequestException('Verification token has expired');
+    }
+
+    if (authToken.usedAt) {
+      throw new BadRequestException('Token has already been used');
+    }
+
+    // Mark email as verified and token as used
+    await this.prisma.$transaction([
+      this.prisma.account.update({
+        where: { id: authToken.accountId },
+        data: {
+          emailVerified: true,
+          status: 'active',
+        },
+      }),
+      this.prisma.authToken.update({
+        where: { id: authToken.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    return { verified: true };
+  }
+
+  async resendVerificationEmail(email: string): Promise<{ sent: boolean }> {
+    const account = await this.prisma.account.findUnique({
+      where: { email },
+    });
+
+    if (!account) {
+      // Don't reveal if email exists
+      return { sent: true };
+    }
+
+    if (account.emailVerified) {
+      throw new BadRequestException('Email is already verified');
+    }
+
+    await this.sendVerificationEmail(
+      account.id,
+      account.email,
+      account.preferredLanguage as 'fr' | 'en',
+    );
+
+    return { sent: true };
+  }
+
+  async forgotPassword(email: string): Promise<{ sent: boolean }> {
+    const account = await this.prisma.account.findUnique({
+      where: { email },
+    });
+
+    // Don't reveal if email exists - always return success
+    if (!account) {
+      return { sent: true };
+    }
+
+    // Delete any existing password reset tokens for this account
+    await this.prisma.authToken.deleteMany({
+      where: {
+        accountId: account.id,
+        type: 'password_reset',
+      },
+    });
+
+    // Create new reset token (expires in 1 hour)
+    const token = this.generateToken();
+    await this.prisma.authToken.create({
+      data: {
+        accountId: account.id,
+        token,
+        type: 'password_reset',
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+    });
+
+    // Send the email
+    await this.emailService.sendPasswordResetEmail(
+      account.email,
+      token,
+      account.preferredLanguage as 'fr' | 'en',
+    );
+
+    return { sent: true };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ reset: boolean }> {
+    const authToken = await this.prisma.authToken.findUnique({
+      where: { token },
+      include: { account: true },
+    });
+
+    if (!authToken) {
+      throw new BadRequestException('Invalid reset token');
+    }
+
+    if (authToken.type !== 'password_reset') {
+      throw new BadRequestException('Invalid token type');
+    }
+
+    if (authToken.expiresAt < new Date()) {
+      throw new BadRequestException('Reset token has expired');
+    }
+
+    if (authToken.usedAt) {
+      throw new BadRequestException('Token has already been used');
+    }
+
+    // Hash new password and update
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.$transaction([
+      this.prisma.account.update({
+        where: { id: authToken.accountId },
+        data: { passwordHash },
+      }),
+      this.prisma.authToken.update({
+        where: { id: authToken.id },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    return { reset: true };
   }
 
   async login(email: string, password: string) {

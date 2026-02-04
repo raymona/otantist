@@ -1,0 +1,18 @@
+{
+  "app_name": "Otantist",
+  "tagline": "Emotionally safe social platform for autistic individuals",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "save": "Save",
+  "cancel": "Cancel",
+  "continue": "Continue",
+  "back": "Back",
+  "next": "Next",
+  "submit": "Submit",
+  "close": "Close",
+  "yes": "Yes",
+  "no": "No",
+  "language": "Language",
+  "french": "French",
+  "english": "English"
+}

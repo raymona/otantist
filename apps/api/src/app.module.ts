@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
+import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PreferencesModule } from './preferences/preferences.module';
@@ -39,6 +41,9 @@ import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.modul
     // Database
     PrismaModule,
 
+    // Email
+    EmailModule,
+
     // Feature modules
     AuthModule,
     UsersModule,
@@ -46,6 +51,12 @@ import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.modul
     MessagingModule,
     ModerationModule,
     ParentDashboardModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

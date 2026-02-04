@@ -144,6 +144,11 @@ enum RelationshipStatus {
   ended
 }
 
+enum AuthTokenType {
+  email_verification
+  password_reset
+}
+
 // ===========================================
 // Core Models
 // ===========================================
@@ -168,6 +173,7 @@ model Account {
   inviteCodesCreated      InviteCode[]           @relation("CreatedBy")
   moderationReviews       ModerationQueue[]      @relation("ReviewedBy")
   parentAlerts            ParentAlert[]
+  authTokens              AuthToken[]
 
   @@map("accounts")
 }
@@ -217,6 +223,22 @@ model InviteCode {
   createdBy Account? @relation("CreatedBy", fields: [createdById], references: [id])
 
   @@map("invite_codes")
+}
+
+model AuthToken {
+  id        String        @id @default(uuid())
+  accountId String        @map("account_id")
+  token     String        @unique @db.VarChar(64)
+  type      AuthTokenType
+  expiresAt DateTime      @map("expires_at")
+  usedAt    DateTime?     @map("used_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  // Relations
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, type])
+  @@map("auth_tokens")
 }
 
 model ParentManagedAccount {

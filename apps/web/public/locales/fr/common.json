@@ -1,0 +1,18 @@
+{
+  "app_name": "Otantist",
+  "tagline": "Plateforme sociale sécuritaire pour les personnes autistes",
+  "loading": "Chargement...",
+  "error": "Une erreur s'est produite",
+  "save": "Enregistrer",
+  "cancel": "Annuler",
+  "continue": "Continuer",
+  "back": "Retour",
+  "next": "Suivant",
+  "submit": "Soumettre",
+  "close": "Fermer",
+  "yes": "Oui",
+  "no": "Non",
+  "language": "Langue",
+  "french": "Français",
+  "english": "Anglais"
+}
