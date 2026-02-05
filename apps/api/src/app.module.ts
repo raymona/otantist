@@ -7,7 +7,9 @@ import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PreferencesModule } from './preferences/preferences.module';
+import { StateModule } from './state/state.module';
 import { MessagingModule } from './messaging/messaging.module';
+import { SafetyModule } from './safety/safety.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.module';
 
@@ -48,7 +50,9 @@ import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.modul
     AuthModule,
     UsersModule,
     PreferencesModule,
+    StateModule,
     MessagingModule,
+    SafetyModule,
     ModerationModule,
     ParentDashboardModule,
   ],

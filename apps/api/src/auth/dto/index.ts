@@ -72,3 +72,8 @@ export class ResendVerificationDto {
   @IsEmail()
   email!: string;
 }
+
+export class AcceptTermsDto {
+  @ApiProperty({ example: true, description: 'Must be true to accept terms' })
+  accepted!: boolean;
+}

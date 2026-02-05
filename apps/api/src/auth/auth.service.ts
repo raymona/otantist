@@ -261,6 +261,27 @@ export class AuthService {
     return { reset: true };
   }
 
+  async acceptTerms(accountId: string): Promise<{ accepted: boolean }> {
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    if (account.legalAcceptedAt) {
+      throw new BadRequestException('Terms already accepted');
+    }
+
+    await this.prisma.account.update({
+      where: { id: accountId },
+      data: { legalAcceptedAt: new Date() },
+    });
+
+    return { accepted: true };
+  }
+
   async login(email: string, password: string) {
     const account = await this.prisma.account.findUnique({
       where: { email },

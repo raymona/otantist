@@ -1,7 +1,8 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards';
 import {
   RegisterDto,
   LoginDto,
@@ -10,6 +11,7 @@ import {
   ForgotPasswordDto,
   ResetPasswordDto,
   ResendVerificationDto,
+  AcceptTermsDto,
 } from './dto';
 
 @ApiTags('auth')
@@ -79,5 +81,20 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.password);
+  }
+
+  @Post('accept-terms')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Accept terms of service' })
+  @ApiResponse({ status: 200, description: 'Terms accepted successfully' })
+  @ApiResponse({ status: 400, description: 'Terms already accepted' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async acceptTerms(@Request() req: any, @Body() dto: AcceptTermsDto) {
+    if (!dto.accepted) {
+      throw new Error('Terms must be accepted');
+    }
+    return this.authService.acceptTerms(req.user.id);
   }
 }

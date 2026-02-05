@@ -44,9 +44,11 @@ async function bootstrap() {
       .addTag('auth', 'Authentication endpoints')
       .addTag('users', 'User management')
       .addTag('preferences', 'User preferences')
+      .addTag('state', 'User state and calm mode')
       .addTag('messaging', 'Messaging system')
+      .addTag('safety', 'Blocking and reporting')
       .addTag('moderation', 'Moderation tools')
-      .addTag('parent-dashboard', 'Parent dashboard')
+      .addTag('parent', 'Parent dashboard')
       .build();
 
     const document = SwaggerModule.createDocument(app, config);
