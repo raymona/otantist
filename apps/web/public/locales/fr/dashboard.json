@@ -1,0 +1,67 @@
+{
+  "title": "Tableau de bord",
+  "status_bar": {
+    "energy": "Énergie",
+    "energy_high": "Haute",
+    "energy_medium": "Moyenne",
+    "energy_low": "Basse",
+    "calm_mode": "Mode calme",
+    "calm_mode_on": "Activé",
+    "calm_mode_off": "Désactivé"
+  },
+  "conversations": {
+    "title": "Conversations",
+    "empty": "Aucune conversation",
+    "empty_hint": "Démarrez une nouvelle conversation pour commencer",
+    "new": "Nouvelle conversation",
+    "refresh": "Rafraîchir",
+    "unread_one": "{{count}} non lu",
+    "unread_other": "{{count}} non lus",
+    "online": "En ligne",
+    "offline": "Hors ligne"
+  },
+  "chat": {
+    "placeholder": "Écrivez un message...",
+    "send": "Envoyer",
+    "load_more": "Charger les messages plus anciens",
+    "no_messages": "Aucun message. Envoyez le premier !",
+    "back": "Retour",
+    "message_status": {
+      "queued": "En file",
+      "sent": "Envoyé",
+      "delivered": "Livré",
+      "read": "Lu"
+    },
+    "queued_reason": {
+      "recipient_calm_mode": "Le destinataire est en mode calme",
+      "outside_time_boundary": "En dehors des heures de disponibilité"
+    },
+    "delete": "Supprimer",
+    "deleted_message": "Message supprimé",
+    "message_own": "Votre message",
+    "message_other": "Message reçu",
+    "calm_mode_active": "Mode calme activé",
+    "energy_label": "Énergie : {{level}}",
+    "message_input_label": "Message",
+    "back_to_list": "Retour à la liste des conversations",
+    "refresh_messages": "Rafraîchir les messages"
+  },
+  "new_conversation_modal": {
+    "title": "Nouvelle conversation",
+    "user_id_label": "ID utilisateur",
+    "user_id_placeholder": "Entrez l'ID utilisateur",
+    "initial_message_label": "Premier message (optionnel)",
+    "initial_message_placeholder": "Dites bonjour...",
+    "start": "Démarrer la conversation",
+    "starting": "Démarrage...",
+    "error": "Impossible de démarrer la conversation"
+  },
+  "errors": {
+    "load_conversations": "Échec du chargement des conversations",
+    "load_messages": "Échec du chargement des messages",
+    "send_message": "Échec de l'envoi du message",
+    "load_state": "Échec du chargement de l'état",
+    "update_energy": "Échec de la mise à jour de l'énergie",
+    "toggle_calm": "Échec du changement de mode calme"
+  }
+}

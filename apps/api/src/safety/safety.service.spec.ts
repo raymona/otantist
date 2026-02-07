@@ -1,8 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { SafetyService } from './safety.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
@@ -20,10 +17,7 @@ describe('SafetyService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        SafetyService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [SafetyService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<SafetyService>(SafetyService);
@@ -50,18 +44,16 @@ describe('SafetyService', () => {
     it('should throw when blocking self', async () => {
       prisma.account.findUnique.mockResolvedValue(mockAccountWithUser);
 
-      await expect(
-        service.blockUser('account-id', 'user-id'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.blockUser('account-id', 'user-id')).rejects.toThrow(BadRequestException);
     });
 
     it('should throw when target user not found', async () => {
       prisma.account.findUnique.mockResolvedValue(mockAccountWithUser);
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.blockUser('account-id', 'nonexistent-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.blockUser('account-id', 'nonexistent-id')).rejects.toThrow(
+        NotFoundException
+      );
     });
 
     it('should throw when user already blocked', async () => {
@@ -76,9 +68,9 @@ describe('SafetyService', () => {
         blockedId: 'target-user-id',
       });
 
-      await expect(
-        service.blockUser('account-id', 'target-user-id'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.blockUser('account-id', 'target-user-id')).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 
@@ -95,18 +87,16 @@ describe('SafetyService', () => {
       prisma.blockedUser.delete.mockResolvedValue({});
       prisma.conversation.updateMany.mockResolvedValue({ count: 1 });
 
-      await expect(
-        service.unblockUser('account-id', 'target-user-id'),
-      ).resolves.toBeUndefined();
+      await expect(service.unblockUser('account-id', 'target-user-id')).resolves.toBeUndefined();
     });
 
     it('should throw when user is not blocked', async () => {
       prisma.account.findUnique.mockResolvedValue(mockAccountWithUser);
       prisma.blockedUser.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.unblockUser('account-id', 'target-user-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.unblockUser('account-id', 'target-user-id')).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 
@@ -152,7 +142,7 @@ describe('SafetyService', () => {
       });
       prisma.moderationQueue.create.mockResolvedValue({});
 
-      const result = await service.submitReport('account-id', {
+      await service.submitReport('account-id', {
         reportedMessageId: 'msg-id',
         reason: 'inappropriate' as any,
       });
@@ -161,7 +151,7 @@ describe('SafetyService', () => {
         expect.objectContaining({
           where: { id: 'msg-id' },
           data: expect.objectContaining({ flagged: true }),
-        }),
+        })
       );
     });
 
@@ -171,7 +161,7 @@ describe('SafetyService', () => {
       await expect(
         service.submitReport('account-id', {
           reason: 'spam' as any,
-        }),
+        })
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -186,7 +176,7 @@ describe('SafetyService', () => {
         service.submitReport('account-id', {
           reportedUserId: 'user-id',
           reason: 'harassment' as any,
-        }),
+        })
       ).rejects.toThrow(BadRequestException);
     });
   });

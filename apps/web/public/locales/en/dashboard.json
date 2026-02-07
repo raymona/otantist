@@ -1,0 +1,67 @@
+{
+  "title": "Dashboard",
+  "status_bar": {
+    "energy": "Energy",
+    "energy_high": "High",
+    "energy_medium": "Medium",
+    "energy_low": "Low",
+    "calm_mode": "Calm mode",
+    "calm_mode_on": "On",
+    "calm_mode_off": "Off"
+  },
+  "conversations": {
+    "title": "Conversations",
+    "empty": "No conversations yet",
+    "empty_hint": "Start a new conversation to begin messaging",
+    "new": "New conversation",
+    "refresh": "Refresh",
+    "unread_one": "{{count}} unread",
+    "unread_other": "{{count}} unread",
+    "online": "Online",
+    "offline": "Offline"
+  },
+  "chat": {
+    "placeholder": "Type a message...",
+    "send": "Send",
+    "load_more": "Load older messages",
+    "no_messages": "No messages yet. Send the first one!",
+    "back": "Back",
+    "message_status": {
+      "queued": "Queued",
+      "sent": "Sent",
+      "delivered": "Delivered",
+      "read": "Read"
+    },
+    "queued_reason": {
+      "recipient_calm_mode": "Recipient has calm mode on",
+      "outside_time_boundary": "Outside recipient's availability"
+    },
+    "delete": "Delete",
+    "deleted_message": "Message deleted",
+    "message_own": "Your message",
+    "message_other": "Message received",
+    "calm_mode_active": "Calm mode active",
+    "energy_label": "Energy: {{level}}",
+    "message_input_label": "Message",
+    "back_to_list": "Back to conversation list",
+    "refresh_messages": "Refresh messages"
+  },
+  "new_conversation_modal": {
+    "title": "New conversation",
+    "user_id_label": "User ID",
+    "user_id_placeholder": "Enter user ID",
+    "initial_message_label": "First message (optional)",
+    "initial_message_placeholder": "Say hello...",
+    "start": "Start conversation",
+    "starting": "Starting...",
+    "error": "Could not start conversation"
+  },
+  "errors": {
+    "load_conversations": "Failed to load conversations",
+    "load_messages": "Failed to load messages",
+    "send_message": "Failed to send message",
+    "load_state": "Failed to load user state",
+    "update_energy": "Failed to update energy",
+    "toggle_calm": "Failed to toggle calm mode"
+  }
+}

@@ -18,10 +18,7 @@ describe('StateService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        StateService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [StateService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<StateService>(StateService);
@@ -52,9 +49,7 @@ describe('StateService', () => {
     it('should throw if user not found', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(service.getCurrentState('missing-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getCurrentState('missing-id')).rejects.toThrow(NotFoundException);
     });
 
     it('should create state if it does not exist', async () => {
@@ -90,16 +85,13 @@ describe('StateService', () => {
       prisma.userState.update.mockResolvedValue({});
       prisma.userState.create.mockResolvedValue({});
 
-      const result = await service.updateSocialEnergy(
-        'account-id',
-        SocialEnergyLevel.LOW,
-      );
+      await service.updateSocialEnergy('account-id', SocialEnergyLevel.LOW);
 
       expect(prisma.userState.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { userId: 'user-id' },
           data: expect.objectContaining({ socialEnergy: 'low' }),
-        }),
+        })
       );
     });
   });
@@ -118,7 +110,7 @@ describe('StateService', () => {
       expect(prisma.userState.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({ calmModeActive: true }),
-        }),
+        })
       );
     });
 
@@ -141,7 +133,7 @@ describe('StateService', () => {
             parentAccountId: 'parent-id',
             memberUserId: 'user-id',
           }),
-        }),
+        })
       );
     });
   });

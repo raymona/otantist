@@ -1,6 +1,6 @@
 {
   "app_name": "Otantist",
-  "tagline": "Plateforme sociale sécuritaire pour les personnes autistes",
+  "tagline": "Plateforme sociale sécuritaire pour les personnes autistes et neurodivergentes",
   "loading": "Chargement...",
   "error": "Une erreur s'est produite",
   "save": "Enregistrer",
@@ -14,5 +14,14 @@
   "no": "Non",
   "language": "Langue",
   "french": "Français",
-  "english": "Anglais"
+  "english": "Anglais",
+  "logout": "Déconnexion",
+  "welcome": "Bienvenue",
+  "locale_code": "fr-CA",
+  "time": {
+    "just_now": "À l'instant",
+    "minutes_ago": "Il y a {{count}} min",
+    "hours_ago": "Il y a {{count}} h",
+    "days_ago": "Il y a {{count}} j"
+  }
 }

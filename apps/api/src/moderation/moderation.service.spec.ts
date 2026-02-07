@@ -27,10 +27,7 @@ describe('ModerationService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ModerationService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [ModerationService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<ModerationService>(ModerationService);
@@ -61,7 +58,7 @@ describe('ModerationService', () => {
       expect(prisma.moderationQueue.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ status: 'pending' }),
-        }),
+        })
       );
     });
 
@@ -73,7 +70,7 @@ describe('ModerationService', () => {
       expect(prisma.moderationQueue.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({ priority: 'high' }),
-        }),
+        })
       );
     });
   });
@@ -81,8 +78,9 @@ describe('ModerationService', () => {
   describe('resolveQueueItem', () => {
     it('should resolve a queue item with dismiss action', async () => {
       prisma.moderationQueue.findUnique
-        .mockResolvedValueOnce(mockQueueItem)   // first call
-        .mockResolvedValueOnce({                // second call in getQueueItem
+        .mockResolvedValueOnce(mockQueueItem) // first call
+        .mockResolvedValueOnce({
+          // second call in getQueueItem
           ...mockQueueItem,
           status: 'resolved',
           actionTaken: 'dismissed',
@@ -95,11 +93,10 @@ describe('ModerationService', () => {
         createdAt: new Date(),
       });
 
-      const result = await service.resolveQueueItem(
-        'queue-id',
-        'reviewer-account-id',
-        { action: 'dismissed' as any, notes: 'False positive' },
-      );
+      await service.resolveQueueItem('queue-id', 'reviewer-account-id', {
+        action: 'dismissed' as any,
+        notes: 'False positive',
+      });
 
       expect(prisma.moderationQueue.update).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -107,18 +104,16 @@ describe('ModerationService', () => {
             status: 'resolved',
             actionTaken: 'dismissed',
           }),
-        }),
+        })
       );
     });
 
     it('should remove message content when action is removed', async () => {
-      prisma.moderationQueue.findUnique
-        .mockResolvedValueOnce(mockQueueItem)
-        .mockResolvedValueOnce({
-          ...mockQueueItem,
-          status: 'resolved',
-          actionTaken: 'removed',
-        });
+      prisma.moderationQueue.findUnique.mockResolvedValueOnce(mockQueueItem).mockResolvedValueOnce({
+        ...mockQueueItem,
+        status: 'resolved',
+        actionTaken: 'removed',
+      });
       prisma.message.update.mockResolvedValue({});
       prisma.moderationQueue.update.mockResolvedValue({});
       prisma.message.findUnique.mockResolvedValue({
@@ -136,7 +131,7 @@ describe('ModerationService', () => {
         expect.objectContaining({
           where: { id: 'msg-id' },
           data: { content: '[Removed by moderator]', messageType: 'system' },
-        }),
+        })
       );
     });
 
@@ -146,7 +141,7 @@ describe('ModerationService', () => {
       await expect(
         service.resolveQueueItem('missing-id', 'reviewer-id', {
           action: 'dismissed' as any,
-        }),
+        })
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -154,13 +149,13 @@ describe('ModerationService', () => {
   describe('getStats', () => {
     it('should return moderation statistics', async () => {
       prisma.moderationQueue.count
-        .mockResolvedValueOnce(5)  // pending
-        .mockResolvedValueOnce(2)  // reviewing
+        .mockResolvedValueOnce(5) // pending
+        .mockResolvedValueOnce(2) // reviewing
         .mockResolvedValueOnce(10) // resolvedToday
         .mockResolvedValueOnce(50) // totalResolved
-        .mockResolvedValueOnce(1)  // low
-        .mockResolvedValueOnce(2)  // medium
-        .mockResolvedValueOnce(1)  // high
+        .mockResolvedValueOnce(1) // low
+        .mockResolvedValueOnce(2) // medium
+        .mockResolvedValueOnce(1) // high
         .mockResolvedValueOnce(1); // urgent
 
       const result = await service.getStats();
