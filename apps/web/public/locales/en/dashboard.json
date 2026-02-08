@@ -7,7 +7,8 @@
     "energy_low": "Low",
     "calm_mode": "Calm mode",
     "calm_mode_on": "On",
-    "calm_mode_off": "Off"
+    "calm_mode_off": "Off",
+    "blocked_users": "Blocked users"
   },
   "conversations": {
     "title": "Conversations",
@@ -44,7 +45,48 @@
     "energy_label": "Energy: {{level}}",
     "message_input_label": "Message",
     "back_to_list": "Back to conversation list",
-    "refresh_messages": "Refresh messages"
+    "refresh_messages": "Refresh messages",
+    "block_user": "Block user",
+    "report_user": "Report user",
+    "report_message": "Report message"
+  },
+  "safety": {
+    "block_success": "User blocked successfully",
+    "unblock_success": "User unblocked successfully",
+    "report_success": "Report submitted successfully"
+  },
+  "block_modal": {
+    "title": "Block {{name}}?",
+    "description": "Blocking this user will:",
+    "effect_conversations": "Archive all conversations between you",
+    "effect_messages": "Prevent them from sending you messages",
+    "effect_start": "Prevent them from starting new conversations with you",
+    "reversible": "You can unblock this user at any time from the blocked users list.",
+    "confirm": "Block user",
+    "cancel": "Cancel"
+  },
+  "report_modal": {
+    "title_user": "Report {{name}}",
+    "title_message": "Report message",
+    "reason_label": "Why are you reporting?",
+    "reason_harassment": "Harassment",
+    "reason_inappropriate": "Inappropriate content",
+    "reason_spam": "Spam",
+    "reason_safety_concern": "Safety concern",
+    "reason_other": "Other",
+    "description_label": "Additional details (optional)",
+    "description_placeholder": "Tell us more about what happened...",
+    "submit": "Submit report",
+    "submitting": "Submitting...",
+    "cancel": "Cancel"
+  },
+  "blocked_users_modal": {
+    "title": "Blocked users",
+    "empty": "You haven't blocked anyone",
+    "unblock": "Unblock",
+    "unblocking": "Unblocking...",
+    "close": "Close",
+    "blocked_on": "Blocked on {{date}}"
   },
   "new_conversation_modal": {
     "title": "New conversation",
@@ -62,6 +104,10 @@
     "send_message": "Failed to send message",
     "load_state": "Failed to load user state",
     "update_energy": "Failed to update energy",
-    "toggle_calm": "Failed to toggle calm mode"
+    "toggle_calm": "Failed to toggle calm mode",
+    "block_user": "Failed to block user",
+    "unblock_user": "Failed to unblock user",
+    "submit_report": "Failed to submit report",
+    "load_blocked_users": "Failed to load blocked users"
   }
 }

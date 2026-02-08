@@ -4,11 +4,15 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthGuard } from '@/lib/use-auth-guard';
 import { messagingApi } from '@/lib/messaging-api';
+import { safetyApi } from '@/lib/safety-api';
 import type { Conversation } from '@/lib/types';
 import StatusBar from '@/components/dashboard/StatusBar';
 import ConversationList from '@/components/dashboard/ConversationList';
 import ChatView from '@/components/dashboard/ChatView';
 import NewConversationModal from '@/components/dashboard/NewConversationModal';
+import BlockConfirmModal from '@/components/dashboard/BlockConfirmModal';
+import ReportModal from '@/components/dashboard/ReportModal';
+import BlockedUsersModal from '@/components/dashboard/BlockedUsersModal';
 
 export default function DashboardPage() {
   const { t } = useTranslation('dashboard');
@@ -19,6 +23,26 @@ export default function DashboardPage() {
   const [isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
   const [error, setError] = useState('');
+
+  // Safety modal state
+  const [blockTarget, setBlockTarget] = useState<{ userId: string; userName: string } | null>(null);
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [reportTarget, setReportTarget] = useState<{
+    userId: string;
+    userName: string;
+    messageId?: string;
+  } | null>(null);
+  const [showBlockedUsers, setShowBlockedUsers] = useState(false);
+
+  // Success toast
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Auto-dismiss toast after 5 seconds
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 5000);
+    return () => clearTimeout(timer);
+  }, [toast]);
 
   const fetchConversations = useCallback(async () => {
     setIsLoadingConversations(true);
@@ -58,6 +82,47 @@ export default function DashboardPage() {
     fetchConversations();
   }, [fetchConversations]);
 
+  // --- Safety handlers ---
+
+  const handleBlockUser = (userId: string, userName: string) => {
+    setBlockTarget({ userId, userName });
+  };
+
+  const handleConfirmBlock = async () => {
+    if (!blockTarget) return;
+    setIsBlocking(true);
+    try {
+      await safetyApi.blockUser(blockTarget.userId);
+      setBlockTarget(null);
+      setSelectedConversation(null);
+      setToast(t('safety.block_success'));
+      fetchConversations();
+    } catch {
+      setError(t('errors.block_user'));
+      setBlockTarget(null);
+    } finally {
+      setIsBlocking(false);
+    }
+  };
+
+  const handleReportUser = (userId: string, userName: string) => {
+    setReportTarget({ userId, userName });
+  };
+
+  const handleReportMessage = (messageId: string, userId: string, userName: string) => {
+    setReportTarget({ userId, userName, messageId });
+  };
+
+  const handleReportSuccess = () => {
+    setReportTarget(null);
+    setToast(t('safety.report_success'));
+  };
+
+  const handleUnblocked = () => {
+    setToast(t('safety.unblock_success'));
+    fetchConversations();
+  };
+
   // Loading / redirecting
   if (authLoading) {
     return (
@@ -81,7 +146,17 @@ export default function DashboardPage() {
         {t('conversations.title')}
       </a>
 
-      <StatusBar />
+      <StatusBar onOpenBlockedUsers={() => setShowBlockedUsers(true)} />
+
+      {/* Success toast */}
+      {toast && (
+        <div
+          role="status"
+          className="fixed top-4 right-4 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 shadow-md"
+        >
+          {toast}
+        </div>
+      )}
 
       {/* Main content */}
       <div id="main-content" className="flex flex-1 overflow-hidden">
@@ -117,6 +192,9 @@ export default function DashboardPage() {
               conversation={selectedConversation}
               onBack={handleBack}
               onConversationUpdated={handleConversationUpdated}
+              onBlockUser={handleBlockUser}
+              onReportUser={handleReportUser}
+              onReportMessage={handleReportMessage}
             />
           ) : (
             <div className="flex h-full items-center justify-center">
@@ -130,6 +208,29 @@ export default function DashboardPage() {
         isOpen={showNewModal}
         onClose={() => setShowNewModal(false)}
         onCreated={handleNewConversationCreated}
+      />
+
+      <BlockConfirmModal
+        isOpen={!!blockTarget}
+        userName={blockTarget?.userName ?? ''}
+        isLoading={isBlocking}
+        onConfirm={handleConfirmBlock}
+        onClose={() => setBlockTarget(null)}
+      />
+
+      <ReportModal
+        isOpen={!!reportTarget}
+        reportedUserId={reportTarget?.userId}
+        reportedMessageId={reportTarget?.messageId}
+        userName={reportTarget?.userName ?? ''}
+        onSuccess={handleReportSuccess}
+        onClose={() => setReportTarget(null)}
+      />
+
+      <BlockedUsersModal
+        isOpen={showBlockedUsers}
+        onClose={() => setShowBlockedUsers(false)}
+        onUnblocked={handleUnblocked}
       />
     </div>
   );

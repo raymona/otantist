@@ -7,7 +7,8 @@
     "energy_low": "Basse",
     "calm_mode": "Mode calme",
     "calm_mode_on": "Activé",
-    "calm_mode_off": "Désactivé"
+    "calm_mode_off": "Désactivé",
+    "blocked_users": "Utilisateurs bloqués"
   },
   "conversations": {
     "title": "Conversations",
@@ -44,7 +45,48 @@
     "energy_label": "Énergie : {{level}}",
     "message_input_label": "Message",
     "back_to_list": "Retour à la liste des conversations",
-    "refresh_messages": "Rafraîchir les messages"
+    "refresh_messages": "Rafraîchir les messages",
+    "block_user": "Bloquer l'utilisateur",
+    "report_user": "Signaler l'utilisateur",
+    "report_message": "Signaler le message"
+  },
+  "safety": {
+    "block_success": "Utilisateur bloqué avec succès",
+    "unblock_success": "Utilisateur débloqué avec succès",
+    "report_success": "Signalement envoyé avec succès"
+  },
+  "block_modal": {
+    "title": "Bloquer {{name}} ?",
+    "description": "Bloquer cet utilisateur va :",
+    "effect_conversations": "Archiver toutes les conversations entre vous",
+    "effect_messages": "L'empêcher de vous envoyer des messages",
+    "effect_start": "L'empêcher de démarrer de nouvelles conversations avec vous",
+    "reversible": "Vous pouvez débloquer cet utilisateur à tout moment depuis la liste des utilisateurs bloqués.",
+    "confirm": "Bloquer l'utilisateur",
+    "cancel": "Annuler"
+  },
+  "report_modal": {
+    "title_user": "Signaler {{name}}",
+    "title_message": "Signaler le message",
+    "reason_label": "Pourquoi signalez-vous ?",
+    "reason_harassment": "Harcèlement",
+    "reason_inappropriate": "Contenu inapproprié",
+    "reason_spam": "Spam",
+    "reason_safety_concern": "Problème de sécurité",
+    "reason_other": "Autre",
+    "description_label": "Détails supplémentaires (optionnel)",
+    "description_placeholder": "Dites-nous en plus sur ce qui s'est passé...",
+    "submit": "Envoyer le signalement",
+    "submitting": "Envoi en cours...",
+    "cancel": "Annuler"
+  },
+  "blocked_users_modal": {
+    "title": "Utilisateurs bloqués",
+    "empty": "Vous n'avez bloqué personne",
+    "unblock": "Débloquer",
+    "unblocking": "Déblocage...",
+    "close": "Fermer",
+    "blocked_on": "Bloqué le {{date}}"
   },
   "new_conversation_modal": {
     "title": "Nouvelle conversation",
@@ -62,6 +104,10 @@
     "send_message": "Échec de l'envoi du message",
     "load_state": "Échec du chargement de l'état",
     "update_energy": "Échec de la mise à jour de l'énergie",
-    "toggle_calm": "Échec du changement de mode calme"
+    "toggle_calm": "Échec du changement de mode calme",
+    "block_user": "Échec du blocage de l'utilisateur",
+    "unblock_user": "Échec du déblocage de l'utilisateur",
+    "submit_report": "Échec de l'envoi du signalement",
+    "load_blocked_users": "Échec du chargement des utilisateurs bloqués"
   }
 }

@@ -16,7 +16,11 @@ const energyColors: Record<SocialEnergyLevel, string> = {
   low: 'bg-red-500',
 };
 
-export default function StatusBar() {
+interface StatusBarProps {
+  onOpenBlockedUsers?: () => void;
+}
+
+export default function StatusBar({ onOpenBlockedUsers }: StatusBarProps) {
   const { t } = useTranslation('dashboard');
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -135,6 +139,28 @@ export default function StatusBar() {
           </svg>
           {t('status_bar.calm_mode')}{' '}
           {state?.calmModeActive ? t('status_bar.calm_mode_on') : t('status_bar.calm_mode_off')}
+        </button>
+
+        {/* Blocked users button */}
+        <button
+          onClick={onOpenBlockedUsers}
+          className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200"
+        >
+          <svg
+            className="h-3.5 w-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+            />
+          </svg>
+          {t('status_bar.blocked_users')}
         </button>
 
         <LanguageSwitcher />

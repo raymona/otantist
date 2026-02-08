@@ -81,3 +81,27 @@ export interface CalmModeResponse {
   startedAt: string | null;
   durationMinutes?: number;
 }
+
+// Safety types
+
+export interface BlockedUser {
+  id: string;
+  displayName: string | null;
+  blockedAt: string;
+}
+
+export type ReportReason = 'harassment' | 'inappropriate' | 'spam' | 'safety_concern' | 'other';
+
+export interface CreateReportData {
+  reportedUserId?: string;
+  reportedMessageId?: string;
+  reason: ReportReason;
+  description?: string;
+}
+
+export interface ReportResponse {
+  id: string;
+  reason: ReportReason;
+  description?: string | null;
+  createdAt: string;
+}

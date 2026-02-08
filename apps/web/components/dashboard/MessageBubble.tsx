@@ -7,9 +7,10 @@ import { formatRelativeTime } from '@/lib/utils';
 interface MessageBubbleProps {
   message: Message;
   onDelete?: (messageId: string) => void;
+  onReport?: (messageId: string) => void;
 }
 
-export default function MessageBubble({ message, onDelete }: MessageBubbleProps) {
+export default function MessageBubble({ message, onDelete, onReport }: MessageBubbleProps) {
   const { t } = useTranslation('dashboard');
   const isOwn = message.isOwnMessage;
   const isQueued = message.status === 'queued';
@@ -72,6 +73,31 @@ export default function MessageBubble({ message, onDelete }: MessageBubbleProps)
             className="mt-1 text-xs text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600 focus:text-red-600 focus:opacity-100"
           >
             {t('chat.delete')}
+          </button>
+        )}
+
+        {/* Report button on other user's messages */}
+        {!isOwn && !isDeleted && onReport && (
+          <button
+            onClick={() => onReport(message.id)}
+            aria-label={t('chat.report_message')}
+            className="mt-1 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600 focus:text-red-600 focus:opacity-100"
+          >
+            <svg
+              className="mr-1 inline-block h-3 w-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+            {t('chat.report_message')}
           </button>
         )}
       </div>
