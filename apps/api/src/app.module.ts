@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
@@ -12,6 +13,7 @@ import { MessagingModule } from './messaging/messaging.module';
 import { SafetyModule } from './safety/safety.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.module';
+import { GatewayModule } from './gateway/gateway.module';
 
 @Module({
   imports: [
@@ -40,6 +42,9 @@ import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.modul
       },
     ]),
 
+    // Events
+    EventEmitterModule.forRoot(),
+
     // Database
     PrismaModule,
 
@@ -55,6 +60,7 @@ import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.modul
     SafetyModule,
     ModerationModule,
     ParentDashboardModule,
+    GatewayModule,
   ],
   providers: [
     {

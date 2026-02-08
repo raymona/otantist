@@ -18,9 +18,10 @@ const energyColors: Record<SocialEnergyLevel, string> = {
 
 interface StatusBarProps {
   onOpenBlockedUsers?: () => void;
+  isConnected?: boolean;
 }
 
-export default function StatusBar({ onOpenBlockedUsers }: StatusBarProps) {
+export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBarProps) {
   const { t } = useTranslation('dashboard');
   const router = useRouter();
   const { user, logout } = useAuth();
@@ -162,6 +163,21 @@ export default function StatusBar({ onOpenBlockedUsers }: StatusBarProps) {
           </svg>
           {t('status_bar.blocked_users')}
         </button>
+
+        {/* Connection status */}
+        <span
+          role="status"
+          aria-live="polite"
+          className={`flex items-center gap-1 text-xs ${
+            isConnected ? 'text-green-600' : 'text-amber-600'
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className={`h-1.5 w-1.5 rounded-full ${isConnected ? 'bg-green-500' : 'bg-amber-500'}`}
+          />
+          {isConnected ? t('status_bar.connected') : t('status_bar.reconnecting')}
+        </span>
 
         <LanguageSwitcher />
 

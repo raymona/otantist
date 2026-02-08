@@ -59,7 +59,7 @@ export class MessagingService {
     });
 
     const conversationResponses: ConversationResponse[] = await Promise.all(
-      conversations.map(async (conv) => {
+      conversations.map(async conv => {
         const otherUser = conv.userAId === userId ? conv.userB : conv.userA;
         const lastMessage = conv.messages[0] || null;
 
@@ -97,7 +97,7 @@ export class MessagingService {
             : null,
           unreadCount,
         };
-      }),
+      })
     );
 
     return {
@@ -109,7 +109,7 @@ export class MessagingService {
   async startConversation(
     accountId: string,
     otherUserId: string,
-    initialMessage?: string,
+    initialMessage?: string
   ): Promise<ConversationResponse> {
     const userId = await this.getUserIdFromAccount(accountId);
 
@@ -172,10 +172,7 @@ export class MessagingService {
     return this.getConversation(accountId, conversation.id);
   }
 
-  async getConversation(
-    accountId: string,
-    conversationId: string,
-  ): Promise<ConversationResponse> {
+  async getConversation(accountId: string, conversationId: string): Promise<ConversationResponse> {
     const userId = await this.getUserIdFromAccount(accountId);
 
     const conversation = await this.prisma.conversation.findUnique({
@@ -199,8 +196,7 @@ export class MessagingService {
       throw new ForbiddenException('Access denied');
     }
 
-    const otherUser =
-      conversation.userAId === userId ? conversation.userB : conversation.userA;
+    const otherUser = conversation.userAId === userId ? conversation.userB : conversation.userA;
     const lastMessage = conversation.messages[0] || null;
 
     const unreadCount = await this.prisma.message.count({
@@ -246,7 +242,7 @@ export class MessagingService {
     accountId: string,
     conversationId: string,
     limit: number = 50,
-    before?: string,
+    before?: string
   ): Promise<MessageListResponse> {
     const userId = await this.getUserIdFromAccount(accountId);
 
@@ -267,10 +263,7 @@ export class MessagingService {
     const whereClause: any = {
       conversationId,
       // Don't show queued messages from other user
-      OR: [
-        { senderId: userId },
-        { senderId: { not: userId }, status: { not: 'queued' } },
-      ],
+      OR: [{ senderId: userId }, { senderId: { not: userId }, status: { not: 'queued' } }],
     };
 
     if (before) {
@@ -298,7 +291,7 @@ export class MessagingService {
     });
 
     return {
-      messages: messages.map((msg) => ({
+      messages: messages.map(msg => ({
         id: msg.id,
         conversationId: msg.conversationId,
         senderId: msg.senderId,
@@ -320,7 +313,7 @@ export class MessagingService {
   async sendMessage(
     accountId: string,
     conversationId: string,
-    dto: SendMessageDto,
+    dto: SendMessageDto
   ): Promise<{ queued: boolean; reason?: string; deliverAt?: Date; message: MessageResponse }> {
     const userId = await this.getUserIdFromAccount(accountId);
 
@@ -345,8 +338,7 @@ export class MessagingService {
       throw new ForbiddenException('Conversation is blocked');
     }
 
-    const recipient =
-      conversation.userAId === userId ? conversation.userB : conversation.userA;
+    const recipient = conversation.userAId === userId ? conversation.userB : conversation.userA;
 
     // Check if blocked
     const isBlocked = await this.isBlocked(userId, recipient.id);
@@ -402,6 +394,16 @@ export class MessagingService {
     };
   }
 
+  async markAsDelivered(messageId: string): Promise<void> {
+    await this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        status: 'delivered',
+        deliveredAt: new Date(),
+      },
+    });
+  }
+
   async deleteMessage(accountId: string, messageId: string): Promise<void> {
     const userId = await this.getUserIdFromAccount(accountId);
 
@@ -429,11 +431,7 @@ export class MessagingService {
     });
   }
 
-  async markAsRead(
-    accountId: string,
-    conversationId: string,
-    messageId: string,
-  ): Promise<void> {
+  async markAsRead(accountId: string, conversationId: string, messageId: string): Promise<void> {
     const userId = await this.getUserIdFromAccount(accountId);
 
     // Verify access
@@ -473,9 +471,7 @@ export class MessagingService {
 
     // Update member indicators for recipient
     const otherUserId =
-      conversation.userAId === userId
-        ? conversation.userBId
-        : conversation.userAId;
+      conversation.userAId === userId ? conversation.userBId : conversation.userAId;
     await this.updateMessageIndicators(otherUserId, 'received');
   }
 
@@ -515,9 +511,7 @@ export class MessagingService {
     const currentTime = now.toTimeString().slice(0, 5); // HH:MM
 
     const boundaries = recipient.timeBoundaries || [];
-    const todayBoundary = boundaries.find(
-      (b: any) => b.dayOfWeek === dayOfWeek,
-    );
+    const todayBoundary = boundaries.find((b: any) => b.dayOfWeek === dayOfWeek);
 
     if (todayBoundary) {
       const { availableStart, availableEnd } = todayBoundary;
@@ -568,17 +562,12 @@ export class MessagingService {
     return result;
   }
 
-  private async updateMessageIndicators(
-    userId: string,
-    type: 'sent' | 'received',
-  ): Promise<void> {
+  private async updateMessageIndicators(userId: string, type: 'sent' | 'received'): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const updateData =
-      type === 'sent'
-        ? { messagesSent: { increment: 1 } }
-        : { messagesReceived: { increment: 1 } };
+      type === 'sent' ? { messagesSent: { increment: 1 } } : { messagesReceived: { increment: 1 } };
 
     await this.prisma.memberIndicator.upsert({
       where: {

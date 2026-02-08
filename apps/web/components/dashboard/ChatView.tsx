@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, KeyboardEvent } from 'react';
+import { useState, useEffect, useRef, KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { messagingApi } from '@/lib/messaging-api';
 import type { Conversation, Message } from '@/lib/types';
@@ -8,61 +8,56 @@ import MessageBubble from './MessageBubble';
 
 interface ChatViewProps {
   conversation: Conversation;
+  messages: Message[];
+  hasMore: boolean;
+  onLoadMessages: (conversationId: string, before?: string) => Promise<void>;
   onBack: () => void;
   onConversationUpdated?: () => void;
   onBlockUser?: (userId: string, userName: string) => void;
   onReportUser?: (userId: string, userName: string) => void;
   onReportMessage?: (messageId: string, userId: string, userName: string) => void;
+  isConnected: boolean;
+  onSendViaSocket?: (conversationId: string, content: string, tempId: string) => void;
+  onEmitTyping?: (conversationId: string) => void;
+  onEmitRead?: (conversationId: string, messageId: string) => void;
+  typingUser: { displayName: string } | null;
 }
 
 export default function ChatView({
   conversation,
+  messages,
+  hasMore,
+  onLoadMessages,
   onBack,
   onConversationUpdated,
   onBlockUser,
   onReportUser,
   onReportMessage,
+  isConnected,
+  onSendViaSocket,
+  onEmitTyping,
+  onEmitRead,
+  typingUser,
 }: ChatViewProps) {
   const { t } = useTranslation('dashboard');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [hasMore, setHasMore] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [inputText, setInputText] = useState('');
   const [error, setError] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastTypingEmitRef = useRef<number>(0);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const fetchMessages = useCallback(
-    async (before?: string) => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const data = await messagingApi.getMessages(conversation.id, 50, before);
-        if (before) {
-          setMessages(prev => [...data.messages, ...prev]);
-        } else {
-          setMessages(data.messages);
-        }
-        setHasMore(data.hasMore);
-      } catch {
-        setError(t('errors.load_messages'));
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [conversation.id, t]
-  );
-
-  // Fetch messages on mount / conversation change
+  // Load messages on mount
   useEffect(() => {
-    fetchMessages();
-  }, [fetchMessages]);
+    setIsLoading(true);
+    onLoadMessages(conversation.id).finally(() => setIsLoading(false));
+  }, [conversation.id, onLoadMessages]);
 
-  // Scroll to bottom when messages first load or new messages arrive
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (messages.length > 0) {
       scrollToBottom();
@@ -74,15 +69,31 @@ export default function ChatView({
     if (conversation.unreadCount > 0 && messages.length > 0) {
       const lastMsg = messages[messages.length - 1];
       if (lastMsg && !lastMsg.isOwnMessage) {
-        messagingApi.markAsRead(conversation.id, lastMsg.id).catch(() => {});
+        if (isConnected && onEmitRead) {
+          onEmitRead(conversation.id, lastMsg.id);
+        } else {
+          messagingApi.markAsRead(conversation.id, lastMsg.id).catch(() => {});
+        }
         onConversationUpdated?.();
       }
     }
-  }, [conversation.id, conversation.unreadCount, messages, onConversationUpdated]);
+  }, [
+    conversation.id,
+    conversation.unreadCount,
+    messages,
+    onConversationUpdated,
+    isConnected,
+    onEmitRead,
+  ]);
 
-  const handleLoadMore = () => {
+  const handleLoadMore = async () => {
     if (messages.length > 0 && hasMore) {
-      fetchMessages(messages[0].id);
+      setIsLoading(true);
+      try {
+        await onLoadMessages(conversation.id, messages[0].id);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -90,18 +101,27 @@ export default function ChatView({
     const text = inputText.trim();
     if (!text || isSending) return;
 
-    setIsSending(true);
     setError('');
 
-    try {
-      const response = await messagingApi.sendMessage(conversation.id, text);
-      setMessages(prev => [...prev, response.message]);
+    if (isConnected && onSendViaSocket) {
+      // Socket path: emit to server, which echoes back via onNewMessage with tempId for dedup
+      const tempId = crypto.randomUUID();
+      onSendViaSocket(conversation.id, text, tempId);
       setInputText('');
-      onConversationUpdated?.();
-    } catch {
-      setError(t('errors.send_message'));
-    } finally {
-      setIsSending(false);
+    } else {
+      // REST fallback
+      setIsSending(true);
+      try {
+        await messagingApi.sendMessage(conversation.id, text);
+        setInputText('');
+        // Reload messages via REST since we don't have socket
+        await onLoadMessages(conversation.id);
+        onConversationUpdated?.();
+      } catch {
+        setError(t('errors.send_message'));
+      } finally {
+        setIsSending(false);
+      }
     }
   };
 
@@ -112,16 +132,24 @@ export default function ChatView({
     }
   };
 
+  const handleInputChange = (value: string) => {
+    setInputText(value);
+
+    // Emit typing event (debounced to ~2s)
+    if (isConnected && onEmitTyping) {
+      const now = Date.now();
+      if (now - lastTypingEmitRef.current > 2000) {
+        lastTypingEmitRef.current = now;
+        onEmitTyping(conversation.id);
+      }
+    }
+  };
+
   const handleDelete = async (messageId: string) => {
     try {
       await messagingApi.deleteMessage(messageId);
-      setMessages(prev =>
-        prev.map(m =>
-          m.id === messageId
-            ? { ...m, content: '[Message deleted]', messageType: 'system' as const }
-            : m
-        )
-      );
+      // Parent controls messages, so we need to reload
+      await onLoadMessages(conversation.id);
     } catch {
       // Non-critical: delete failure leaves the original message visible
     }
@@ -225,7 +253,10 @@ export default function ChatView({
         </button>
 
         <button
-          onClick={() => fetchMessages()}
+          onClick={() => {
+            setIsLoading(true);
+            onLoadMessages(conversation.id).finally(() => setIsLoading(false));
+          }}
           disabled={isLoading}
           aria-label={t('chat.refresh_messages')}
           className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
@@ -293,6 +324,14 @@ export default function ChatView({
             />
           ))
         )}
+
+        {/* Typing indicator */}
+        {typingUser && (
+          <div className="mt-2 text-xs text-gray-500" role="status" aria-live="polite">
+            {t('chat.typing', { name: typingUser.displayName })}
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -311,7 +350,7 @@ export default function ChatView({
           <textarea
             id="message-input"
             value={inputText}
-            onChange={e => setInputText(e.target.value)}
+            onChange={e => handleInputChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder')}
             rows={1}

@@ -45,6 +45,7 @@ otantist/
 │   │       ├── safety/      # ✅ Blocking, reporting
 │   │       ├── moderation/  # ✅ AI flagging queue, human review
 │   │       ├── parent-dashboard/ # ✅ Indicators, alerts, managed members
+│   │       ├── gateway/     # ✅ WebSocket gateway (auth, real-time messaging, presence)
 │   │       ├── email/       # ✅ Email service
 │   │       └── prisma/      # ✅ Prisma service
 │   ├── web/                 # Next.js 16 web app (🔨 IN PROGRESS — auth/onboarding/dashboard built)
@@ -130,6 +131,8 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 10. ✅ Messaging UI (1:1 conversations) — dashboard with split-panel layout
 11. ✅ User state UI (social energy, calm mode) — StatusBar component
 12. ✅ Dashboard / post-onboarding landing page — /dashboard route
+13. ✅ Safety UI — block user (with confirm modal), report user/message, blocked users management
+14. ✅ Real-time messaging — Socket.io gateway (auth, message send/receive, typing, presence, state broadcasts) + frontend socket hook with REST fallback
 
 ### Web App File Structure
 
@@ -152,11 +155,13 @@ apps/web/
 │   ├── auth-context.tsx        # ✅ Auth context (tokens, user, login/register/logout)
 │   ├── constants.ts            # ✅ Shared storage keys (STORAGE_KEYS)
 │   ├── i18n.ts                 # ✅ i18next config (FR default, EN, dashboard ns)
-│   ├── types.ts                # ✅ Shared TS types for messaging + state APIs
+│   ├── types.ts                # ✅ Shared TS types for messaging + state + safety APIs
 │   ├── messaging-api.ts        # ✅ API client for conversations/messages
 │   ├── state-api.ts            # ✅ API client for social energy/calm mode
+│   ├── safety-api.ts           # ✅ API client for block/unblock/report
 │   ├── use-auth-guard.ts       # ✅ Auth redirect hook (guest/authenticated/onboarded)
 │   ├── use-api-error.ts        # ✅ Localized error message hook
+│   ├── use-socket.ts           # ✅ Socket.io hook (connection, events, reconnection, REST fallback)
 │   └── utils.ts                # ✅ formatRelativeTime helper (uses i18n)
 ├── components/
 │   ├── I18nProvider.tsx        # ✅ i18n wrapper with hydration handling
@@ -169,11 +174,14 @@ apps/web/
 │   │   ├── StepConversation.tsx # ✅ Conversation step (composes TagInput)
 │   │   └── StepComplete.tsx    # ✅ Completion step (aria-hidden on decorative)
 │   └── dashboard/
-│       ├── StatusBar.tsx       # ✅ Energy badge, calm mode toggle, logout
+│       ├── StatusBar.tsx       # ✅ Energy badge, calm mode toggle, blocked users, logout
 │       ├── ConversationList.tsx # ✅ Sidebar with conversation items + unread badges
-│       ├── ChatView.tsx        # ✅ Message thread + input + load more
-│       ├── MessageBubble.tsx   # ✅ Single message with status indicators
-│       └── NewConversationModal.tsx # ✅ Modal to start conversation by user ID
+│       ├── ChatView.tsx        # ✅ Message thread + input + load more + block/report
+│       ├── MessageBubble.tsx   # ✅ Single message with status indicators + report
+│       ├── NewConversationModal.tsx # ✅ Modal to start conversation by user ID
+│       ├── BlockConfirmModal.tsx    # ✅ Block confirmation with consequences list
+│       ├── BlockedUsersModal.tsx    # ✅ View/unblock users list
+│       └── ReportModal.tsx         # ✅ Report user or message (5 reason types)
 └── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard)
 ```
 
@@ -182,7 +190,7 @@ apps/web/
 - **Field name mismatch (potential):** Frontend login page checks `user.legalAccepted` for redirect logic. Backend returns `legalAccepted` (mapped from `account.legalAcceptedAt`).
 - **Client-side only route guards:** No Next.js middleware — all auth checks are useEffect-based, which means brief flash of wrong page before redirect.
 - **Duplicate onboarding logic:** Both `UsersService` and `PreferencesService` implement `updateOnboardingProgress()` independently — risk of drift.
-- **No WebSocket yet:** Dashboard messaging uses manual refresh button. Future: add polling or WebSocket for real-time updates.
+- **WebSocket implemented:** Socket.io gateway handles real-time messaging, typing indicators, presence (online/offline), read receipts, delivered status, and state change broadcasts. Frontend falls back to REST when socket is disconnected. Manual refresh button remains as backup.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -699,4 +707,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 6, 2026_
+_Last updated: February 8, 2026_

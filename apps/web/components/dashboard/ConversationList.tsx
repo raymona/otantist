@@ -11,6 +11,7 @@ interface ConversationListProps {
   onNewConversation: () => void;
   onRefresh: () => void;
   isLoading: boolean;
+  typingConversations?: Set<string>;
 }
 
 export default function ConversationList({
@@ -20,6 +21,7 @@ export default function ConversationList({
   onNewConversation,
   onRefresh,
   isLoading,
+  typingConversations,
 }: ConversationListProps) {
   const { t } = useTranslation('dashboard');
 
@@ -120,11 +122,15 @@ export default function ConversationList({
                       </div>
                     </div>
 
-                    {conv.lastMessage && (
+                    {typingConversations?.has(conv.id) ? (
+                      <p className="mt-1 truncate pl-4 text-xs text-blue-500 italic">
+                        {t('chat.typing_short')}
+                      </p>
+                    ) : conv.lastMessage ? (
                       <p className="mt-1 truncate pl-4 text-xs text-gray-500">
                         {conv.lastMessage.content}
                       </p>
-                    )}
+                    ) : null}
                   </button>
                 </li>
               );

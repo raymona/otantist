@@ -1,14 +1,14 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  SocialEnergyLevel,
-  UserStateResponse,
-  CalmModeResponse,
-} from './dto';
+import { SocialEnergyLevel, UserStateResponse, CalmModeResponse } from './dto';
 
 @Injectable()
 export class StateService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2
+  ) {}
 
   private async getUserId(accountId: string): Promise<string> {
     const account = await this.prisma.account.findUnique({
@@ -55,7 +55,7 @@ export class StateService {
 
   async updateSocialEnergy(
     accountId: string,
-    level: SocialEnergyLevel,
+    level: SocialEnergyLevel
   ): Promise<UserStateResponse> {
     const userId = await this.getUserId(accountId);
     await this.ensureUserState(userId);
@@ -66,6 +66,11 @@ export class StateService {
         socialEnergy: level,
         energyUpdatedAt: new Date(),
       },
+    });
+
+    this.eventEmitter.emit('user.state.changed', {
+      userId,
+      socialEnergy: level,
     });
 
     return this.getCurrentState(accountId);
@@ -88,6 +93,11 @@ export class StateService {
     // Check if this is a parent-managed account and create alert
     await this.createParentAlertIfManaged(accountId, userId, 'calm_mode_activated');
 
+    this.eventEmitter.emit('user.state.changed', {
+      userId,
+      calmModeActive: true,
+    });
+
     return {
       active: true,
       startedAt: now,
@@ -106,9 +116,7 @@ export class StateService {
     // Calculate duration for member indicators
     let durationMinutes = 0;
     if (state?.calmModeStarted) {
-      durationMinutes = Math.floor(
-        (Date.now() - state.calmModeStarted.getTime()) / (1000 * 60),
-      );
+      durationMinutes = Math.floor((Date.now() - state.calmModeStarted.getTime()) / (1000 * 60));
 
       // Update member indicators for parent dashboard
       await this.updateMemberIndicators(userId, durationMinutes);
@@ -122,6 +130,11 @@ export class StateService {
       },
     });
 
+    this.eventEmitter.emit('user.state.changed', {
+      userId,
+      calmModeActive: false,
+    });
+
     return {
       active: false,
       startedAt: null,
@@ -132,7 +145,7 @@ export class StateService {
   private async createParentAlertIfManaged(
     accountId: string,
     userId: string,
-    alertType: 'calm_mode_activated' | 'prolonged_calm_mode',
+    alertType: 'calm_mode_activated' | 'prolonged_calm_mode'
   ): Promise<void> {
     // Check if this account is managed by a parent
     const managedRelation = await this.prisma.parentManagedAccount.findFirst({
@@ -167,10 +180,7 @@ export class StateService {
     });
   }
 
-  private async updateMemberIndicators(
-    userId: string,
-    calmModeMinutes: number,
-  ): Promise<void> {
+  private async updateMemberIndicators(userId: string, calmModeMinutes: number): Promise<void> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -195,10 +205,7 @@ export class StateService {
   }
 
   // Called when user connects/disconnects (for Socket.io later)
-  async updateOnlineStatus(
-    accountId: string,
-    isOnline: boolean,
-  ): Promise<void> {
+  async updateOnlineStatus(accountId: string, isOnline: boolean): Promise<void> {
     const userId = await this.getUserId(accountId);
     await this.ensureUserState(userId);
 

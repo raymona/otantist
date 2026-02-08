@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { StateService } from './state.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
@@ -14,11 +15,19 @@ describe('StateService', () => {
     user: { id: 'user-id' },
   };
 
+  const mockEventEmitter = {
+    emit: jest.fn(),
+  };
+
   beforeEach(async () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [StateService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        StateService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
+      ],
     }).compile();
 
     service = module.get<StateService>(StateService);

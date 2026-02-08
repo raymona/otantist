@@ -8,7 +8,9 @@
     "calm_mode": "Mode calme",
     "calm_mode_on": "Activé",
     "calm_mode_off": "Désactivé",
-    "blocked_users": "Utilisateurs bloqués"
+    "blocked_users": "Utilisateurs bloqués",
+    "connected": "Connecté",
+    "reconnecting": "Reconnexion..."
   },
   "conversations": {
     "title": "Conversations",
@@ -48,7 +50,9 @@
     "refresh_messages": "Rafraîchir les messages",
     "block_user": "Bloquer l'utilisateur",
     "report_user": "Signaler l'utilisateur",
-    "report_message": "Signaler le message"
+    "report_message": "Signaler le message",
+    "typing": "{{name}} écrit...",
+    "typing_short": "écrit..."
   },
   "safety": {
     "block_success": "Utilisateur bloqué avec succès",

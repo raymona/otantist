@@ -8,7 +8,9 @@
     "calm_mode": "Calm mode",
     "calm_mode_on": "On",
     "calm_mode_off": "Off",
-    "blocked_users": "Blocked users"
+    "blocked_users": "Blocked users",
+    "connected": "Connected",
+    "reconnecting": "Reconnecting..."
   },
   "conversations": {
     "title": "Conversations",
@@ -48,7 +50,9 @@
     "refresh_messages": "Refresh messages",
     "block_user": "Block user",
     "report_user": "Report user",
-    "report_message": "Report message"
+    "report_message": "Report message",
+    "typing": "{{name}} is typing...",
+    "typing_short": "typing..."
   },
   "safety": {
     "block_success": "User blocked successfully",
