@@ -40,7 +40,10 @@
       "outside_time_boundary": "Outside recipient's availability"
     },
     "delete": "Delete",
+    "delete_for_me": "Delete for me",
     "deleted_message": "Message deleted",
+    "hide_conversation": "Hide conversation",
+    "conversation_hidden": "Conversation hidden from your list",
     "message_own": "Your message",
     "message_other": "Message received",
     "calm_mode_active": "Calm mode active",
@@ -109,6 +112,7 @@
     "load_state": "Failed to load user state",
     "update_energy": "Failed to update energy",
     "toggle_calm": "Failed to toggle calm mode",
+    "hide_conversation": "Failed to hide conversation",
     "block_user": "Failed to block user",
     "unblock_user": "Failed to unblock user",
     "submit_report": "Failed to submit report",

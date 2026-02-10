@@ -49,6 +49,8 @@ const modelNames = [
   'userReport',
   'parentAlert',
   'memberIndicator',
+  'messageDeletion',
+  'conversationHidden',
 ] as const;
 
 export type MockPrismaService = {
@@ -61,7 +63,7 @@ export type MockPrismaService = {
 
 export function createMockPrismaService(): MockPrismaService {
   const mock: any = {
-    $transaction: jest.fn((fn) => {
+    $transaction: jest.fn(fn => {
       if (typeof fn === 'function') {
         return fn(mock);
       }

@@ -42,4 +42,10 @@ export const messagingApi = {
 
   deleteMessage: (messageId: string) =>
     request<void>(`/api/messages/${messageId}`, { method: 'DELETE' }),
+
+  hideConversation: (conversationId: string) =>
+    request<void>(`/api/conversations/${conversationId}/hide`, { method: 'POST' }),
+
+  unhideConversation: (conversationId: string) =>
+    request<void>(`/api/conversations/${conversationId}/unhide`, { method: 'POST' }),
 };

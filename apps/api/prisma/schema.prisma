@@ -206,6 +206,8 @@ model User {
   parentAlerts           ParentAlert[]
   memberIndicators       MemberIndicator[]
   interests              Interest[]
+  messageDeletions       MessageDeletion[]
+  hiddenConversations    ConversationHidden[]
 
   @@map("users")
 }
@@ -368,9 +370,10 @@ model Conversation {
   updatedAt DateTime           @updatedAt @map("updated_at")
 
   // Relations
-  userA    User      @relation("UserA", fields: [userAId], references: [id])
-  userB    User      @relation("UserB", fields: [userBId], references: [id])
+  userA    User                 @relation("UserA", fields: [userAId], references: [id])
+  userB    User                 @relation("UserB", fields: [userBId], references: [id])
   messages Message[]
+  hidden   ConversationHidden[]
 
   @@unique([userAId, userBId])
   @@map("conversations")
@@ -393,12 +396,41 @@ model Message {
   readAt         DateTime?     @map("read_at")
 
   // Relations
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User         @relation(fields: [senderId], references: [id])
-  reports      UserReport[] @relation("ReportedMessage")
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User              @relation(fields: [senderId], references: [id])
+  reports      UserReport[]      @relation("ReportedMessage")
+  deletions    MessageDeletion[]
 
   @@index([conversationId, createdAt])
   @@map("messages")
+}
+
+model MessageDeletion {
+  id        String   @id @default(uuid())
+  messageId String   @map("message_id")
+  userId    String   @map("user_id")
+  deletedAt DateTime @default(now()) @map("deleted_at")
+
+  // Relations
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_deletions")
+}
+
+model ConversationHidden {
+  id             String   @id @default(uuid())
+  conversationId String   @map("conversation_id")
+  userId         String   @map("user_id")
+  hiddenAt       DateTime @default(now()) @map("hidden_at")
+
+  // Relations
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@map("conversation_hidden")
 }
 
 model BlockedUser {

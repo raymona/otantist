@@ -16,6 +16,7 @@ interface ChatViewProps {
   onBlockUser?: (userId: string, userName: string) => void;
   onReportUser?: (userId: string, userName: string) => void;
   onReportMessage?: (messageId: string, userId: string, userName: string) => void;
+  onHideConversation?: (conversationId: string) => void;
   isConnected: boolean;
   onSendViaSocket?: (conversationId: string, content: string, tempId: string) => void;
   onEmitTyping?: (conversationId: string) => void;
@@ -33,6 +34,7 @@ export default function ChatView({
   onBlockUser,
   onReportUser,
   onReportMessage,
+  onHideConversation,
   isConnected,
   onSendViaSocket,
   onEmitTyping,
@@ -65,26 +67,25 @@ export default function ChatView({
   }, [messages.length]);
 
   // Mark as read when opening conversation with unread messages
+  const hasMarkedReadRef = useRef(false);
   useEffect(() => {
-    if (conversation.unreadCount > 0 && messages.length > 0) {
-      const lastMsg = messages[messages.length - 1];
-      if (lastMsg && !lastMsg.isOwnMessage) {
-        if (isConnected && onEmitRead) {
-          onEmitRead(conversation.id, lastMsg.id);
-        } else {
-          messagingApi.markAsRead(conversation.id, lastMsg.id).catch(() => {});
-        }
-        onConversationUpdated?.();
-      }
+    hasMarkedReadRef.current = false;
+  }, [conversation.id]);
+
+  useEffect(() => {
+    if (hasMarkedReadRef.current || messages.length === 0) return;
+
+    // Find the last message from the other user (not our own)
+    const lastIncoming = [...messages].reverse().find(m => !m.isOwnMessage);
+    if (!lastIncoming) return;
+
+    hasMarkedReadRef.current = true;
+    if (isConnected && onEmitRead) {
+      onEmitRead(conversation.id, lastIncoming.id);
+    } else {
+      messagingApi.markAsRead(conversation.id, lastIncoming.id).catch(() => {});
     }
-  }, [
-    conversation.id,
-    conversation.unreadCount,
-    messages,
-    onConversationUpdated,
-    isConnected,
-    onEmitRead,
-  ]);
+  }, [conversation.id, messages, isConnected, onEmitRead]);
 
   const handleLoadMore = async () => {
     if (messages.length > 0 && hasMore) {
@@ -208,6 +209,30 @@ export default function ChatView({
           )}
         </div>
 
+        {/* Hide conversation button */}
+        {onHideConversation && (
+          <button
+            onClick={() => onHideConversation(conversation.id)}
+            aria-label={t('chat.hide_conversation')}
+            className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18"
+              />
+            </svg>
+          </button>
+        )}
+
         {/* Report user button */}
         <button
           onClick={() => onReportUser?.(otherUser.id, displayName)}
@@ -315,7 +340,7 @@ export default function ChatView({
             <MessageBubble
               key={msg.id}
               message={msg}
-              onDelete={msg.isOwnMessage ? handleDelete : undefined}
+              onDelete={handleDelete}
               onReport={
                 !msg.isOwnMessage && onReportMessage
                   ? (messageId: string) => onReportMessage(messageId, otherUser.id, displayName)

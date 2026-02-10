@@ -133,6 +133,8 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 12. ✅ Dashboard / post-onboarding landing page — /dashboard route
 13. ✅ Safety UI — block user (with confirm modal), report user/message, blocked users management
 14. ✅ Real-time messaging — Socket.io gateway (auth, message send/receive, typing, presence, state broadcasts) + frontend socket hook with REST fallback
+15. ✅ "Delete for me" — per-user message deletion (original content preserved for moderators/other user)
+16. ✅ "Hide conversation" — per-user conversation hiding with auto-unhide on new incoming message
 
 ### Web App File Structure
 
@@ -190,7 +192,9 @@ apps/web/
 - **Field name mismatch (potential):** Frontend login page checks `user.legalAccepted` for redirect logic. Backend returns `legalAccepted` (mapped from `account.legalAcceptedAt`).
 - **Client-side only route guards:** No Next.js middleware — all auth checks are useEffect-based, which means brief flash of wrong page before redirect.
 - **Duplicate onboarding logic:** Both `UsersService` and `PreferencesService` implement `updateOnboardingProgress()` independently — risk of drift.
-- **WebSocket implemented:** Socket.io gateway handles real-time messaging, typing indicators, presence (online/offline), read receipts, delivered status, and state change broadcasts. Frontend falls back to REST when socket is disconnected. Manual refresh button remains as backup.
+- **WebSocket implemented:** Socket.io gateway handles real-time messaging, typing indicators, presence (online/offline), read receipts, delivered status, state change broadcasts, and conversation unhidden events. Frontend falls back to REST when socket is disconnected. Manual refresh button remains as backup.
+- **Message deletion is "delete for me" only:** The `DELETE /messages/:id` endpoint no longer overwrites message content. Instead it creates a `MessageDeletion` record — the message disappears from the deleter's view only. Original content is always preserved for moderators and the other user. Both sender and recipient can delete any message in their conversation.
+- **Hide conversation:** `POST /conversations/:id/hide` hides from sidebar, auto-unhides when a new message arrives from the other user. `POST /conversations/:id/unhide` to manually restore.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -258,15 +262,17 @@ apps/web/
 
 ### Messaging Module (`/`)
 
-| Endpoint                      | Method | Description              |
-| ----------------------------- | ------ | ------------------------ |
-| `/conversations`              | GET    | List conversations       |
-| `/conversations`              | POST   | Start new conversation   |
-| `/conversations/:id`          | GET    | Get conversation details |
-| `/conversations/:id/messages` | GET    | Get messages (paginated) |
-| `/conversations/:id/messages` | POST   | Send message             |
-| `/conversations/:id/read`     | POST   | Mark messages as read    |
-| `/messages/:id`               | DELETE | Soft delete message      |
+| Endpoint                      | Method | Description                        |
+| ----------------------------- | ------ | ---------------------------------- |
+| `/conversations`              | GET    | List conversations                 |
+| `/conversations`              | POST   | Start new conversation             |
+| `/conversations/:id`          | GET    | Get conversation details           |
+| `/conversations/:id/messages` | GET    | Get messages (paginated)           |
+| `/conversations/:id/messages` | POST   | Send message                       |
+| `/conversations/:id/read`     | POST   | Mark messages as read              |
+| `/conversations/:id/hide`     | POST   | Hide conversation from user's list |
+| `/conversations/:id/unhide`   | POST   | Unhide conversation                |
+| `/messages/:id`               | DELETE | Delete message for current user    |
 
 ### Safety Module (`/`)
 
@@ -329,6 +335,8 @@ apps/web/
 - `user_state` — Social energy, calm mode, online status
 - `conversations` — 1:1 chats
 - `messages` — Message content with moderation flags
+- `message_deletions` — Per-user "delete for me" records (original content preserved)
+- `conversation_hidden` — Per-user hidden conversation records (auto-unhide on new message)
 - `moderation_queue` — Items for human review
 - `parent_alerts` — Notifications to parents
 
@@ -707,4 +715,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 8, 2026_
+_Last updated: February 10, 2026_

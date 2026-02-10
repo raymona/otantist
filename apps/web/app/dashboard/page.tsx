@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuthGuard } from '@/lib/use-auth-guard';
 import { messagingApi } from '@/lib/messaging-api';
@@ -18,6 +19,8 @@ import BlockedUsersModal from '@/components/dashboard/BlockedUsersModal';
 export default function DashboardPage() {
   const { t } = useTranslation('dashboard');
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
@@ -228,6 +231,14 @@ export default function DashboardPage() {
     []
   );
 
+  const onConversationUnhidden = useCallback(
+    (data: { conversationId: string }) => {
+      // A new message arrived and auto-unhid this conversation — reload list
+      fetchConversations();
+    },
+    [fetchConversations]
+  );
+
   const { isConnected, emit } = useSocket({
     onNewMessage,
     onReadReceipt,
@@ -236,6 +247,7 @@ export default function DashboardPage() {
     onUserOnline,
     onUserOffline,
     onStateChanged,
+    onConversationUnhidden,
   });
 
   // --- REST fetching ---
@@ -246,18 +258,29 @@ export default function DashboardPage() {
     try {
       const data = await messagingApi.getConversations();
       setConversations(data.conversations);
+      return data.conversations;
     } catch {
       setError(t('errors.load_conversations'));
+      return [];
     } finally {
       setIsLoadingConversations(false);
     }
   }, [t]);
 
-  // Fetch conversations once auth is resolved
+  // Fetch conversations once auth is resolved, restore selection from URL
   useEffect(() => {
-    if (isReady) {
-      fetchConversations();
-    }
+    if (!isReady) return;
+    fetchConversations().then(convs => {
+      const chatId = searchParams.get('chat');
+      if (chatId && !selectedConversation) {
+        const match = convs.find(c => c.id === chatId);
+        if (match) {
+          setSelectedConversation(match);
+          setConversations(prev => prev.map(c => (c.id === chatId ? { ...c, unreadCount: 0 } : c)));
+        }
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isReady, fetchConversations]);
 
   // --- Message loading (REST) ---
@@ -265,17 +288,20 @@ export default function DashboardPage() {
   const loadMessages = useCallback(async (conversationId: string, before?: string) => {
     try {
       const data = await messagingApi.getMessages(conversationId, 50, before);
+      // API returns messages in desc order (newest first) for pagination;
+      // reverse to chronological (oldest first) for display
+      const chronological = [...data.messages].reverse();
       setMessagesMap(prev => {
         const existing = prev[conversationId] || [];
         if (before) {
-          return { ...prev, [conversationId]: [...data.messages, ...existing] };
+          // Prepend older messages before existing ones
+          return { ...prev, [conversationId]: [...chronological, ...existing] };
         }
-        return { ...prev, [conversationId]: data.messages };
+        return { ...prev, [conversationId]: chronological };
       });
       setHasMoreMap(prev => ({ ...prev, [conversationId]: data.hasMore }));
     } catch {
-      // Error handled in ChatView
-      throw new Error('load_failed');
+      // Non-critical: ChatView shows its own error state
     }
   }, []);
 
@@ -306,21 +332,42 @@ export default function DashboardPage() {
 
   const handleSelectConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
+    router.replace(`/dashboard?chat=${conv.id}`, { scroll: false });
+    // Clear unread count locally for immediate UI feedback
+    if (conv.unreadCount > 0) {
+      setConversations(prev => prev.map(c => (c.id === conv.id ? { ...c, unreadCount: 0 } : c)));
+    }
   };
 
   const handleBack = () => {
     setSelectedConversation(null);
+    router.replace('/dashboard', { scroll: false });
   };
 
   const handleNewConversationCreated = (conv: Conversation) => {
     setShowNewModal(false);
     setConversations(prev => [conv, ...prev]);
     setSelectedConversation(conv);
+    router.replace(`/dashboard?chat=${conv.id}`, { scroll: false });
   };
 
   const handleConversationUpdated = useCallback(() => {
     fetchConversations();
   }, [fetchConversations]);
+
+  // --- Hide conversation handler ---
+
+  const handleHideConversation = async (conversationId: string) => {
+    try {
+      await messagingApi.hideConversation(conversationId);
+      setSelectedConversation(null);
+      router.replace('/dashboard', { scroll: false });
+      setToast(t('chat.conversation_hidden'));
+      fetchConversations();
+    } catch {
+      setError(t('errors.hide_conversation'));
+    }
+  };
 
   // --- Safety handlers ---
 
@@ -335,6 +382,7 @@ export default function DashboardPage() {
       await safetyApi.blockUser(blockTarget.userId);
       setBlockTarget(null);
       setSelectedConversation(null);
+      router.replace('/dashboard', { scroll: false });
       setToast(t('safety.block_success'));
       fetchConversations();
     } catch {
@@ -442,6 +490,7 @@ export default function DashboardPage() {
               onBlockUser={handleBlockUser}
               onReportUser={handleReportUser}
               onReportMessage={handleReportMessage}
+              onHideConversation={handleHideConversation}
               isConnected={isConnected}
               onSendViaSocket={handleSendViaSocket}
               onEmitTyping={handleEmitTyping}

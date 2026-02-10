@@ -40,7 +40,10 @@
       "outside_time_boundary": "En dehors des heures de disponibilité"
     },
     "delete": "Supprimer",
+    "delete_for_me": "Supprimer pour moi",
     "deleted_message": "Message supprimé",
+    "hide_conversation": "Masquer la conversation",
+    "conversation_hidden": "Conversation masquée de votre liste",
     "message_own": "Votre message",
     "message_other": "Message reçu",
     "calm_mode_active": "Mode calme activé",
@@ -109,6 +112,7 @@
     "load_state": "Échec du chargement de l'état",
     "update_energy": "Échec de la mise à jour de l'énergie",
     "toggle_calm": "Échec du changement de mode calme",
+    "hide_conversation": "Échec du masquage de la conversation",
     "block_user": "Échec du blocage de l'utilisateur",
     "unblock_user": "Échec du déblocage de l'utilisateur",
     "submit_report": "Échec de l'envoi du signalement",

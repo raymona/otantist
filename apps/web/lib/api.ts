@@ -33,7 +33,38 @@ interface RequestOptions extends Omit<RequestInit, 'body'> {
   body?: unknown;
 }
 
-export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+// Track whether a token refresh is already in progress to avoid concurrent refreshes
+let refreshPromise: Promise<boolean> | null = null;
+
+async function tryRefreshToken(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+
+  const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+  if (!refreshToken) return false;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function request<T>(
+  endpoint: string,
+  options: RequestOptions = {},
+  _isRetry = false
+): Promise<T> {
   const { body, headers: customHeaders, ...rest } = options;
 
   const headers: HeadersInit = {
@@ -59,6 +90,23 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
   }
 
   const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+
+  // On 401, attempt token refresh and retry once
+  if (response.status === 401 && !_isRetry && typeof window !== 'undefined') {
+    // Deduplicate concurrent refresh attempts
+    if (!refreshPromise) {
+      refreshPromise = tryRefreshToken().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    const refreshed = await refreshPromise;
+    if (refreshed) {
+      return request<T>(endpoint, options, true);
+    }
+    // Refresh failed — clear auth state so user gets redirected to login
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+  }
 
   if (!response.ok) {
     let errorData: ApiError;

@@ -58,13 +58,9 @@ export class MessagingController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async startConversation(
     @Request() req: any,
-    @Body() dto: StartConversationDto,
+    @Body() dto: StartConversationDto
   ): Promise<ConversationResponse> {
-    return this.messagingService.startConversation(
-      req.user.id,
-      dto.userId,
-      dto.message,
-    );
+    return this.messagingService.startConversation(req.user.id, dto.userId, dto.message);
   }
 
   @Get('conversations/:id')
@@ -76,7 +72,7 @@ export class MessagingController {
   @ApiResponse({ status: 404, description: 'Conversation not found' })
   async getConversation(
     @Request() req: any,
-    @Param('id') conversationId: string,
+    @Param('id') conversationId: string
   ): Promise<ConversationResponse> {
     return this.messagingService.getConversation(req.user.id, conversationId);
   }
@@ -88,7 +84,11 @@ export class MessagingController {
   @Get('conversations/:id/messages')
   @ApiOperation({ summary: 'Get messages in a conversation (paginated)' })
   @ApiParam({ name: 'id', description: 'Conversation ID' })
-  @ApiQuery({ name: 'limit', required: false, description: 'Number of messages (default 50, max 100)' })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of messages (default 50, max 100)',
+  })
   @ApiQuery({ name: 'before', required: false, description: 'Get messages before this message ID' })
   @ApiResponse({ status: 200, type: MessageListResponse })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -98,14 +98,9 @@ export class MessagingController {
     @Request() req: any,
     @Param('id') conversationId: string,
     @Query('limit') limit?: number,
-    @Query('before') before?: string,
+    @Query('before') before?: string
   ): Promise<MessageListResponse> {
-    return this.messagingService.getMessages(
-      req.user.id,
-      conversationId,
-      limit || 50,
-      before,
-    );
+    return this.messagingService.getMessages(req.user.id, conversationId, limit || 50, before);
   }
 
   @Post('conversations/:id/messages')
@@ -118,7 +113,7 @@ export class MessagingController {
   async sendMessage(
     @Request() req: any,
     @Param('id') conversationId: string,
-    @Body() dto: SendMessageDto,
+    @Body() dto: SendMessageDto
   ) {
     return this.messagingService.sendMessage(req.user.id, conversationId, dto);
   }
@@ -134,27 +129,47 @@ export class MessagingController {
   async markAsRead(
     @Request() req: any,
     @Param('id') conversationId: string,
-    @Body() dto: MarkReadDto,
+    @Body() dto: MarkReadDto
   ): Promise<void> {
-    return this.messagingService.markAsRead(
-      req.user.id,
-      conversationId,
-      dto.messageId,
-    );
+    return this.messagingService.markAsRead(req.user.id, conversationId, dto.messageId);
   }
 
   @Delete('messages/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Delete a message (soft delete)' })
+  @ApiOperation({
+    summary: 'Delete a message for the current user only (original content preserved)',
+  })
   @ApiParam({ name: 'id', description: 'Message ID' })
-  @ApiResponse({ status: 204, description: 'Message deleted' })
+  @ApiResponse({ status: 204, description: 'Message hidden from your view' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Cannot delete this message' })
   @ApiResponse({ status: 404, description: 'Message not found' })
-  async deleteMessage(
-    @Request() req: any,
-    @Param('id') messageId: string,
-  ): Promise<void> {
+  async deleteMessage(@Request() req: any, @Param('id') messageId: string): Promise<void> {
     return this.messagingService.deleteMessage(req.user.id, messageId);
+  }
+
+  @Post('conversations/:id/hide')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Hide a conversation from your list' })
+  @ApiParam({ name: 'id', description: 'Conversation ID' })
+  @ApiResponse({ status: 204, description: 'Conversation hidden' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Access denied' })
+  @ApiResponse({ status: 404, description: 'Conversation not found' })
+  async hideConversation(@Request() req: any, @Param('id') conversationId: string): Promise<void> {
+    return this.messagingService.hideConversation(req.user.id, conversationId);
+  }
+
+  @Post('conversations/:id/unhide')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Unhide a conversation' })
+  @ApiParam({ name: 'id', description: 'Conversation ID' })
+  @ApiResponse({ status: 204, description: 'Conversation unhidden' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async unhideConversation(
+    @Request() req: any,
+    @Param('id') conversationId: string
+  ): Promise<void> {
+    return this.messagingService.unhideConversation(req.user.id, conversationId);
   }
 }

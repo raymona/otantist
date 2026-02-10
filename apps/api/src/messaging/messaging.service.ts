@@ -4,6 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   MessageType,
@@ -16,7 +17,10 @@ import {
 
 @Injectable()
 export class MessagingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2
+  ) {}
 
   private async getUserIdFromAccount(accountId: string): Promise<string> {
     const account = await this.prisma.account.findUnique({
@@ -42,6 +46,7 @@ export class MessagingService {
       where: {
         OR: [{ userAId: userId }, { userBId: userId }],
         status: 'active',
+        hidden: { none: { userId } },
       },
       include: {
         userA: {
@@ -264,6 +269,8 @@ export class MessagingService {
       conversationId,
       // Don't show queued messages from other user
       OR: [{ senderId: userId }, { senderId: { not: userId }, status: { not: 'queued' } }],
+      // Filter out messages the user has "deleted for me"
+      deletions: { none: { userId } },
     };
 
     if (before) {
@@ -368,6 +375,19 @@ export class MessagingService {
       data: { updatedAt: new Date() },
     });
 
+    // Auto-unhide conversation for recipient if they had hidden it
+    const recipientId =
+      conversation.userAId === userId ? conversation.userBId : conversation.userAId;
+    const deleted = await this.prisma.conversationHidden.deleteMany({
+      where: { conversationId, userId: recipientId },
+    });
+    if (deleted.count > 0) {
+      this.eventEmitter.emit('conversation.unhidden', {
+        conversationId,
+        userId: recipientId,
+      });
+    }
+
     // Update member indicators for sender
     await this.updateMessageIndicators(userId, 'sent');
 
@@ -416,18 +436,55 @@ export class MessagingService {
       throw new NotFoundException('Message not found');
     }
 
-    // Only sender can delete their own messages
-    if (message.senderId !== userId) {
+    // Any participant in the conversation can "delete for me"
+    const conv = message.conversation;
+    if (conv.userAId !== userId && conv.userBId !== userId) {
       throw new ForbiddenException('Cannot delete this message');
     }
 
-    // Soft delete by clearing content
-    await this.prisma.message.update({
-      where: { id: messageId },
-      data: {
-        content: '[Message deleted]',
-        messageType: 'system',
+    // Create a per-user deletion record (idempotent via upsert)
+    await this.prisma.messageDeletion.upsert({
+      where: {
+        messageId_userId: { messageId, userId },
       },
+      create: { messageId, userId },
+      update: {},
+    });
+  }
+
+  // ============================================
+  // Hide / Unhide Conversations
+  // ============================================
+
+  async hideConversation(accountId: string, conversationId: string): Promise<void> {
+    const userId = await this.getUserIdFromAccount(accountId);
+
+    const conversation = await this.prisma.conversation.findUnique({
+      where: { id: conversationId },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    if (conversation.userAId !== userId && conversation.userBId !== userId) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    await this.prisma.conversationHidden.upsert({
+      where: {
+        conversationId_userId: { conversationId, userId },
+      },
+      create: { conversationId, userId },
+      update: {},
+    });
+  }
+
+  async unhideConversation(accountId: string, conversationId: string): Promise<void> {
+    const userId = await this.getUserIdFromAccount(accountId);
+
+    await this.prisma.conversationHidden.deleteMany({
+      where: { conversationId, userId },
     });
   }
 

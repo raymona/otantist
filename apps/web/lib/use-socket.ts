@@ -19,6 +19,7 @@ export interface SocketEventHandlers {
     socialEnergy?: string | null;
     calmModeActive?: boolean;
   }) => void;
+  onConversationUnhidden?: (data: { conversationId: string }) => void;
 }
 
 export function useSocket(handlers: SocketEventHandlers) {
@@ -26,6 +27,7 @@ export function useSocket(handlers: SocketEventHandlers) {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const handlersRef = useRef(handlers);
+  const refreshAttemptedRef = useRef(false);
 
   // Keep handlers ref up to date without triggering reconnects
   useEffect(() => {
@@ -35,8 +37,11 @@ export function useSocket(handlers: SocketEventHandlers) {
   useEffect(() => {
     if (!accessToken) return;
 
+    // Use the latest token from localStorage (may have been refreshed by REST calls)
+    const currentToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN) || accessToken;
+
     const socket = io(API_URL, {
-      auth: { token: accessToken },
+      auth: { token: currentToken },
       reconnection: true,
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
@@ -45,38 +50,44 @@ export function useSocket(handlers: SocketEventHandlers) {
     });
 
     socketRef.current = socket;
+    refreshAttemptedRef.current = false;
 
     socket.on('connect', () => {
       setIsConnected(true);
+      refreshAttemptedRef.current = false;
     });
 
     socket.on('disconnect', () => {
       setIsConnected(false);
     });
 
-    socket.on('connect_error', async err => {
+    socket.on('connect_error', async () => {
       setIsConnected(false);
 
-      // If auth error, try refreshing token
-      if (err.message?.includes('AUTH') || err.message?.includes('token')) {
-        const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-        if (refreshToken) {
-          try {
-            const res = await fetch(`${API_URL}/auth/refresh`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ refreshToken }),
-            });
-            if (res.ok) {
-              const data = await res.json();
-              localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
-              localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
-              socket.auth = { token: data.accessToken };
-              socket.connect();
-            }
-          } catch {
-            // Refresh failed, user will need to re-login
+      // Avoid repeated refresh attempts for the same connection cycle
+      if (refreshAttemptedRef.current) return;
+      refreshAttemptedRef.current = true;
+
+      // Try refreshing the token — the server disconnects on auth failure
+      // without a specific error message, so we always attempt refresh
+      const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+      if (refreshToken) {
+        try {
+          const res = await fetch(`${API_URL}/api/auth/refresh`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ refreshToken }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, data.accessToken);
+            localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.refreshToken);
+            socket.auth = { token: data.accessToken };
+            socket.connect();
+            return;
           }
+        } catch {
+          // Refresh failed, socket.io will continue its own reconnection attempts
         }
       }
     });
@@ -108,6 +119,10 @@ export function useSocket(handlers: SocketEventHandlers) {
 
     socket.on('user:state_changed', data => {
       handlersRef.current.onStateChanged?.(data);
+    });
+
+    socket.on('conversation:unhidden', data => {
+      handlersRef.current.onConversationUnhidden?.(data);
     });
 
     return () => {

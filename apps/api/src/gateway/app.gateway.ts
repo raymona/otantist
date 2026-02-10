@@ -18,7 +18,7 @@ import { StateService } from '../state/state.service';
 })
 export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   // accountId → Set<socketId> (multi-tab support)
   private connectedUsers = new Map<string, Set<string>>();
@@ -234,6 +234,14 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  @OnEvent('conversation.unhidden')
+  handleConversationUnhidden(payload: { conversationId: string; userId: string }) {
+    // Notify the user whose conversation was unhidden (e.g. new message arrived)
+    this.server.to(`user:${payload.userId}`).emit('conversation:unhidden', {
+      conversationId: payload.conversationId,
+    });
+  }
+
   // --- Helpers ---
 
   private broadcastPresence(userId: string, event: string, data: Record<string, any>) {
@@ -282,7 +290,7 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   private getAccountIdByUserId(userId: string): string | null {
-    for (const [socketId, meta] of this.socketMeta) {
+    for (const [, meta] of this.socketMeta) {
       if (meta.userId === userId) {
         return meta.accountId;
       }
