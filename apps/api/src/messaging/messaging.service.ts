@@ -533,6 +533,129 @@ export class MessagingService {
   }
 
   // ============================================
+  // Queue Processing
+  // ============================================
+
+  /**
+   * Process time-boundary-queued messages where deliverAt has passed.
+   * Returns delivered messages grouped by recipientUserId.
+   */
+  async processQueuedMessages(): Promise<Map<string, MessageResponse[]>> {
+    const now = new Date();
+
+    const messages = await this.prisma.message.findMany({
+      where: {
+        status: 'queued',
+        queuedReason: 'outside_time_boundary',
+        deliverAt: { lte: now },
+      },
+      include: {
+        conversation: true,
+      },
+    });
+
+    if (messages.length === 0) {
+      return new Map();
+    }
+
+    // Update all to 'sent'
+    await this.prisma.message.updateMany({
+      where: {
+        id: { in: messages.map(m => m.id) },
+      },
+      data: {
+        status: 'sent',
+        queuedReason: null,
+        deliverAt: null,
+      },
+    });
+
+    // Group by recipient
+    const grouped = new Map<string, MessageResponse[]>();
+
+    for (const msg of messages) {
+      const recipientId =
+        msg.conversation.userAId === msg.senderId
+          ? msg.conversation.userBId
+          : msg.conversation.userAId;
+
+      const response: MessageResponse = {
+        id: msg.id,
+        conversationId: msg.conversationId,
+        senderId: msg.senderId,
+        messageType: msg.messageType,
+        content: msg.content,
+        status: 'sent',
+        queuedReason: null,
+        deliverAt: null,
+        createdAt: msg.createdAt,
+        deliveredAt: msg.deliveredAt,
+        readAt: msg.readAt,
+        isOwnMessage: false,
+      };
+
+      if (!grouped.has(recipientId)) {
+        grouped.set(recipientId, []);
+      }
+      grouped.get(recipientId)!.push(response);
+    }
+
+    return grouped;
+  }
+
+  /**
+   * Deliver all calm-mode-queued messages for a specific recipient.
+   * Called when a user deactivates calm mode.
+   * Returns delivered messages grouped by recipientUserId (always the given user).
+   */
+  async deliverCalmModeMessages(recipientUserId: string): Promise<MessageResponse[]> {
+    const messages = await this.prisma.message.findMany({
+      where: {
+        status: 'queued',
+        queuedReason: 'recipient_calm_mode',
+        conversation: {
+          OR: [{ userAId: recipientUserId }, { userBId: recipientUserId }],
+        },
+        // Only messages sent TO this user (not BY this user)
+        senderId: { not: recipientUserId },
+      },
+      include: {
+        conversation: true,
+      },
+    });
+
+    if (messages.length === 0) {
+      return [];
+    }
+
+    await this.prisma.message.updateMany({
+      where: {
+        id: { in: messages.map(m => m.id) },
+      },
+      data: {
+        status: 'sent',
+        queuedReason: null,
+        deliverAt: null,
+      },
+    });
+
+    return messages.map(msg => ({
+      id: msg.id,
+      conversationId: msg.conversationId,
+      senderId: msg.senderId,
+      messageType: msg.messageType,
+      content: msg.content,
+      status: 'sent' as const,
+      queuedReason: null,
+      deliverAt: null,
+      createdAt: msg.createdAt,
+      deliveredAt: msg.deliveredAt,
+      readAt: msg.readAt,
+      isOwnMessage: false,
+    }));
+  }
+
+  // ============================================
   // Helper Methods
   // ============================================
 

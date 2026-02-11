@@ -242,6 +242,24 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  // --- Queued message delivery (called by MessageSchedulerService) ---
+
+  deliverQueuedMessages(messagesPerRecipient: Map<string, any[]>) {
+    for (const [recipientUserId, messages] of messagesPerRecipient) {
+      for (const message of messages) {
+        this.server.to(`user:${recipientUserId}`).emit('message:new', {
+          conversationId: message.conversationId,
+          message,
+        });
+      }
+
+      // Ensure recipient joins conversation rooms for any new conversations
+      for (const message of messages) {
+        this.joinRoomForUser(recipientUserId, `conversation:${message.conversationId}`);
+      }
+    }
+  }
+
   // --- Helpers ---
 
   private broadcastPresence(userId: string, event: string, data: Record<string, any>) {

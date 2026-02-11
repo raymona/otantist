@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
 import { EmailModule } from './email/email.module';
@@ -44,6 +45,9 @@ import { GatewayModule } from './gateway/gateway.module';
 
     // Events
     EventEmitterModule.forRoot(),
+
+    // Scheduling (cron jobs)
+    ScheduleModule.forRoot(),
 
     // Database
     PrismaModule,

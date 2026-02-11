@@ -41,7 +41,7 @@ otantist/
 │   │       ├── users/       # ✅ Profile, onboarding status, how-to-talk-to-me
 │   │       ├── preferences/ # ✅ Communication, sensory, time boundaries, conversation starters
 │   │       ├── state/       # ✅ Social energy, calm mode
-│   │       ├── messaging/   # ✅ 1:1 messaging, time boundary queuing
+│   │       ├── messaging/   # ✅ 1:1 messaging, time boundary queuing, delivery scheduler
 │   │       ├── safety/      # ✅ Blocking, reporting
 │   │       ├── moderation/  # ✅ AI flagging queue, human review
 │   │       ├── parent-dashboard/ # ✅ Indicators, alerts, managed members
@@ -135,6 +135,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 14. ✅ Real-time messaging — Socket.io gateway (auth, message send/receive, typing, presence, state broadcasts) + frontend socket hook with REST fallback
 15. ✅ "Delete for me" — per-user message deletion (original content preserved for moderators/other user)
 16. ✅ "Hide conversation" — per-user conversation hiding with auto-unhide on new incoming message
+17. ✅ Message delivery scheduler — `@nestjs/schedule` cron (every 60s) for time-boundary-queued messages + event-driven delivery when calm mode deactivated
 
 ### Web App File Structure
 
@@ -195,6 +196,7 @@ apps/web/
 - **WebSocket implemented:** Socket.io gateway handles real-time messaging, typing indicators, presence (online/offline), read receipts, delivered status, state change broadcasts, and conversation unhidden events. Frontend falls back to REST when socket is disconnected. Manual refresh button remains as backup.
 - **Message deletion is "delete for me" only:** The `DELETE /messages/:id` endpoint no longer overwrites message content. Instead it creates a `MessageDeletion` record — the message disappears from the deleter's view only. Original content is always preserved for moderators and the other user. Both sender and recipient can delete any message in their conversation.
 - **Hide conversation:** `POST /conversations/:id/hide` hides from sidebar, auto-unhides when a new message arrives from the other user. `POST /conversations/:id/unhide` to manually restore.
+- **Message delivery scheduler:** `MessageSchedulerService` runs a cron every 60s to deliver time-boundary-queued messages. Calm-mode-queued messages are delivered immediately when the user deactivates calm mode (via `calm_mode.deactivated` event). Both triggers emit `message:new` via Socket.io to recipients.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -715,4 +717,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 10, 2026_
+_Last updated: February 11, 2026_

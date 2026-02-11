@@ -135,6 +135,9 @@ export class StateService {
       calmModeActive: false,
     });
 
+    // Trigger delivery of calm-mode-queued messages
+    this.eventEmitter.emit('calm_mode.deactivated', { userId });
+
     return {
       active: false,
       startedAt: null,
