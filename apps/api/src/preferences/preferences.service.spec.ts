@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { PreferencesService } from './preferences.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
 
 describe('PreferencesService', () => {
@@ -13,6 +14,10 @@ describe('PreferencesService', () => {
     user: { id: 'user-id' },
   };
 
+  const mockUsersService = {
+    updateOnboardingProgress: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     prisma = createMockPrismaService();
 
@@ -20,6 +25,7 @@ describe('PreferencesService', () => {
       providers: [
         PreferencesService,
         { provide: PrismaService, useValue: prisma },
+        { provide: UsersService, useValue: mockUsersService },
       ],
     }).compile();
 
@@ -59,9 +65,7 @@ describe('PreferencesService', () => {
     it('should throw if user not found', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getCommunicationPrefs('missing-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getCommunicationPrefs('missing-id')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -147,8 +151,18 @@ describe('PreferencesService', () => {
     it('should return time boundaries ordered by day', async () => {
       prisma.account.findUnique.mockResolvedValue(mockAccountWithUser);
       prisma.timeBoundary.findMany.mockResolvedValue([
-        { dayOfWeek: 1, availableStart: '09:00', availableEnd: '17:00', timezone: 'America/Montreal' },
-        { dayOfWeek: 2, availableStart: '10:00', availableEnd: '18:00', timezone: 'America/Montreal' },
+        {
+          dayOfWeek: 1,
+          availableStart: '09:00',
+          availableEnd: '17:00',
+          timezone: 'America/Montreal',
+        },
+        {
+          dayOfWeek: 2,
+          availableStart: '10:00',
+          availableEnd: '18:00',
+          timezone: 'America/Montreal',
+        },
       ]);
 
       const result = await service.getTimeBoundaries('account-id');

@@ -230,6 +230,13 @@ export const usersApi = {
     request<OnboardingStatus>('/api/users/me/onboarding-status', {
       method: 'GET',
     }),
+
+  getDirectory: (search?: string) => {
+    const params = search ? `?search=${encodeURIComponent(search)}` : '';
+    return request<import('./types').UserDirectoryResponse>(`/api/users/directory${params}`, {
+      method: 'GET',
+    });
+  },
 };
 
 // Profile types

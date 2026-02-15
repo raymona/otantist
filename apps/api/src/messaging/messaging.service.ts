@@ -132,6 +132,15 @@ export class MessagingService {
       throw new NotFoundException('User not found');
     }
 
+    // Check if other user has completed onboarding
+    if (!otherUser.onboardingComplete) {
+      throw new BadRequestException({
+        code: 'USER_NOT_AVAILABLE',
+        message_en: 'This user is not yet available for messaging',
+        message_fr: "Cet utilisateur n'est pas encore disponible pour la messagerie",
+      });
+    }
+
     // Check if blocked
     const isBlocked = await this.isBlocked(userId, otherUserId);
     if (isBlocked) {

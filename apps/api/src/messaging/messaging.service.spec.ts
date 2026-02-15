@@ -252,6 +252,20 @@ describe('MessagingService', () => {
         BadRequestException
       );
     });
+
+    it('should throw when other user has not completed onboarding', async () => {
+      prisma.account.findUnique.mockResolvedValue(mockAccountWithUser);
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'other-user-id',
+        onboardingComplete: false,
+        state: null,
+        account: {},
+      });
+
+      await expect(service.startConversation('account-id', 'other-user-id')).rejects.toThrow(
+        BadRequestException
+      );
+    });
   });
 
   describe('deleteMessage (delete for me)', () => {

@@ -105,3 +105,19 @@ export interface ReportResponse {
   description?: string | null;
   createdAt: string;
 }
+
+// User directory types
+
+export interface UserDirectoryEntry {
+  id: string;
+  displayName: string | null;
+  isOnline: boolean;
+  lastSeen: string | null;
+  socialEnergy: SocialEnergyLevel | null;
+  calmModeActive: boolean;
+}
+
+export interface UserDirectoryResponse {
+  users: UserDirectoryEntry[];
+  total: number;
+}

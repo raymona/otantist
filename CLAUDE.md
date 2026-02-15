@@ -136,6 +136,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 15. ✅ "Delete for me" — per-user message deletion (original content preserved for moderators/other user)
 16. ✅ "Hide conversation" — per-user conversation hiding with auto-unhide on new incoming message
 17. ✅ Message delivery scheduler — `@nestjs/schedule` cron (every 60s) for time-boundary-queued messages + event-driven delivery when calm mode deactivated
+18. ✅ User directory — `GET /api/users/directory?search=` endpoint + searchable user list in NewConversationModal (replaces raw UUID input)
 
 ### Web App File Structure
 
@@ -181,7 +182,7 @@ apps/web/
 │       ├── ConversationList.tsx # ✅ Sidebar with conversation items + unread badges
 │       ├── ChatView.tsx        # ✅ Message thread + input + load more + block/report
 │       ├── MessageBubble.tsx   # ✅ Single message with status indicators + report
-│       ├── NewConversationModal.tsx # ✅ Modal to start conversation by user ID
+│       ├── NewConversationModal.tsx # ✅ Modal with searchable user directory
 │       ├── BlockConfirmModal.tsx    # ✅ Block confirmation with consequences list
 │       ├── BlockedUsersModal.tsx    # ✅ View/unblock users list
 │       └── ReportModal.tsx         # ✅ Report user or message (5 reason types)
@@ -190,9 +191,7 @@ apps/web/
 
 ### Known Issues & Debugging Notes
 
-- **Field name mismatch (potential):** Frontend login page checks `user.legalAccepted` for redirect logic. Backend returns `legalAccepted` (mapped from `account.legalAcceptedAt`).
-- **Client-side only route guards:** No Next.js middleware — all auth checks are useEffect-based, which means brief flash of wrong page before redirect.
-- **Duplicate onboarding logic:** Both `UsersService` and `PreferencesService` implement `updateOnboardingProgress()` independently — risk of drift.
+- **Client-side only route guards:** No Next.js middleware — auth checks are useEffect-based. Pages already show loading state and `return null` during redirect, so the flash is minimal. True middleware would require switching from localStorage to cookie-based auth — deferred as a future enhancement.
 - **WebSocket implemented:** Socket.io gateway handles real-time messaging, typing indicators, presence (online/offline), read receipts, delivered status, state change broadcasts, and conversation unhidden events. Frontend falls back to REST when socket is disconnected. Manual refresh button remains as backup.
 - **Message deletion is "delete for me" only:** The `DELETE /messages/:id` endpoint no longer overwrites message content. Instead it creates a `MessageDeletion` record — the message disappears from the deleter's view only. Original content is always preserved for moderators and the other user. Both sender and recipient can delete any message in their conversation.
 - **Hide conversation:** `POST /conversations/:id/hide` hides from sidebar, auto-unhides when a new message arrives from the other user. `POST /conversations/:id/unhide` to manually restore.
@@ -242,6 +241,7 @@ apps/web/
 | `/me`                    | PATCH  | Update profile                 |
 | `/me/onboarding-status`  | GET    | Get onboarding progress        |
 | `/me/language`           | PATCH  | Change language preference     |
+| `/directory`             | GET    | Searchable user directory      |
 | `/:id/how-to-talk-to-me` | GET    | Get user's communication guide |
 
 ### Preferences Module (`/api/preferences/`)
@@ -717,4 +717,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 11, 2026_
+_Last updated: February 15, 2026_

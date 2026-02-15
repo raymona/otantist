@@ -27,6 +27,7 @@ export default function StepConversation({
   onRemoveTip,
 }: StepConversationProps) {
   const { t } = useTranslation('onboarding');
+  const removeLabel = t('common:remove');
 
   return (
     <div className="space-y-6">
@@ -43,6 +44,7 @@ export default function StepConversation({
         placeholder={t('good_topics_placeholder')}
         hint={t('good_topics_hint')}
         tagColor="green"
+        removeLabel={removeLabel}
       />
 
       <TagInput
@@ -53,6 +55,7 @@ export default function StepConversation({
         placeholder={t('avoid_topics_placeholder')}
         hint={t('avoid_topics_hint')}
         tagColor="red"
+        removeLabel={removeLabel}
       />
 
       <TagInput
@@ -63,6 +66,7 @@ export default function StepConversation({
         placeholder={t('interaction_tips_placeholder')}
         hint={t('interaction_tips_hint')}
         tagColor="blue"
+        removeLabel={removeLabel}
       />
     </div>
   );

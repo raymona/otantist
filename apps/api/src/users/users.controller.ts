@@ -1,18 +1,5 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Param,
-  Body,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Patch, Param, Query, Body, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { UsersService } from './users.service';
 import {
@@ -21,6 +8,7 @@ import {
   UserProfileResponse,
   OnboardingStatusResponse,
   HowToTalkToMeResponse,
+  UserDirectoryResponse,
 } from './dto';
 
 @ApiTags('users')
@@ -44,9 +32,20 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateProfile(
     @Request() req: any,
-    @Body() dto: UpdateProfileDto,
+    @Body() dto: UpdateProfileDto
   ): Promise<UserProfileResponse> {
     return this.usersService.updateProfile(req.user.id, dto);
+  }
+
+  @Get('directory')
+  @ApiOperation({ summary: 'Get user directory (searchable list of onboarded users)' })
+  @ApiResponse({ status: 200, description: 'User directory', type: UserDirectoryResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getDirectory(
+    @Request() req: any,
+    @Query('search') search?: string
+  ): Promise<UserDirectoryResponse> {
+    return this.usersService.getDirectory(req.user.id, search);
   }
 
   @Get('me/onboarding-status')
@@ -63,7 +62,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateLanguage(
     @Request() req: any,
-    @Body() dto: UpdateLanguageDto,
+    @Body() dto: UpdateLanguageDto
   ): Promise<{ language: string }> {
     return this.usersService.updateLanguage(req.user.id, dto.language);
   }
@@ -76,7 +75,7 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getHowToTalkToMe(
     @Request() req: any,
-    @Param('id') userId: string,
+    @Param('id') userId: string
   ): Promise<HowToTalkToMeResponse> {
     return this.usersService.getHowToTalkToMe(req.user.id, userId);
   }

@@ -10,6 +10,7 @@ interface TagInputProps {
   placeholder: string;
   hint: string;
   tagColor: 'green' | 'red' | 'blue';
+  removeLabel?: string;
 }
 
 const TAG_STYLES = {
@@ -26,6 +27,7 @@ export default function TagInput({
   placeholder,
   hint,
   tagColor,
+  removeLabel = 'Remove',
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('');
   const styles = TAG_STYLES[tagColor];
@@ -55,7 +57,8 @@ export default function TagInput({
             <button
               type="button"
               onClick={() => onRemove(index)}
-              aria-label={`${tag}`}
+              aria-label={`${removeLabel} ${tag}`}
+              title={`${removeLabel} ${tag}`}
               className={`ml-2 ${styles.remove}`}
             >
               &times;

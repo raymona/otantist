@@ -97,6 +97,7 @@ export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBar
                 role="radio"
                 aria-checked={energyLevel === level}
                 aria-label={t(`status_bar.energy_${level}`)}
+                title={t(`status_bar.energy_${level}`)}
                 onClick={() => handleEnergyChange(level)}
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white transition-all ${
                   energyColors[level]

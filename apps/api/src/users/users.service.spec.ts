@@ -30,10 +30,7 @@ describe('UsersService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsersService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [UsersService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
@@ -53,9 +50,7 @@ describe('UsersService', () => {
     it('should throw NotFoundException if account not found', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(service.getProfile('missing-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getProfile('missing-id')).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException if user not linked', async () => {
@@ -64,9 +59,7 @@ describe('UsersService', () => {
         user: null,
       });
 
-      await expect(service.getProfile('account-id')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.getProfile('account-id')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -97,9 +90,9 @@ describe('UsersService', () => {
     it('should throw if user not found', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.updateProfile('missing-id', { displayName: 'Name' }),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateProfile('missing-id', { displayName: 'Name' })).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 
@@ -127,9 +120,7 @@ describe('UsersService', () => {
     it('should throw if user not found', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getOnboardingStatus('missing-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getOnboardingStatus('missing-id')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -141,6 +132,127 @@ describe('UsersService', () => {
 
       const result = await service.updateLanguage('account-id', 'fr');
       expect(result.language).toBe('fr');
+    });
+  });
+
+  describe('getDirectory', () => {
+    const requestingUser = {
+      id: 'user-id',
+      accountId: 'account-id',
+      displayName: 'Requester',
+    };
+
+    const directoryUsers = [
+      {
+        id: 'user-2',
+        displayName: 'Alice',
+        profileVisibility: 'visible',
+        onboardingComplete: true,
+        state: {
+          isOnline: true,
+          lastSeen: null,
+          socialEnergy: 'high',
+          calmModeActive: false,
+        },
+      },
+      {
+        id: 'user-3',
+        displayName: 'Bob',
+        profileVisibility: 'visible',
+        onboardingComplete: true,
+        state: {
+          isOnline: false,
+          lastSeen: new Date('2026-01-01'),
+          socialEnergy: 'low',
+          calmModeActive: true,
+        },
+      },
+    ];
+
+    beforeEach(() => {
+      prisma.account.findUnique.mockResolvedValue({
+        ...mockAccount,
+        user: requestingUser,
+      });
+      prisma.blockedUser.findMany.mockResolvedValue([]);
+    });
+
+    it('should return onboarded, non-hidden users excluding self', async () => {
+      prisma.user.findMany.mockResolvedValue(directoryUsers);
+
+      const result = await service.getDirectory('account-id');
+
+      expect(result.users).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.users[0].displayName).toBe('Alice');
+      expect(result.users[0].isOnline).toBe(true);
+      expect(result.users[1].displayName).toBe('Bob');
+      expect(result.users[1].calmModeActive).toBe(true);
+
+      // Verify the where clause excludes self and hidden profiles
+      const findManyCall = prisma.user.findMany.mock.calls[0][0];
+      expect(findManyCall.where.onboardingComplete).toBe(true);
+      expect(findManyCall.where.profileVisibility).toEqual({ not: 'hidden' });
+      expect(findManyCall.where.id.notIn).toContain('user-id');
+    });
+
+    it('should exclude blocked users (both directions)', async () => {
+      prisma.blockedUser.findMany.mockResolvedValue([
+        { blockerId: 'user-id', blockedId: 'user-blocked' },
+        { blockerId: 'user-blocker', blockedId: 'user-id' },
+      ]);
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getDirectory('account-id');
+
+      const findManyCall = prisma.user.findMany.mock.calls[0][0];
+      expect(findManyCall.where.id.notIn).toContain('user-blocked');
+      expect(findManyCall.where.id.notIn).toContain('user-blocker');
+      expect(findManyCall.where.id.notIn).toContain('user-id');
+    });
+
+    it('should filter by displayName when search is provided', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getDirectory('account-id', 'alice');
+
+      const findManyCall = prisma.user.findMany.mock.calls[0][0];
+      expect(findManyCall.where.displayName).toEqual({
+        contains: 'alice',
+        mode: 'insensitive',
+      });
+    });
+
+    it('should not add displayName filter when search is empty', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+
+      await service.getDirectory('account-id', '  ');
+
+      const findManyCall = prisma.user.findMany.mock.calls[0][0];
+      expect(findManyCall.where.displayName).toBeUndefined();
+    });
+
+    it('should throw NotFoundException if requesting user not found', async () => {
+      prisma.account.findUnique.mockResolvedValue(null);
+
+      await expect(service.getDirectory('missing-id')).rejects.toThrow(NotFoundException);
+    });
+
+    it('should handle users with no state', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 'user-no-state',
+          displayName: 'NoState',
+          state: null,
+        },
+      ]);
+
+      const result = await service.getDirectory('account-id');
+
+      expect(result.users[0].isOnline).toBe(false);
+      expect(result.users[0].lastSeen).toBeNull();
+      expect(result.users[0].socialEnergy).toBeNull();
+      expect(result.users[0].calmModeActive).toBe(false);
     });
   });
 });

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { UsersService } from '../users/users.service';
 import {
   UpdateCommunicationPrefsDto,
   CommunicationPrefsResponse,
@@ -13,7 +14,10 @@ import {
 
 @Injectable()
 export class PreferencesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private usersService: UsersService
+  ) {}
 
   private async getUserId(accountId: string): Promise<string> {
     const account = await this.prisma.account.findUnique({
@@ -51,7 +55,7 @@ export class PreferencesService {
 
   async updateCommunicationPrefs(
     accountId: string,
-    data: UpdateCommunicationPrefsDto,
+    data: UpdateCommunicationPrefsDto
   ): Promise<CommunicationPrefsResponse> {
     const userId = await this.getUserId(accountId);
 
@@ -77,7 +81,7 @@ export class PreferencesService {
     });
 
     if (data.sectionComplete) {
-      await this.updateOnboardingProgress(userId);
+      await this.usersService.updateOnboardingProgress(userId);
     }
 
     return this.getCommunicationPrefs(accountId);
@@ -106,7 +110,7 @@ export class PreferencesService {
 
   async updateSensoryPrefs(
     accountId: string,
-    data: UpdateSensoryPrefsDto,
+    data: UpdateSensoryPrefsDto
   ): Promise<SensoryPrefsResponse> {
     const userId = await this.getUserId(accountId);
 
@@ -126,13 +130,15 @@ export class PreferencesService {
         ...(data.colorIntensity !== undefined && { colorIntensity: data.colorIntensity }),
         ...(data.soundEnabled !== undefined && { soundEnabled: data.soundEnabled }),
         ...(data.notificationLimit !== undefined && { notificationLimit: data.notificationLimit }),
-        ...(data.notificationGrouped !== undefined && { notificationGrouped: data.notificationGrouped }),
+        ...(data.notificationGrouped !== undefined && {
+          notificationGrouped: data.notificationGrouped,
+        }),
         ...(data.sectionComplete !== undefined && { sectionComplete: data.sectionComplete }),
       },
     });
 
     if (data.sectionComplete) {
-      await this.updateOnboardingProgress(userId);
+      await this.usersService.updateOnboardingProgress(userId);
     }
 
     return this.getSensoryPrefs(accountId);
@@ -150,7 +156,7 @@ export class PreferencesService {
       orderBy: { dayOfWeek: 'asc' },
     });
 
-    return boundaries.map((b) => ({
+    return boundaries.map(b => ({
       dayOfWeek: b.dayOfWeek,
       availableStart: b.availableStart,
       availableEnd: b.availableEnd,
@@ -160,12 +166,12 @@ export class PreferencesService {
 
   async updateTimeBoundaries(
     accountId: string,
-    data: UpdateTimeBoundariesDto,
+    data: UpdateTimeBoundariesDto
   ): Promise<TimeBoundaryResponse[]> {
     const userId = await this.getUserId(accountId);
 
     // Replace all boundaries in a transaction
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async tx => {
       // Delete existing boundaries
       await tx.timeBoundary.deleteMany({
         where: { userId },
@@ -174,7 +180,7 @@ export class PreferencesService {
       // Create new boundaries
       if (data.boundaries.length > 0) {
         await tx.timeBoundary.createMany({
-          data: data.boundaries.map((b) => ({
+          data: data.boundaries.map(b => ({
             userId,
             dayOfWeek: b.dayOfWeek,
             availableStart: b.availableStart,
@@ -209,7 +215,7 @@ export class PreferencesService {
 
   async updateConversationStarters(
     accountId: string,
-    data: UpdateConversationStartersDto,
+    data: UpdateConversationStartersDto
   ): Promise<ConversationStartersResponse> {
     const userId = await this.getUserId(accountId);
 
@@ -231,58 +237,9 @@ export class PreferencesService {
     });
 
     if (data.sectionComplete) {
-      await this.updateOnboardingProgress(userId);
+      await this.usersService.updateOnboardingProgress(userId);
     }
 
     return this.getConversationStarters(accountId);
-  }
-
-  // ============================================
-  // Onboarding Progress Helper
-  // ============================================
-
-  private async updateOnboardingProgress(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        account: true,
-        communicationPrefs: true,
-        sensoryPrefs: true,
-        conversationStarters: true,
-      },
-    });
-
-    if (!user) return;
-
-    const account = user.account;
-
-    // Determine current onboarding step
-    let currentStep: string | null = null;
-    let onboardingComplete = false;
-
-    if (!account.emailVerified) {
-      currentStep = 'email_verification';
-    } else if (!account.legalAcceptedAt) {
-      currentStep = 'legal_acceptance';
-    } else if (!user.displayName || !user.ageGroup) {
-      currentStep = 'basic_profile';
-    } else if (!user.communicationPrefs?.sectionComplete) {
-      currentStep = 'communication_preferences';
-    } else if (!user.sensoryPrefs?.sectionComplete) {
-      currentStep = 'sensory_preferences';
-    } else if (!user.conversationStarters?.sectionComplete) {
-      currentStep = 'conversation_starters';
-    } else {
-      currentStep = null;
-      onboardingComplete = true;
-    }
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        onboardingStep: currentStep,
-        onboardingComplete,
-      },
-    });
   }
 }

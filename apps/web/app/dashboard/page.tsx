@@ -231,6 +231,23 @@ export default function DashboardPage() {
     []
   );
 
+  // --- REST fetching ---
+
+  const fetchConversations = useCallback(async () => {
+    setIsLoadingConversations(true);
+    setError('');
+    try {
+      const data = await messagingApi.getConversations();
+      setConversations(data.conversations);
+      return data.conversations;
+    } catch {
+      setError(t('errors.load_conversations'));
+      return [];
+    } finally {
+      setIsLoadingConversations(false);
+    }
+  }, [t]);
+
   const onConversationUnhidden = useCallback(
     (data: { conversationId: string }) => {
       // A new message arrived and auto-unhid this conversation — reload list
@@ -249,23 +266,6 @@ export default function DashboardPage() {
     onStateChanged,
     onConversationUnhidden,
   });
-
-  // --- REST fetching ---
-
-  const fetchConversations = useCallback(async () => {
-    setIsLoadingConversations(true);
-    setError('');
-    try {
-      const data = await messagingApi.getConversations();
-      setConversations(data.conversations);
-      return data.conversations;
-    } catch {
-      setError(t('errors.load_conversations'));
-      return [];
-    } finally {
-      setIsLoadingConversations(false);
-    }
-  }, [t]);
 
   // Fetch conversations once auth is resolved, restore selection from URL
   useEffect(() => {
@@ -346,7 +346,10 @@ export default function DashboardPage() {
 
   const handleNewConversationCreated = (conv: Conversation) => {
     setShowNewModal(false);
-    setConversations(prev => [conv, ...prev]);
+    setConversations(prev => {
+      const exists = prev.some(c => c.id === conv.id);
+      return exists ? prev.map(c => (c.id === conv.id ? conv : c)) : [conv, ...prev];
+    });
     setSelectedConversation(conv);
     router.replace(`/dashboard?chat=${conv.id}`, { scroll: false });
   };

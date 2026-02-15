@@ -169,6 +169,7 @@ export default function ChatView({
         <button
           onClick={onBack}
           aria-label={t('chat.back_to_list')}
+          title={t('chat.back_to_list')}
           className="p-1 text-gray-500 hover:text-gray-700 md:hidden"
         >
           <svg
@@ -190,6 +191,7 @@ export default function ChatView({
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <span
             aria-label={otherUser.isOnline ? t('conversations.online') : t('conversations.offline')}
+            title={otherUser.isOnline ? t('conversations.online') : t('conversations.offline')}
             className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
               otherUser.isOnline ? 'bg-green-500' : 'bg-gray-300'
             }`}
@@ -214,6 +216,7 @@ export default function ChatView({
           <button
             onClick={() => onHideConversation(conversation.id)}
             aria-label={t('chat.hide_conversation')}
+            title={t('chat.hide_conversation')}
             className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <svg
@@ -237,6 +240,7 @@ export default function ChatView({
         <button
           onClick={() => onReportUser?.(otherUser.id, displayName)}
           aria-label={t('chat.report_user')}
+          title={t('chat.report_user')}
           className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-yellow-600"
         >
           <svg
@@ -259,6 +263,7 @@ export default function ChatView({
         <button
           onClick={() => onBlockUser?.(otherUser.id, displayName)}
           aria-label={t('chat.block_user')}
+          title={t('chat.block_user')}
           className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-600"
         >
           <svg
@@ -284,6 +289,7 @@ export default function ChatView({
           }}
           disabled={isLoading}
           aria-label={t('chat.refresh_messages')}
+          title={t('chat.refresh_messages')}
           className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
         >
           <svg

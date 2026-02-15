@@ -123,3 +123,31 @@ export class HowToTalkToMeResponse {
   @ApiProperty()
   interactionTips!: string[];
 }
+
+export class UserDirectoryEntryResponse {
+  @ApiProperty()
+  id!: string;
+
+  @ApiPropertyOptional()
+  displayName!: string | null;
+
+  @ApiProperty()
+  isOnline!: boolean;
+
+  @ApiPropertyOptional()
+  lastSeen!: string | null;
+
+  @ApiPropertyOptional()
+  socialEnergy!: string | null;
+
+  @ApiProperty()
+  calmModeActive!: boolean;
+}
+
+export class UserDirectoryResponse {
+  @ApiProperty({ type: [UserDirectoryEntryResponse] })
+  users!: UserDirectoryEntryResponse[];
+
+  @ApiProperty()
+  total!: number;
+}

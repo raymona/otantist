@@ -5,6 +5,7 @@ import {
   UserProfileResponse,
   OnboardingStatusResponse,
   HowToTalkToMeResponse,
+  UserDirectoryResponse,
 } from './dto';
 
 @Injectable()
@@ -37,10 +38,7 @@ export class UsersService {
     };
   }
 
-  async updateProfile(
-    accountId: string,
-    data: UpdateProfileDto,
-  ): Promise<UserProfileResponse> {
+  async updateProfile(accountId: string, data: UpdateProfileDto): Promise<UserProfileResponse> {
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
       include: { user: true },
@@ -68,10 +66,7 @@ export class UsersService {
     return this.getProfile(accountId);
   }
 
-  async updateLanguage(
-    accountId: string,
-    language: 'fr' | 'en',
-  ): Promise<{ language: string }> {
+  async updateLanguage(accountId: string, language: 'fr' | 'en'): Promise<{ language: string }> {
     await this.prisma.account.update({
       where: { id: accountId },
       data: { preferredLanguage: language },
@@ -118,7 +113,7 @@ export class UsersService {
 
   async getHowToTalkToMe(
     requestingAccountId: string,
-    targetUserId: string,
+    targetUserId: string
   ): Promise<HowToTalkToMeResponse> {
     const targetUser = await this.prisma.user.findUnique({
       where: { id: targetUserId },
@@ -159,7 +154,7 @@ export class UsersService {
       // Only allow if they have an active conversation
       const hasConversation = await this.hasActiveConversation(
         requestingAccount?.user?.id,
-        targetUser.id,
+        targetUser.id
       );
       if (!hasConversation) {
         throw new ForbiddenException('This profile is hidden');
@@ -179,9 +174,70 @@ export class UsersService {
     };
   }
 
+  async getDirectory(accountId: string, search?: string): Promise<UserDirectoryResponse> {
+    // Get the requesting user's ID
+    const requestingAccount = await this.prisma.account.findUnique({
+      where: { id: accountId },
+      include: { user: true },
+    });
+
+    if (!requestingAccount?.user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const requestingUserId = requestingAccount.user.id;
+
+    // Get IDs of users blocked by or blocking the requesting user
+    const blocks = await this.prisma.blockedUser.findMany({
+      where: {
+        OR: [{ blockerId: requestingUserId }, { blockedId: requestingUserId }],
+      },
+      select: { blockerId: true, blockedId: true },
+    });
+
+    const blockedUserIds = new Set<string>();
+    for (const block of blocks) {
+      blockedUserIds.add(block.blockerId);
+      blockedUserIds.add(block.blockedId);
+    }
+    blockedUserIds.delete(requestingUserId);
+
+    // Build where clause
+    const where: any = {
+      onboardingComplete: true,
+      profileVisibility: { not: 'hidden' },
+      id: { notIn: [requestingUserId, ...blockedUserIds] },
+    };
+
+    if (search?.trim()) {
+      where.displayName = {
+        contains: search.trim(),
+        mode: 'insensitive',
+      };
+    }
+
+    const users = await this.prisma.user.findMany({
+      where,
+      include: { state: true },
+      orderBy: { displayName: 'asc' },
+    });
+
+    return {
+      users: users.map(user => ({
+        id: user.id,
+        displayName: user.displayName,
+        isOnline: user.state?.isOnline ?? false,
+        lastSeen: user.state?.lastSeen?.toISOString() ?? null,
+        socialEnergy: user.state?.socialEnergy ?? null,
+        calmModeActive: user.state?.calmModeActive ?? false,
+      })),
+      total: users.length,
+    };
+  }
+
   private async hasActiveConversation(
     userId1: string | undefined,
-    userId2: string,
+    userId2: string
   ): Promise<boolean> {
     if (!userId1) return false;
 
@@ -198,7 +254,7 @@ export class UsersService {
     return !!conversation;
   }
 
-  private async updateOnboardingProgress(userId: string): Promise<void> {
+  async updateOnboardingProgress(userId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {

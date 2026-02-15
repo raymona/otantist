@@ -12,7 +12,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
-    private emailService: EmailService,
+    private emailService: EmailService
   ) {}
 
   async register(data: {
@@ -51,7 +51,7 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(data.password, 12);
 
     // Create account and user in transaction
-    const account = await this.prisma.$transaction(async (tx) => {
+    const account = await this.prisma.$transaction(async tx => {
       // Create account
       const newAccount = await tx.account.create({
         data: {
@@ -95,7 +95,7 @@ export class AuthService {
   private async sendVerificationEmail(
     accountId: string,
     email: string,
-    language: 'fr' | 'en',
+    language: 'fr' | 'en'
   ): Promise<void> {
     // Delete any existing verification tokens for this account
     await this.prisma.authToken.deleteMany({
@@ -177,7 +177,7 @@ export class AuthService {
     await this.sendVerificationEmail(
       account.id,
       account.email,
-      account.preferredLanguage as 'fr' | 'en',
+      account.preferredLanguage as 'fr' | 'en'
     );
 
     return { sent: true };
@@ -216,7 +216,7 @@ export class AuthService {
     await this.emailService.sendPasswordResetEmail(
       account.email,
       token,
-      account.preferredLanguage as 'fr' | 'en',
+      account.preferredLanguage as 'fr' | 'en'
     );
 
     return { sent: true };
@@ -310,7 +310,7 @@ export class AuthService {
 
     // Generate tokens
     const payload = { sub: account.id, email: account.email };
-    
+
     return {
       accessToken: this.jwtService.sign(payload),
       refreshToken: this.jwtService.sign(payload, {
@@ -323,7 +323,10 @@ export class AuthService {
         email: account.email,
         displayName: account.user?.displayName,
         language: account.preferredLanguage,
+        emailVerified: account.emailVerified,
+        legalAccepted: !!account.legalAcceptedAt,
         onboardingComplete: account.user?.onboardingComplete,
+        onboardingStep: account.user?.onboardingStep,
       },
     };
   }

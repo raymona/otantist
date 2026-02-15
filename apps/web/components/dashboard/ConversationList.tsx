@@ -35,6 +35,7 @@ export default function ConversationList({
             onClick={onRefresh}
             disabled={isLoading}
             aria-label={t('conversations.refresh')}
+            title={t('conversations.refresh')}
             className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
           >
             <svg
@@ -91,6 +92,7 @@ export default function ConversationList({
                         {/* Online indicator */}
                         <span
                           aria-label={onlineStatus}
+                          title={onlineStatus}
                           className={`h-2 w-2 flex-shrink-0 rounded-full ${
                             conv.otherUser.isOnline ? 'bg-green-500' : 'bg-gray-300'
                           }`}
@@ -112,6 +114,9 @@ export default function ConversationList({
                         {conv.unreadCount > 0 && (
                           <span
                             aria-label={t('conversations.unread_other', {
+                              count: conv.unreadCount,
+                            })}
+                            title={t('conversations.unread_other', {
                               count: conv.unreadCount,
                             })}
                             className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs font-bold text-white"
