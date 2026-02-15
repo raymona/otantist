@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { authApi, usersApi, RegisterData, LoginData, User, ApiException } from './api';
 import { STORAGE_KEYS } from './constants';
 
@@ -18,6 +19,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const { i18n } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +41,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const userData = await usersApi.getMe();
       setUser(userData);
+      if (userData.language && userData.language !== i18n.language) {
+        i18n.changeLanguage(userData.language);
+      }
     } catch (error) {
       // If fetching user fails, try to refresh token
       const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
@@ -48,6 +53,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           storeTokens(response.accessToken, response.refreshToken);
           const userData = await usersApi.getMe();
           setUser(userData);
+          if (userData.language && userData.language !== i18n.language) {
+            i18n.changeLanguage(userData.language);
+          }
         } catch {
           clearAuth();
         }
@@ -55,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAuth();
       }
     }
-  }, [clearAuth, storeTokens]);
+  }, [clearAuth, storeTokens, i18n]);
 
   // Initialize auth state on mount
   useEffect(() => {

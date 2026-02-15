@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next';
 import { useAuthGuard } from '@/lib/use-auth-guard';
 import { messagingApi } from '@/lib/messaging-api';
 import { safetyApi } from '@/lib/safety-api';
+import { stateApi } from '@/lib/state-api';
 import { useSocket } from '@/lib/use-socket';
-import type { Conversation, Message } from '@/lib/types';
+import type { Conversation, Message, SocialEnergyLevel } from '@/lib/types';
 import StatusBar from '@/components/dashboard/StatusBar';
+import CalmModeBanner from '@/components/dashboard/CalmModeBanner';
 import ConversationList from '@/components/dashboard/ConversationList';
 import ChatView from '@/components/dashboard/ChatView';
 import NewConversationModal from '@/components/dashboard/NewConversationModal';
@@ -31,6 +33,10 @@ export default function DashboardPage() {
   // Lifted message state: messages keyed by conversationId
   const [messagesMap, setMessagesMap] = useState<Record<string, Message[]>>({});
   const [hasMoreMap, setHasMoreMap] = useState<Record<string, boolean>>({});
+
+  // Lifted calm mode + energy state (previously owned by StatusBar)
+  const [calmModeActive, setCalmModeActive] = useState(false);
+  const [socialEnergy, setSocialEnergy] = useState<SocialEnergyLevel | null>(null);
 
   // Typing indicators: conversationId → { displayName, timeout }
   const [typingMap, setTypingMap] = useState<Record<string, string>>({});
@@ -61,6 +67,43 @@ export default function DashboardPage() {
     const timer = setTimeout(() => setToast(null), 5000);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  // Fetch user state (calm mode + energy) on mount
+  useEffect(() => {
+    if (!isReady) return;
+    stateApi
+      .getCurrent()
+      .then(data => {
+        setCalmModeActive(data.calmModeActive);
+        setSocialEnergy(data.socialEnergy);
+      })
+      .catch(() => {
+        // Non-critical: dashboard works without state data
+      });
+  }, [isReady]);
+
+  const handleCalmModeToggle = async () => {
+    try {
+      if (calmModeActive) {
+        await stateApi.deactivateCalmMode();
+        setCalmModeActive(false);
+      } else {
+        await stateApi.activateCalmMode();
+        setCalmModeActive(true);
+      }
+    } catch {
+      // Non-critical: calm mode toggle failure is visible by unchanged UI
+    }
+  };
+
+  const handleEnergyChange = async (level: SocialEnergyLevel) => {
+    try {
+      const data = await stateApi.updateSocialEnergy(level);
+      setSocialEnergy(data.socialEnergy);
+    } catch {
+      // Non-critical: energy update failure is visible by unchanged UI
+    }
+  };
 
   // --- Socket event handlers ---
 
@@ -440,7 +483,17 @@ export default function DashboardPage() {
         {t('conversations.title')}
       </a>
 
-      <StatusBar onOpenBlockedUsers={() => setShowBlockedUsers(true)} isConnected={isConnected} />
+      <StatusBar
+        onOpenBlockedUsers={() => setShowBlockedUsers(true)}
+        isConnected={isConnected}
+        calmModeActive={calmModeActive}
+        onCalmModeToggle={handleCalmModeToggle}
+        socialEnergy={socialEnergy}
+        onEnergyChange={handleEnergyChange}
+      />
+
+      {/* Calm mode banner */}
+      {calmModeActive && <CalmModeBanner onDeactivate={handleCalmModeToggle} />}
 
       {/* Success toast */}
       {toast && (
@@ -456,10 +509,17 @@ export default function DashboardPage() {
       <div id="main-content" className="flex flex-1 overflow-hidden">
         {/* Sidebar — hidden on mobile when a conversation is selected */}
         <aside
-          className={`w-full border-r border-gray-200 bg-white md:w-80 md:flex-shrink-0 ${
+          className={`relative w-full border-r border-gray-200 bg-white md:w-80 md:flex-shrink-0 ${
             selectedConversation ? 'hidden md:block' : 'block'
           }`}
         >
+          {/* Calm mode sidebar dimming overlay */}
+          {calmModeActive && (
+            <div
+              className="pointer-events-none absolute inset-0 z-10 bg-purple-100/30"
+              aria-hidden="true"
+            />
+          )}
           {error && (
             <div
               role="alert"

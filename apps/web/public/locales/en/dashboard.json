@@ -109,6 +109,10 @@
     "starting": "Starting...",
     "error": "Could not start conversation"
   },
+  "calm_mode_banner": {
+    "message": "Calm mode is active — incoming messages are paused",
+    "deactivate": "Deactivate"
+  },
   "errors": {
     "load_conversations": "Failed to load conversations",
     "load_messages": "Failed to load messages",

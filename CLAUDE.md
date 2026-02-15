@@ -137,6 +137,8 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 16. ✅ "Hide conversation" — per-user conversation hiding with auto-unhide on new incoming message
 17. ✅ Message delivery scheduler — `@nestjs/schedule` cron (every 60s) for time-boundary-queued messages + event-driven delivery when calm mode deactivated
 18. ✅ User directory — `GET /api/users/directory?search=` endpoint + searchable user list in NewConversationModal (replaces raw UUID input)
+19. ✅ Enhanced calm mode visuals — CalmModeBanner (role="status"), sidebar dimming overlay, moon icon next to display name; calm mode + energy state lifted from StatusBar to DashboardPage
+20. ✅ Account Settings page — `/settings` route with per-section save, reuses onboarding step components (Profile, Communication, Sensory, Conversation Starters), plus TimeBoundariesEditor and language selector; `beforeunload` warning for unsaved changes; StatusBar display name links to settings
 
 ### Web App File Structure
 
@@ -146,6 +148,7 @@ apps/web/
 │   ├── layout.tsx              # Root layout (AuthProvider + I18nProvider)
 │   ├── page.tsx                # Landing page (redirects authenticated users to /dashboard)
 │   ├── dashboard/page.tsx      # ✅ Dashboard with messaging UI
+│   ├── settings/page.tsx       # ✅ Account settings (profile, prefs, time boundaries, language)
 │   ├── login/page.tsx          # ✅ Login with redirect logic (→ /dashboard)
 │   ├── register/page.tsx       # ✅ Registration with invite code
 │   ├── accept-terms/page.tsx   # ✅ Terms acceptance gate
@@ -156,9 +159,9 @@ apps/web/
 │   └── reset-password/page.tsx    # ✅ Password reset with token
 ├── lib/
 │   ├── api.ts                  # ✅ API client + type definitions (request exported)
-│   ├── auth-context.tsx        # ✅ Auth context (tokens, user, login/register/logout)
+│   ├── auth-context.tsx        # ✅ Auth context (tokens, user, login/register/logout, language sync)
 │   ├── constants.ts            # ✅ Shared storage keys (STORAGE_KEYS)
-│   ├── i18n.ts                 # ✅ i18next config (FR default, EN, dashboard ns)
+│   ├── i18n.ts                 # ✅ i18next config (FR default, EN, dashboard + settings ns)
 │   ├── types.ts                # ✅ Shared TS types for messaging + state + safety APIs
 │   ├── messaging-api.ts        # ✅ API client for conversations/messages
 │   ├── state-api.ts            # ✅ API client for social energy/calm mode
@@ -169,7 +172,7 @@ apps/web/
 │   └── utils.ts                # ✅ formatRelativeTime helper (uses i18n)
 ├── components/
 │   ├── I18nProvider.tsx        # ✅ i18n wrapper with hydration handling
-│   ├── LanguageSwitcher.tsx    # ✅ FR/EN toggle (role="group", aria-current)
+│   ├── LanguageSwitcher.tsx    # ✅ FR/EN toggle (role="group", aria-current, persists to API)
 │   ├── onboarding/
 │   │   ├── TagInput.tsx        # ✅ Reusable tag input (role="list", aria-label)
 │   │   ├── StepProfile.tsx     # ✅ Profile step (fieldset/legend, htmlFor/id)
@@ -177,8 +180,11 @@ apps/web/
 │   │   ├── StepSensory.tsx     # ✅ Sensory step (output, aria-valuemin/max/now)
 │   │   ├── StepConversation.tsx # ✅ Conversation step (composes TagInput)
 │   │   └── StepComplete.tsx    # ✅ Completion step (aria-hidden on decorative)
+│   ├── settings/
+│   │   └── TimeBoundariesEditor.tsx # ✅ 7-day time boundary grid with active toggle
 │   └── dashboard/
-│       ├── StatusBar.tsx       # ✅ Energy badge, calm mode toggle, blocked users, logout
+│       ├── StatusBar.tsx       # ✅ Energy badge, calm mode toggle, blocked users, logout, settings link
+│       ├── CalmModeBanner.tsx  # ✅ Purple banner when calm mode active (role="status")
 │       ├── ConversationList.tsx # ✅ Sidebar with conversation items + unread badges
 │       ├── ChatView.tsx        # ✅ Message thread + input + load more + block/report
 │       ├── MessageBubble.tsx   # ✅ Single message with status indicators + report
@@ -186,7 +192,7 @@ apps/web/
 │       ├── BlockConfirmModal.tsx    # ✅ Block confirmation with consequences list
 │       ├── BlockedUsersModal.tsx    # ✅ View/unblock users list
 │       └── ReportModal.tsx         # ✅ Report user or message (5 reason types)
-└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard)
+└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings)
 ```
 
 ### Known Issues & Debugging Notes
@@ -196,6 +202,10 @@ apps/web/
 - **Message deletion is "delete for me" only:** The `DELETE /messages/:id` endpoint no longer overwrites message content. Instead it creates a `MessageDeletion` record — the message disappears from the deleter's view only. Original content is always preserved for moderators and the other user. Both sender and recipient can delete any message in their conversation.
 - **Hide conversation:** `POST /conversations/:id/hide` hides from sidebar, auto-unhides when a new message arrives from the other user. `POST /conversations/:id/unhide` to manually restore.
 - **Message delivery scheduler:** `MessageSchedulerService` runs a cron every 60s to deliver time-boundary-queued messages. Calm-mode-queued messages are delivered immediately when the user deactivates calm mode (via `calm_mode.deactivated` event). Both triggers emit `message:new` via Socket.io to recipients.
+- **Calm mode visual indicators:** Three indicators: (1) CalmModeBanner between StatusBar and main content, (2) semi-transparent purple overlay on conversation sidebar, (3) moon icon next to display name in StatusBar. Calm mode + social energy state is lifted to DashboardPage and passed as props to StatusBar.
+- **Settings page:** Full `/settings` route reuses onboarding step components (StepProfile, StepCommunication, StepSensory, StepConversation). Each section saves independently via its own API endpoint. TimeBoundariesEditor is a new component for time boundary management. `beforeunload` fires when dirty sections exist.
+- **Language sync:** Auth context syncs `user.language` → `i18n.changeLanguage()` after login/user fetch (covers new browser/device). LanguageSwitcher persists to API via `usersApi.updateLanguage()` in addition to localStorage. Settings page language save also updates both API and i18n.
+- **Sensory preferences not yet applied:** `colorIntensity`, `soundEnabled`, `enableAnimations`, `notificationLimit`, `notificationGrouped` are all collected and stored but not yet consumed by any UI logic. These are placeholder infrastructure for when a designer implements real theming and audio.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -717,4 +727,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 15, 2026_
+_Last updated: February 15, 2026 (calm mode visuals + settings page)_

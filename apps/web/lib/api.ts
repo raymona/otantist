@@ -231,6 +231,12 @@ export const usersApi = {
       method: 'GET',
     }),
 
+  updateLanguage: (language: 'fr' | 'en') =>
+    request<User>('/api/users/me/language', {
+      method: 'PATCH',
+      body: { language },
+    }),
+
   getDirectory: (search?: string) => {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
     return request<import('./types').UserDirectoryResponse>(`/api/users/directory${params}`, {
@@ -316,6 +322,18 @@ export interface UpdateConversationStarters {
   sectionComplete?: boolean;
 }
 
+// Time boundary types
+export interface TimeBoundary {
+  dayOfWeek: number; // 0 = Sunday, 6 = Saturday
+  startTime: string; // HH:mm format
+  endTime: string; // HH:mm format
+  isActive: boolean;
+}
+
+export interface TimeBoundariesResponse {
+  boundaries: TimeBoundary[];
+}
+
 // Preferences API
 export const preferencesApi = {
   getCommunication: () =>
@@ -349,5 +367,16 @@ export const preferencesApi = {
     request<ConversationStarters>('/api/preferences/conversation-starters', {
       method: 'PATCH',
       body: data,
+    }),
+
+  getTimeBoundaries: () =>
+    request<TimeBoundariesResponse>('/api/preferences/time-boundaries', {
+      method: 'GET',
+    }),
+
+  updateTimeBoundaries: (boundaries: TimeBoundary[]) =>
+    request<TimeBoundariesResponse>('/api/preferences/time-boundaries', {
+      method: 'PUT',
+      body: { boundaries },
     }),
 };

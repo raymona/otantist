@@ -109,6 +109,10 @@
     "starting": "Démarrage...",
     "error": "Impossible de démarrer la conversation"
   },
+  "calm_mode_banner": {
+    "message": "Le mode calme est activé — les messages entrants sont en pause",
+    "deactivate": "Désactiver"
+  },
   "errors": {
     "load_conversations": "Échec du chargement des conversations",
     "load_messages": "Échec du chargement des messages",

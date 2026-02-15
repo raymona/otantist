@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
-import { stateApi } from '@/lib/state-api';
-import type { UserState, SocialEnergyLevel } from '@/lib/types';
+import type { SocialEnergyLevel } from '@/lib/types';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const ENERGY_LEVELS: SocialEnergyLevel[] = ['high', 'medium', 'low'];
@@ -19,67 +18,51 @@ const energyColors: Record<SocialEnergyLevel, string> = {
 interface StatusBarProps {
   onOpenBlockedUsers?: () => void;
   isConnected?: boolean;
+  calmModeActive: boolean;
+  onCalmModeToggle: () => void;
+  socialEnergy: SocialEnergyLevel | null;
+  onEnergyChange: (level: SocialEnergyLevel) => void;
 }
 
-export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBarProps) {
+export default function StatusBar({
+  onOpenBlockedUsers,
+  isConnected,
+  calmModeActive,
+  onCalmModeToggle,
+  socialEnergy,
+  onEnergyChange,
+}: StatusBarProps) {
   const { t } = useTranslation('dashboard');
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [state, setState] = useState<UserState | null>(null);
-
-  const fetchState = useCallback(async () => {
-    try {
-      const data = await stateApi.getCurrent();
-      setState(data);
-    } catch {
-      // Non-critical: status bar works without state data
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchState();
-  }, [fetchState]);
-
-  const handleEnergyChange = async (level: SocialEnergyLevel) => {
-    try {
-      const data = await stateApi.updateSocialEnergy(level);
-      setState(data);
-    } catch {
-      // Non-critical: energy update failure is visible by unchanged UI
-    }
-  };
-
-  const handleCalmToggle = async () => {
-    try {
-      if (state?.calmModeActive) {
-        await stateApi.deactivateCalmMode();
-        setState(prev => (prev ? { ...prev, calmModeActive: false, calmModeStarted: null } : prev));
-      } else {
-        await stateApi.activateCalmMode();
-        setState(prev =>
-          prev ? { ...prev, calmModeActive: true, calmModeStarted: new Date().toISOString() } : prev
-        );
-      }
-    } catch {
-      // Non-critical: calm mode toggle failure is visible by unchanged UI
-    }
-  };
 
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
 
-  const energyLevel = state?.socialEnergy;
-  const energyLabel = energyLevel ? t(`status_bar.energy_${energyLevel}`) : '—';
+  const energyLabel = socialEnergy ? t(`status_bar.energy_${socialEnergy}`) : '—';
 
   return (
     <header className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-2">
       {/* Left: user info + energy */}
       <div className="flex items-center gap-4">
-        <span className="max-w-[150px] truncate text-sm font-medium text-gray-700">
-          {user?.displayName || user?.email}
-        </span>
+        <Link
+          href="/settings"
+          className="flex max-w-[180px] items-center gap-1.5 text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+        >
+          <span className="truncate">{user?.displayName || user?.email}</span>
+          {calmModeActive && (
+            <svg
+              className="h-4 w-4 flex-shrink-0 text-purple-600"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </Link>
 
         {/* Energy level selector */}
         <div
@@ -95,13 +78,13 @@ export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBar
               <button
                 key={level}
                 role="radio"
-                aria-checked={energyLevel === level}
+                aria-checked={socialEnergy === level}
                 aria-label={t(`status_bar.energy_${level}`)}
                 title={t(`status_bar.energy_${level}`)}
-                onClick={() => handleEnergyChange(level)}
+                onClick={() => onEnergyChange(level)}
                 className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white transition-all ${
                   energyColors[level]
-                } ${energyLevel === level ? 'scale-110 ring-2 ring-gray-400 ring-offset-1' : 'opacity-40 hover:opacity-70'}`}
+                } ${socialEnergy === level ? 'scale-110 ring-2 ring-gray-400 ring-offset-1' : 'opacity-40 hover:opacity-70'}`}
               >
                 {t(`status_bar.energy_${level}`).charAt(0).toUpperCase()}
               </button>
@@ -117,10 +100,10 @@ export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBar
       <nav aria-label={t('common:app_name')} className="flex items-center gap-3">
         {/* Calm mode toggle */}
         <button
-          onClick={handleCalmToggle}
-          aria-pressed={state?.calmModeActive ?? false}
+          onClick={onCalmModeToggle}
+          aria-pressed={calmModeActive}
           className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-            state?.calmModeActive
+            calmModeActive
               ? 'border border-purple-300 bg-purple-100 text-purple-700'
               : 'border border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
@@ -140,7 +123,7 @@ export default function StatusBar({ onOpenBlockedUsers, isConnected }: StatusBar
             />
           </svg>
           {t('status_bar.calm_mode')}{' '}
-          {state?.calmModeActive ? t('status_bar.calm_mode_on') : t('status_bar.calm_mode_off')}
+          {calmModeActive ? t('status_bar.calm_mode_on') : t('status_bar.calm_mode_off')}
         </button>
 
         {/* Blocked users button */}

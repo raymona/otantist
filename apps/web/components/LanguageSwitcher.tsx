@@ -2,12 +2,20 @@
 
 import { useTranslation } from 'react-i18next';
 import { languages, type Language } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth-context';
+import { usersApi } from '@/lib/api';
 
 export default function LanguageSwitcher() {
   const { i18n, t } = useTranslation();
+  const { isAuthenticated } = useAuth();
 
   const changeLanguage = (lng: Language) => {
     i18n.changeLanguage(lng);
+    if (isAuthenticated) {
+      usersApi.updateLanguage(lng).catch(() => {
+        // Non-critical: language preference will still work locally via localStorage
+      });
+    }
   };
 
   return (
