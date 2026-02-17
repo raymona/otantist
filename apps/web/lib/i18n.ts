@@ -16,7 +16,7 @@ i18n
     defaultNS,
     fallbackLng: defaultLanguage,
     supportedLngs: languages,
-    ns: ['common', 'auth', 'onboarding', 'dashboard', 'settings'],
+    ns: ['common', 'auth', 'onboarding', 'dashboard', 'settings', 'parent'],
 
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],

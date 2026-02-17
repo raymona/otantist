@@ -1,0 +1,41 @@
+{
+  "title": "Tableau de bord parent",
+  "back": "Retour au tableau de bord",
+  "no_members": "Aucun membre géré",
+  "no_members_hint": "Vous n'avez aucun membre géré lié à votre compte.",
+  "member_list": {
+    "title": "Membres gérés",
+    "relationship_parent": "Parent",
+    "relationship_guardian": "Tuteur",
+    "relationship_other": "Autre",
+    "status_active": "Actif",
+    "status_pending": "En attente",
+    "status_suspended": "Suspendu"
+  },
+  "indicators": {
+    "title": "Activité (30 derniers jours)",
+    "energy_avg": "Énergie moyenne",
+    "calm_mode_minutes": "Mode calme (min)",
+    "messages_sent": "Messages envoyés",
+    "messages_received": "Messages reçus",
+    "no_indicators": "Aucune donnée d'activité disponible",
+    "date": "Date"
+  },
+  "alerts": {
+    "title": "Alertes",
+    "severity_info": "Info",
+    "severity_warning": "Avertissement",
+    "severity_urgent": "Urgent",
+    "acknowledge": "Acquitter",
+    "acknowledging": "Acquittement...",
+    "acknowledged": "Acquittée",
+    "acknowledged_at": "Acquittée le {{date}}",
+    "no_alerts": "Aucune alerte"
+  },
+  "errors": {
+    "load_members": "Échec du chargement des membres gérés",
+    "load_indicators": "Échec du chargement des données d'activité",
+    "load_alerts": "Échec du chargement des alertes",
+    "acknowledge_alert": "Échec de l'acquittement de l'alerte"
+  }
+}

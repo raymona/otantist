@@ -232,7 +232,7 @@ export const usersApi = {
     }),
 
   updateLanguage: (language: 'fr' | 'en') =>
-    request<User>('/api/users/me/language', {
+    request<{ language: string }>('/api/users/me/language', {
       method: 'PATCH',
       body: { language },
     }),
@@ -243,6 +243,11 @@ export const usersApi = {
       method: 'GET',
     });
   },
+
+  getHowToTalkToMe: (userId: string) =>
+    request<HowToTalkToMe>(`/api/users/${userId}/how-to-talk-to-me`, {
+      method: 'GET',
+    }),
 };
 
 // Profile types
@@ -266,6 +271,19 @@ export interface OnboardingStatus {
     sensoryPrefs: boolean;
     conversationStarters: boolean;
   };
+}
+
+// How to talk to me types
+export interface HowToTalkToMe {
+  displayName: string | null;
+  preferredTone?: string | null;
+  commModes: string[];
+  slowRepliesOk?: boolean | null;
+  oneMessageAtTime?: boolean | null;
+  readWithoutReply?: boolean | null;
+  goodTopics: string[];
+  avoidTopics: string[];
+  interactionTips: string[];
 }
 
 // Preferences types

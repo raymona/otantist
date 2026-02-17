@@ -9,6 +9,7 @@
     "calm_mode_on": "Activé",
     "calm_mode_off": "Désactivé",
     "blocked_users": "Utilisateurs bloqués",
+    "parent_dashboard": "Parent",
     "connected": "Connecté",
     "reconnecting": "Reconnexion..."
   },
@@ -55,7 +56,26 @@
     "report_user": "Signaler l'utilisateur",
     "report_message": "Signaler le message",
     "typing": "{{name}} écrit...",
-    "typing_short": "écrit..."
+    "typing_short": "écrit...",
+    "view_guide": "Comment parler à {{name}}"
+  },
+  "how_to_talk": {
+    "title": "Comment parler à {{name}}",
+    "preferred_tone": "Ton préféré",
+    "comm_modes": "Modes de communication",
+    "preferences": "Préférences",
+    "slow_replies_ok": "Réponses lentes acceptées",
+    "one_message_at_time": "Un message à la fois",
+    "read_without_reply": "Peut lire sans répondre",
+    "good_topics": "Bons sujets",
+    "avoid_topics": "Sujets à éviter",
+    "interaction_tips": "Conseils d'interaction",
+    "yes": "Oui",
+    "no": "Non",
+    "no_data": "Cet utilisateur n'a pas encore configuré ses préférences de communication.",
+    "loading": "Chargement...",
+    "error": "Échec du chargement du guide de communication",
+    "close": "Fermer"
   },
   "safety": {
     "block_success": "Utilisateur bloqué avec succès",

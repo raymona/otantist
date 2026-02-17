@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { messagingApi } from '@/lib/messaging-api';
 import type { Conversation, Message } from '@/lib/types';
 import MessageBubble from './MessageBubble';
+import HowToTalkToMeModal from './HowToTalkToMeModal';
 
 interface ChatViewProps {
   conversation: Conversation;
@@ -46,7 +47,9 @@ export default function ChatView({
   const [isSending, setIsSending] = useState(false);
   const [inputText, setInputText] = useState('');
   const [error, setError] = useState('');
+  const [showGuide, setShowGuide] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const guideButtonRef = useRef<HTMLButtonElement>(null);
   const lastTypingEmitRef = useRef<number>(0);
 
   const scrollToBottom = () => {
@@ -197,6 +200,29 @@ export default function ChatView({
             }`}
           />
           <span className="truncate font-medium text-gray-900">{displayName}</span>
+
+          <button
+            ref={guideButtonRef}
+            onClick={() => setShowGuide(true)}
+            aria-label={t('chat.view_guide', { name: displayName })}
+            title={t('chat.view_guide', { name: displayName })}
+            className="flex-shrink-0 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-blue-600"
+          >
+            <svg
+              className="h-4 w-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </button>
 
           {otherUser.calmModeActive && (
             <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
@@ -397,6 +423,16 @@ export default function ChatView({
           </button>
         </form>
       </footer>
+
+      <HowToTalkToMeModal
+        isOpen={showGuide}
+        userId={otherUser.id}
+        userName={displayName}
+        onClose={() => {
+          setShowGuide(false);
+          guideButtonRef.current?.focus();
+        }}
+      />
     </section>
   );
 }

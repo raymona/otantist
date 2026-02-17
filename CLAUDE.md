@@ -139,6 +139,8 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 18. ✅ User directory — `GET /api/users/directory?search=` endpoint + searchable user list in NewConversationModal (replaces raw UUID input)
 19. ✅ Enhanced calm mode visuals — CalmModeBanner (role="status"), sidebar dimming overlay, moon icon next to display name; calm mode + energy state lifted from StatusBar to DashboardPage
 20. ✅ Account Settings page — `/settings` route with per-section save, reuses onboarding step components (Profile, Communication, Sensory, Conversation Starters), plus TimeBoundariesEditor and language selector; `beforeunload` warning for unsaved changes; StatusBar display name links to settings
+21. ✅ "How to talk to me" guide — Info button in chat header next to display name opens HowToTalkToMeModal showing other user's communication preferences (tone, modes, slow replies, topics, tips); fetches `GET /api/users/:id/how-to-talk-to-me` on demand; focus trap + Escape to close
+22. ✅ Parent Dashboard UI — `/parent` route with managed member list, activity indicators table (last 30 days), alerts with severity badges and inline acknowledge; linked from StatusBar nav; empty state for non-parent users
 
 ### Web App File Structure
 
@@ -149,6 +151,7 @@ apps/web/
 │   ├── page.tsx                # Landing page (redirects authenticated users to /dashboard)
 │   ├── dashboard/page.tsx      # ✅ Dashboard with messaging UI
 │   ├── settings/page.tsx       # ✅ Account settings (profile, prefs, time boundaries, language)
+│   ├── parent/page.tsx         # ✅ Parent dashboard (managed members, indicators, alerts)
 │   ├── login/page.tsx          # ✅ Login with redirect logic (→ /dashboard)
 │   ├── register/page.tsx       # ✅ Registration with invite code
 │   ├── accept-terms/page.tsx   # ✅ Terms acceptance gate
@@ -166,6 +169,7 @@ apps/web/
 │   ├── messaging-api.ts        # ✅ API client for conversations/messages
 │   ├── state-api.ts            # ✅ API client for social energy/calm mode
 │   ├── safety-api.ts           # ✅ API client for block/unblock/report
+│   ├── parent-api.ts           # ✅ API client for parent dashboard (members, indicators, alerts)
 │   ├── use-auth-guard.ts       # ✅ Auth redirect hook (guest/authenticated/onboarded)
 │   ├── use-api-error.ts        # ✅ Localized error message hook
 │   ├── use-socket.ts           # ✅ Socket.io hook (connection, events, reconnection, REST fallback)
@@ -191,8 +195,13 @@ apps/web/
 │       ├── NewConversationModal.tsx # ✅ Modal with searchable user directory
 │       ├── BlockConfirmModal.tsx    # ✅ Block confirmation with consequences list
 │       ├── BlockedUsersModal.tsx    # ✅ View/unblock users list
-│       └── ReportModal.tsx         # ✅ Report user or message (5 reason types)
-└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings)
+│       ├── ReportModal.tsx         # ✅ Report user or message (5 reason types)
+│       └── HowToTalkToMeModal.tsx # ✅ Communication guide modal (tone, modes, topics, tips)
+│   ├── parent/
+│       ├── MemberList.tsx         # ✅ Managed members listbox with relationship/status badges
+│       ├── MemberDetail.tsx       # ✅ Indicators table + alerts list for selected member
+│       └── AlertItem.tsx          # ✅ Single alert with severity badge + acknowledge button
+└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent)
 ```
 
 ### Known Issues & Debugging Notes
@@ -727,4 +736,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 15, 2026 (calm mode visuals + settings page)_
+_Last updated: February 17, 2026 (how-to-talk-to-me guide + parent dashboard UI)_
