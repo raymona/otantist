@@ -4,4 +4,5 @@ export const STORAGE_KEYS = {
   REFRESH_TOKEN: 'otantist-refresh-token',
   LANGUAGE: 'otantist-language',
   PENDING_EMAIL: 'otantist-pending-email',
+  SENSORY_PREFS: 'otantist-sensory-prefs',
 } as const;

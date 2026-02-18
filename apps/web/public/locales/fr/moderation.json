@@ -1,0 +1,77 @@
+{
+  "title": "Modération",
+  "back": "Retour au tableau de bord",
+  "loading": "Chargement des données de modération...",
+  "error_loading": "Échec du chargement des données de modération",
+  "stats": {
+    "pending": "En attente",
+    "reviewing": "En examen",
+    "resolved_today": "Résolus aujourd'hui",
+    "total_resolved": "Total résolus",
+    "by_priority": "Par priorité"
+  },
+  "filter": {
+    "status": "Statut",
+    "priority": "Priorité",
+    "all_statuses": "Tous les statuts",
+    "all_priorities": "Toutes les priorités"
+  },
+  "status": {
+    "pending": "En attente",
+    "reviewing": "En examen",
+    "resolved": "Résolu"
+  },
+  "priority": {
+    "low": "Basse",
+    "medium": "Moyenne",
+    "high": "Haute",
+    "urgent": "Urgente"
+  },
+  "item_type": {
+    "message": "Message",
+    "user": "Utilisateur"
+  },
+  "flagged_by": {
+    "user": "Signalement utilisateur",
+    "ai": "Détection IA",
+    "moderator": "Modérateur",
+    "system": "Système"
+  },
+  "queue": {
+    "title": "File d'attente",
+    "empty": "Aucun élément dans la file",
+    "empty_hint": "Aucun élément de modération ne correspond aux filtres actuels.",
+    "select_item": "Sélectionnez un élément de la file pour voir les détails",
+    "flag_reason": "Raison",
+    "ai_confidence": "Confiance IA",
+    "flagged_at": "Signalé",
+    "resolved_at": "Résolu",
+    "source": "Source"
+  },
+  "detail": {
+    "title": "Détails de l'élément",
+    "related_content": "Contenu associé",
+    "message_content": "Contenu du message",
+    "sender": "Expéditeur",
+    "user_info": "Informations utilisateur",
+    "action_taken": "Action prise",
+    "resolution_notes": "Notes de résolution"
+  },
+  "resolve": {
+    "title": "Résoudre l'élément",
+    "action_label": "Action",
+    "action_dismissed": "Rejeté",
+    "action_warned": "Averti",
+    "action_removed": "Supprimé",
+    "action_suspended": "Suspendu",
+    "notes_label": "Notes (optionnel)",
+    "notes_placeholder": "Ajouter des notes de résolution...",
+    "save": "Résoudre",
+    "saving": "Résolution...",
+    "success": "Élément résolu avec succès",
+    "error": "Échec de la résolution de l'élément"
+  },
+  "nav": {
+    "moderation": "Modération"
+  }
+}

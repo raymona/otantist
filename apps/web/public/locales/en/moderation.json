@@ -1,0 +1,77 @@
+{
+  "title": "Moderation",
+  "back": "Back to dashboard",
+  "loading": "Loading moderation data...",
+  "error_loading": "Failed to load moderation data",
+  "stats": {
+    "pending": "Pending",
+    "reviewing": "Reviewing",
+    "resolved_today": "Resolved today",
+    "total_resolved": "Total resolved",
+    "by_priority": "By priority"
+  },
+  "filter": {
+    "status": "Status",
+    "priority": "Priority",
+    "all_statuses": "All statuses",
+    "all_priorities": "All priorities"
+  },
+  "status": {
+    "pending": "Pending",
+    "reviewing": "Reviewing",
+    "resolved": "Resolved"
+  },
+  "priority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "item_type": {
+    "message": "Message",
+    "user": "User"
+  },
+  "flagged_by": {
+    "user": "User report",
+    "ai": "AI detection",
+    "moderator": "Moderator",
+    "system": "System"
+  },
+  "queue": {
+    "title": "Queue",
+    "empty": "No items in queue",
+    "empty_hint": "No moderation items match the current filters.",
+    "select_item": "Select an item from the queue to view details",
+    "flag_reason": "Reason",
+    "ai_confidence": "AI confidence",
+    "flagged_at": "Flagged",
+    "resolved_at": "Resolved",
+    "source": "Source"
+  },
+  "detail": {
+    "title": "Item details",
+    "related_content": "Related content",
+    "message_content": "Message content",
+    "sender": "Sender",
+    "user_info": "User information",
+    "action_taken": "Action taken",
+    "resolution_notes": "Resolution notes"
+  },
+  "resolve": {
+    "title": "Resolve item",
+    "action_label": "Action",
+    "action_dismissed": "Dismissed",
+    "action_warned": "Warned",
+    "action_removed": "Removed",
+    "action_suspended": "Suspended",
+    "notes_label": "Notes (optional)",
+    "notes_placeholder": "Add resolution notes...",
+    "save": "Resolve",
+    "saving": "Resolving...",
+    "success": "Item resolved successfully",
+    "error": "Failed to resolve item"
+  },
+  "nav": {
+    "moderation": "Moderation"
+  }
+}

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuthGuard } from '@/lib/use-auth-guard';
+import { useSensory } from '@/lib/sensory-context';
 import {
   usersApi,
   preferencesApi,
@@ -36,7 +37,9 @@ type SectionName =
 
 export default function SettingsPage() {
   const { t, i18n, ready: i18nReady } = useTranslation('settings');
+  const router = useRouter();
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
+  const { refreshSensory } = useSensory();
 
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -142,7 +145,13 @@ export default function SettingsPage() {
     loadData();
   }, [isReady]);
 
-  // Warn on unsaved changes
+  // Keep a ref so event handlers always see current dirty state
+  const dirtySectionsRef = useRef(dirtySections);
+  useEffect(() => {
+    dirtySectionsRef.current = dirtySections;
+  }, [dirtySections]);
+
+  // Warn on unsaved changes (tab close / URL change)
   useEffect(() => {
     if (dirtySections.size === 0) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -151,6 +160,26 @@ export default function SettingsPage() {
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [dirtySections.size]);
+
+  // Guard browser back button
+  useEffect(() => {
+    // Push a duplicate history entry so back button triggers popstate
+    // instead of immediately leaving
+    history.pushState(null, '', window.location.href);
+
+    const handlePopState = () => {
+      if (dirtySectionsRef.current.size > 0 && !window.confirm(t('unsaved_warning'))) {
+        // User cancelled — stay on settings, re-push the guard entry
+        history.pushState(null, '', window.location.href);
+      } else {
+        // User confirmed or nothing dirty — actually go back
+        history.back();
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [t]);
 
   // Auto-clear success status after 3s
   useEffect(() => {
@@ -219,6 +248,7 @@ export default function SettingsPage() {
         notificationLimit,
         notificationGrouped,
       });
+      await refreshSensory();
     });
 
   const handleSaveConversation = () =>
@@ -238,7 +268,7 @@ export default function SettingsPage() {
   const handleSaveLanguage = () =>
     saveSection('language', async () => {
       await usersApi.updateLanguage(language);
-      i18n.changeLanguage(language);
+      await i18n.changeLanguage(language);
     });
 
   // --- Comm mode toggle ---
@@ -330,12 +360,17 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-gray-50">
       <header className="border-b border-gray-200 bg-white px-4 py-3">
         <div className="mx-auto flex max-w-3xl items-center gap-4">
-          <Link
-            href="/dashboard"
+          <button
+            onClick={() => {
+              if (dirtySections.size > 0 && !window.confirm(t('unsaved_warning'))) {
+                return;
+              }
+              router.push('/dashboard');
+            }}
             className="text-sm text-blue-600 transition-colors hover:text-blue-800"
           >
             &larr; {t('back_to_dashboard')}
-          </Link>
+          </button>
           <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
         </div>
       </header>

@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import I18nProvider from '@/components/I18nProvider';
 import { AuthProvider } from '@/lib/auth-context';
+import { SensoryProvider } from '@/lib/sensory-context';
 
 export const metadata: Metadata = {
   title: 'Otantist',
@@ -17,7 +18,9 @@ export default function RootLayout({
     <html lang="fr" suppressHydrationWarning>
       <body className="antialiased">
         <I18nProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <SensoryProvider>{children}</SensoryProvider>
+          </AuthProvider>
         </I18nProvider>
       </body>
     </html>

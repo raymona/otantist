@@ -3,3 +3,35 @@
 body {
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Sensory preferences — applied via body classes by SensoryProvider */
+
+/* Disable all animations and transitions */
+.sensory-no-animations *,
+.sensory-no-animations *::before,
+.sensory-no-animations *::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+  transition: none !important;
+}
+
+/* Reduced color intensity — desaturate by 40% */
+.sensory-reduced {
+  filter: saturate(0.6);
+}
+
+/* Minimal color intensity — near-grayscale */
+.sensory-minimal {
+  filter: saturate(0.25);
+}
+
+/* Respect OS-level reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+    transition: none !important;
+  }
+}

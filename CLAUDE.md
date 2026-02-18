@@ -141,17 +141,20 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 20. ✅ Account Settings page — `/settings` route with per-section save, reuses onboarding step components (Profile, Communication, Sensory, Conversation Starters), plus TimeBoundariesEditor and language selector; `beforeunload` warning for unsaved changes; StatusBar display name links to settings
 21. ✅ "How to talk to me" guide — Info button in chat header next to display name opens HowToTalkToMeModal showing other user's communication preferences (tone, modes, slow replies, topics, tips); fetches `GET /api/users/:id/how-to-talk-to-me` on demand; focus trap + Escape to close
 22. ✅ Parent Dashboard UI — `/parent` route with managed member list, activity indicators table (last 30 days), alerts with severity badges and inline acknowledge; linked from StatusBar nav; empty state for non-parent users
+23. ✅ Applied sensory preferences — `SensoryProvider` context fetches sensory prefs, applies CSS body classes (`sensory-no-animations`, `sensory-reduced`, `sensory-minimal`) globally; cached in localStorage for instant re-apply; `useSensory()` hook; settings page calls `refreshSensory()` after save for immediate effect; `@media (prefers-reduced-motion)` also respected
+24. ✅ Moderation UI — `/moderation` route with stats panel (pending/reviewing/resolved/total + priority breakdown), filterable queue list (status + priority dropdowns), and detail panel with related content + resolution form (dismissed/warned/removed/suspended + notes); linked from StatusBar nav; bilingual (EN/FR)
 
 ### Web App File Structure
 
 ```
 apps/web/
 ├── app/
-│   ├── layout.tsx              # Root layout (AuthProvider + I18nProvider)
+│   ├── layout.tsx              # Root layout (AuthProvider + I18nProvider + SensoryProvider)
 │   ├── page.tsx                # Landing page (redirects authenticated users to /dashboard)
 │   ├── dashboard/page.tsx      # ✅ Dashboard with messaging UI
 │   ├── settings/page.tsx       # ✅ Account settings (profile, prefs, time boundaries, language)
 │   ├── parent/page.tsx         # ✅ Parent dashboard (managed members, indicators, alerts)
+│   ├── moderation/page.tsx    # ✅ Moderation queue (stats, queue list, detail + resolve)
 │   ├── login/page.tsx          # ✅ Login with redirect logic (→ /dashboard)
 │   ├── register/page.tsx       # ✅ Registration with invite code
 │   ├── accept-terms/page.tsx   # ✅ Terms acceptance gate
@@ -170,6 +173,8 @@ apps/web/
 │   ├── state-api.ts            # ✅ API client for social energy/calm mode
 │   ├── safety-api.ts           # ✅ API client for block/unblock/report
 │   ├── parent-api.ts           # ✅ API client for parent dashboard (members, indicators, alerts)
+│   ├── moderation-api.ts       # ✅ API client for moderation (queue, stats, resolve)
+│   ├── sensory-context.tsx     # ✅ SensoryProvider + useSensory() hook (body CSS classes)
 │   ├── use-auth-guard.ts       # ✅ Auth redirect hook (guest/authenticated/onboarded)
 │   ├── use-api-error.ts        # ✅ Localized error message hook
 │   ├── use-socket.ts           # ✅ Socket.io hook (connection, events, reconnection, REST fallback)
@@ -201,7 +206,11 @@ apps/web/
 │       ├── MemberList.tsx         # ✅ Managed members listbox with relationship/status badges
 │       ├── MemberDetail.tsx       # ✅ Indicators table + alerts list for selected member
 │       └── AlertItem.tsx          # ✅ Single alert with severity badge + acknowledge button
-└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent)
+│   ├── moderation/
+│       ├── StatsPanel.tsx         # ✅ Stats cards (pending/reviewing/resolved) + priority badges
+│       ├── QueueList.tsx          # ✅ Filterable queue listbox with status/priority dropdowns
+│       └── QueueItemDetail.tsx    # ✅ Item detail + related content + resolution form
+└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent, moderation)
 ```
 
 ### Known Issues & Debugging Notes
@@ -214,7 +223,8 @@ apps/web/
 - **Calm mode visual indicators:** Three indicators: (1) CalmModeBanner between StatusBar and main content, (2) semi-transparent purple overlay on conversation sidebar, (3) moon icon next to display name in StatusBar. Calm mode + social energy state is lifted to DashboardPage and passed as props to StatusBar.
 - **Settings page:** Full `/settings` route reuses onboarding step components (StepProfile, StepCommunication, StepSensory, StepConversation). Each section saves independently via its own API endpoint. TimeBoundariesEditor is a new component for time boundary management. `beforeunload` fires when dirty sections exist.
 - **Language sync:** Auth context syncs `user.language` → `i18n.changeLanguage()` after login/user fetch (covers new browser/device). LanguageSwitcher persists to API via `usersApi.updateLanguage()` in addition to localStorage. Settings page language save also updates both API and i18n.
-- **Sensory preferences not yet applied:** `colorIntensity`, `soundEnabled`, `enableAnimations`, `notificationLimit`, `notificationGrouped` are all collected and stored but not yet consumed by any UI logic. These are placeholder infrastructure for when a designer implements real theming and audio.
+- **Sensory preferences applied via CSS body classes:** `SensoryProvider` (wraps app in layout) fetches sensory prefs once authenticated, applies `sensory-no-animations` (disables all transitions/animations), `sensory-reduced` (`saturate(0.6)`), or `sensory-minimal` (`saturate(0.25)`) as CSS classes on `<body>`. Cached in localStorage (`STORAGE_KEYS.SENSORY_PREFS`) for instant re-apply on page load. `useSensory()` hook exposes state + `refreshSensory()`. Settings page calls `refreshSensory()` after saving sensory section for immediate effect. `soundEnabled` is stored in context for future audio features (no UI effect yet). `notificationLimit` / `notificationGrouped` are backend concerns — not applied in UI.
+- **Moderation UI:** `/moderation` route accessible to all authenticated users (no role system in MVP). Stats summary at top (4 cards + priority breakdown), then two-panel layout: filterable queue list (status + priority dropdowns) on left, selected item detail + resolution form on right. Resolution actions: dismissed, warned, removed, suspended + optional notes (max 1000 chars). After resolving, stats refresh automatically.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -736,4 +746,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 17, 2026 (how-to-talk-to-me guide + parent dashboard UI)_
+_Last updated: February 18, 2026 (applied sensory preferences + moderation UI)_
