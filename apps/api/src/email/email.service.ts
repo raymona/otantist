@@ -16,9 +16,14 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       host: this.configService.get('SMTP_HOST', 'localhost'),
-      port: this.configService.get('SMTP_PORT', 1025),
-      secure: false, // Mailhog doesn't use TLS
-      // No auth needed for Mailhog
+      port: parseInt(this.configService.get('SMTP_PORT', '1025'), 10),
+      secure: this.configService.get('SMTP_SECURE', 'false') === 'true',
+      ...(this.configService.get('SMTP_USER') && {
+        auth: {
+          user: this.configService.get('SMTP_USER'),
+          pass: this.configService.get('SMTP_PASS'),
+        },
+      }),
     });
   }
 
@@ -35,11 +40,7 @@ export class EmailService {
     });
   }
 
-  async sendVerificationEmail(
-    to: string,
-    token: string,
-    language: 'fr' | 'en',
-  ): Promise<void> {
+  async sendVerificationEmail(to: string, token: string, language: 'fr' | 'en'): Promise<void> {
     const baseUrl = this.configService.get('WEB_URL', 'http://localhost:3000');
     const verifyUrl = `${baseUrl}/verify-email?token=${token}`;
 
@@ -77,11 +78,7 @@ export class EmailService {
     });
   }
 
-  async sendPasswordResetEmail(
-    to: string,
-    token: string,
-    language: 'fr' | 'en',
-  ): Promise<void> {
+  async sendPasswordResetEmail(to: string, token: string, language: 'fr' | 'en'): Promise<void> {
     const baseUrl = this.configService.get('WEB_URL', 'http://localhost:3000');
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
@@ -92,7 +89,8 @@ export class EmailService {
         body: 'Vous avez demandé une réinitialisation de mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.',
         button: 'Réinitialiser mon mot de passe',
         expiry: 'Ce lien expirera dans 1 heure.',
-        ignore: "Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer ce courriel.",
+        ignore:
+          "Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer ce courriel.",
       },
       en: {
         subject: 'Password Reset - Otantist',

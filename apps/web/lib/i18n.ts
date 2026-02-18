@@ -19,7 +19,7 @@ i18n
     ns: ['common', 'auth', 'onboarding', 'dashboard', 'settings', 'parent', 'moderation'],
 
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['localStorage'],
       caches: ['localStorage'],
       lookupLocalStorage: 'otantist-language',
     },
