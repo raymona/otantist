@@ -15,6 +15,7 @@ describe('UsersService', () => {
     legalAcceptedAt: new Date(),
     preferredLanguage: 'en',
     createdAt: new Date(),
+    parentManagedAsParent: [],
     user: {
       id: 'user-id',
       accountId: 'account-id',
