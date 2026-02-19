@@ -30,6 +30,8 @@ export function useAuthGuard(requirement: AuthRequirement): AuthGuardResult {
           router.push('/accept-terms');
         } else if (!user.onboardingComplete) {
           router.push('/onboarding');
+        } else if (user.isParent) {
+          router.push('/parent');
         } else {
           router.push('/dashboard');
         }

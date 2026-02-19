@@ -1,0 +1,66 @@
+{
+  "title": "Help & Guide",
+  "intro": "Welcome to Otantist. This guide explains how to use the app. You can come back here any time.",
+  "nav_label": "Jump to section",
+
+  "sections": {
+    "getting_around": {
+      "title": "Getting around",
+      "content": "The toolbar at the top of every page shows your name, your energy level, and quick links to settings and other features. Click your name to go to Settings. Use the language button to switch between French and English at any time."
+    },
+    "energy": {
+      "title": "Social energy",
+      "content": "Your social energy shows others how available you are right now. You can set it to High, Medium, or Low using the coloured circles in the toolbar. This is optional — you can change it whenever you want, or leave it as-is."
+    },
+    "calm_mode": {
+      "title": "Calm mode",
+      "content": "Calm mode pauses incoming messages so you are not interrupted. Messages sent to you while calm mode is on will be held and delivered when you turn it off. Turn calm mode on or off using the moon button in the toolbar. A purple banner will appear at the top of the screen when calm mode is active."
+    },
+    "messaging": {
+      "title": "Messaging",
+      "content": "Otantist is for 1-to-1 conversations only. To start a new conversation, click the \"New conversation\" button in the left sidebar and search for the person you want to talk to. You can only see people who have finished setting up their profile.",
+      "features_title": "Useful things you can do in a conversation",
+      "features": [
+        "See how to talk to someone — click the info button next to their name in the chat header.",
+        "Delete a message — only removes it from your view. The other person can still see it.",
+        "Hide a conversation — removes it from your list. It will come back automatically if they send you a new message."
+      ]
+    },
+    "message_status": {
+      "title": "Message status",
+      "content": "Each message shows a small status indicator:",
+      "statuses": [
+        "Queued — the message is waiting to be delivered (calm mode or outside availability hours).",
+        "Sent — the message was sent successfully.",
+        "Delivered — the other person's device has received it.",
+        "Read — the other person has read it."
+      ]
+    },
+    "settings": {
+      "title": "Settings",
+      "content": "Click your name in the toolbar to open Settings. You can update:",
+      "items": [
+        "Your profile (display name, age group, visibility)",
+        "Communication preferences — your preferred tone, modes, and rhythm",
+        "Sensory preferences — animations, colour intensity",
+        "Availability hours — set the times when you are available for messages",
+        "Conversation starters — topics you enjoy or want to avoid, plus tips for others",
+        "Language — switch between French and English"
+      ],
+      "save_note": "Each section saves independently. You do not need to fill everything in at once."
+    },
+    "safety": {
+      "title": "Safety — blocking and reporting",
+      "block_content": "To block someone, open your conversation with them and click \"Block user\". Blocking prevents them from sending you messages and archives your conversation. You can unblock someone at any time from the blocked users list in the toolbar.",
+      "report_content": "To report a user or a specific message, click the \"Report\" button in the conversation. Reports are reviewed by the Otantist team. You do not need to include your name in a report."
+    },
+    "parent": {
+      "title": "For parents",
+      "content": "If you have a managed member, you can access the Parent dashboard from the toolbar. There you can see your member's recent activity indicators and any alerts. You can acknowledge alerts once you have seen them. Your member's actual message content is private — indicators show patterns only, not individual messages."
+    },
+    "feedback": {
+      "title": "Giving feedback",
+      "content": "As an early tester, your feedback is valuable. If something is confusing, broken, or missing, please let the team know. There is no formal feedback form yet — reach out directly to the person who invited you."
+    }
+  }
+}

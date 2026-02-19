@@ -132,6 +132,15 @@ export class MessagingService {
       throw new NotFoundException('User not found');
     }
 
+    // Parent-managed (minor) accounts cannot be messaged directly
+    if (otherUser.account.accountType === 'parent_managed') {
+      throw new ForbiddenException({
+        code: 'CANNOT_MESSAGE_MANAGED_ACCOUNT',
+        message_en: 'This account cannot be messaged directly',
+        message_fr: 'Ce compte ne peut pas être contacté directement',
+      });
+    }
+
     // Check if other user has completed onboarding
     if (!otherUser.onboardingComplete) {
       throw new BadRequestException({

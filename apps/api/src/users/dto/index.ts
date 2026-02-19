@@ -74,6 +74,9 @@ export class UserProfileResponse {
   legalAccepted!: boolean;
 
   @ApiProperty()
+  isParent!: boolean;
+
+  @ApiProperty()
   createdAt!: Date;
 }
 

@@ -15,7 +15,10 @@ export class UsersService {
   async getProfile(accountId: string): Promise<UserProfileResponse> {
     const account = await this.prisma.account.findUnique({
       where: { id: accountId },
-      include: { user: true },
+      include: {
+        user: true,
+        parentManagedAsParent: { where: { status: 'active' }, take: 1 },
+      },
     });
 
     if (!account || !account.user) {
@@ -34,6 +37,7 @@ export class UsersService {
       language: account.preferredLanguage,
       emailVerified: account.emailVerified,
       legalAccepted: !!account.legalAcceptedAt,
+      isParent: account.parentManagedAsParent.length > 0,
       createdAt: account.createdAt,
     };
   }
@@ -207,6 +211,7 @@ export class UsersService {
       onboardingComplete: true,
       profileVisibility: { not: 'hidden' },
       id: { notIn: [requestingUserId, ...blockedUserIds] },
+      account: { accountType: { not: 'parent_managed' } },
     };
 
     if (search?.trim()) {

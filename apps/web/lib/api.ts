@@ -160,6 +160,7 @@ export interface User {
   language: 'fr' | 'en';
   emailVerified: boolean;
   legalAccepted: boolean;
+  isParent: boolean;
   onboardingComplete: boolean;
   onboardingStep?: string | null;
   createdAt?: string;
