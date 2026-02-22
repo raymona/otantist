@@ -235,6 +235,11 @@ apps/web/
 - **Deployment:** Code is production-ready. Remaining steps are manual account setup in Railway (API + PostgreSQL + Redis), Vercel (web app), and Resend (email via smtp.resend.com). See deployment section in commit history for full env var list. Local dev is completely unchanged — Docker + Mailhog + localhost.
 - **i18n language detection:** `LanguageDetector` order is `['localStorage']` only. First-time visitors with no saved preference fall back to `'fr'`. Logged-in users get their language synced from `user.language` via `fetchUser()` → `i18n.changeLanguage()`.
 - **Help page:** `/help` route uses `useAuthGuard('onboarded')`. Parent section (`sections.parent`) only renders when `user?.isParent`. Uses `help` i18n namespace. Linked from StatusBar with a ? icon button.
+- **French translations — pending human review:** A first-pass review was done and clear-cut issues were fixed (Feb 22). The following items need a native Quebec French speaker to review before public beta:
+  - **Error message tone** — All errors follow `"Échec du/de..."` pattern (e.g. "Échec du chargement des conversations"). Technically correct but cold. Consider softer phrasing like `"Impossible de charger les conversations"` throughout. Files affected: `dashboard.json`, `parent.json`, `moderation.json`.
+  - **`"Plateforme sociale sécuritaire"`** (`common.json` tagline) — "Sécuritaire" is a Quebec French calque from English "secure." Some prefer "sécurisée." Native speaker should decide.
+  - **`"Tuteur"`** (`parent.json` `member_list.relationship_guardian`) — Masculine only. If female guardians are expected, consider `"Tuteur/Tutrice"` or `"Tuteur·rice"`.
+  - **Overall warmth** — Translations are accurate but lean formal in places. Reviewer should read through with an eye for whether the tone feels approachable and safe for autistic users, not just grammatically correct.
 
 ### Login → Onboarding Flow (how it should work)
 

@@ -1,7 +1,7 @@
 {
   "title": "Paramètres",
   "back_to_dashboard": "Retour au tableau de bord",
-  "unsaved_warning": "Vous avez des modifications non enregistrées. Êtes-vous sûr de vouloir quitter ?",
+  "unsaved_warning": "Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter ?",
   "save": "Enregistrer",
   "saving": "Enregistrement...",
   "saved": "Enregistré avec succès",

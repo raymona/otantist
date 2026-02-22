@@ -14,7 +14,7 @@
     },
     "calm_mode": {
       "title": "Mode calme",
-      "content": "Le mode calme met en pause les messages entrants pour que vous ne soyez pas interrompu. Les messages envoyés pendant que le mode calme est activé seront retenus et livrés lorsque vous le désactiverez. Activez ou désactivez le mode calme à l'aide du bouton lune dans la barre d'outils. Une bannière violette apparaîtra en haut de l'écran lorsque le mode calme est actif."
+      "content": "Le mode calme met en pause les messages entrants pour que vous ne soyez pas interrompu. Les messages envoyés pendant que le mode calme est activé seront retenus et livrés lorsque vous le désactiverez. Activez ou désactivez le mode calme à l'aide du bouton en forme de lune dans la barre d'outils. Une bannière violette apparaîtra en haut de l'écran lorsque le mode calme est actif."
     },
     "messaging": {
       "title": "Messagerie",
@@ -56,11 +56,11 @@
     },
     "parent": {
       "title": "Pour les parents",
-      "content": "Si vous avez un membre géré, vous pouvez accéder au tableau de bord parent depuis la barre d'outils. Vous y verrez les indicateurs d'activité récente de votre membre et les alertes éventuelles. Vous pouvez acquitter les alertes une fois que vous les avez vues. Le contenu des messages de votre membre est privé — les indicateurs montrent des tendances uniquement, pas les messages individuels."
+      "content": "Si vous avez un membre géré, vous pouvez accéder au tableau de bord parent depuis la barre d'outils. Vous y verrez les indicateurs d'activité récente de votre membre et les alertes éventuelles. Vous pouvez marquer les alertes comme vues une fois que vous les avez consultées. Le contenu des messages de votre membre est privé — les indicateurs montrent des tendances uniquement, pas les messages individuels."
     },
     "feedback": {
       "title": "Donner votre avis",
-      "content": "En tant que testeur·euse précoce, votre avis est précieux. Si quelque chose vous semble confus, brisé ou manquant, veuillez en informer l'équipe. Il n'existe pas encore de formulaire officiel — contactez directement la personne qui vous a invité."
+      "content": "En tant que testeur·euse précoce, votre avis est précieux. Si quelque chose vous semble confus, brisé ou manquant, veuillez en informer l'équipe. Il n'existe pas encore de formulaire officiel — contactez directement la personne qui vous a invité·e."
     }
   }
 }

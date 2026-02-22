@@ -33,7 +33,7 @@
     "no_messages": "Aucun message. Envoyez le premier !",
     "back": "Retour",
     "message_status": {
-      "queued": "En file",
+      "queued": "En attente",
       "sent": "Envoyé",
       "delivered": "Livré",
       "read": "Lu"
@@ -113,13 +113,13 @@
     "title": "Utilisateurs bloqués",
     "empty": "Vous n'avez bloqué personne",
     "unblock": "Débloquer",
-    "unblocking": "Déblocage...",
+    "unblocking": "En cours...",
     "close": "Fermer",
     "blocked_on": "Bloqué le {{date}}"
   },
   "new_conversation_modal": {
     "title": "Nouvelle conversation",
-    "select_user": "Sélectionnez un utilisateur",
+    "select_user": "Sélectionnez une personne",
     "search_placeholder": "Rechercher des utilisateurs...",
     "no_results": "Aucun utilisateur trouvé",
     "loading": "Recherche...",
