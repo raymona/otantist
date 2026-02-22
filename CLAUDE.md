@@ -48,7 +48,7 @@ otantist/
 │   │       ├── gateway/     # ✅ WebSocket gateway (auth, real-time messaging, presence)
 │   │       ├── email/       # ✅ Email service
 │   │       └── prisma/      # ✅ Prisma service
-│   ├── web/                 # Next.js 16 web app (🔨 IN PROGRESS — auth/onboarding/dashboard built)
+│   ├── web/                 # Next.js 16 web app ✅ DEMO-READY
 │   └── mobile/              # React Native + Expo (planned)
 ├── packages/
 │   ├── shared/              # Shared types & constants
@@ -111,7 +111,7 @@ npm run db:seed
 
 All API modules implemented with controllers, services, DTOs, and JWT authentication.
 
-### 🔨 PHASE 2: Frontend (Web App) — IN PROGRESS
+### ✅ PHASE 2: Frontend (Web App) — DEMO-READY
 
 **Approach:** Clean, simple, functional UI. No heavy design work — a human designer will be involved later. Goal is to create a working demo for non-technical stakeholders to experience the app flow.
 
@@ -127,7 +127,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 6. ✅ i18n setup (EN/FR) with translation files for auth + onboarding
 7. ✅ Auth context (JWT token management, refresh, user state)
 8. ✅ API client (`lib/api.ts`) with typed endpoints for auth, users, preferences
-9. ✅ Login → accept-terms → onboarding redirect flow (redirects to /dashboard)
+9. ✅ Login → accept-terms → onboarding redirect flow (redirects to /parent for parent accounts, /dashboard for everyone else)
 10. ✅ Messaging UI (1:1 conversations) — dashboard with split-panel layout
 11. ✅ User state UI (social energy, calm mode) — StatusBar component
 12. ✅ Dashboard / post-onboarding landing page — /dashboard route
@@ -143,6 +143,11 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 22. ✅ Parent Dashboard UI — `/parent` route with managed member list, activity indicators table (last 30 days), alerts with severity badges and inline acknowledge; linked from StatusBar nav; empty state for non-parent users
 23. ✅ Applied sensory preferences — `SensoryProvider` context fetches sensory prefs, applies CSS body classes (`sensory-no-animations`, `sensory-reduced`, `sensory-minimal`) globally; cached in localStorage for instant re-apply; `useSensory()` hook; settings page calls `refreshSensory()` after save for immediate effect; `@media (prefers-reduced-motion)` also respected
 24. ✅ Moderation UI — `/moderation` route with stats panel (pending/reviewing/resolved/total + priority breakdown), filterable queue list (status + priority dropdowns), and detail panel with related content + resolution form (dismissed/warned/removed/suspended + notes); linked from StatusBar nav; bilingual (EN/FR)
+25. ✅ Deployment config — `railway.json` for monorepo API deployment; `email.service.ts` supports optional SMTP auth (Resend in prod, Mailhog unchanged locally); `start:prod` runs `prisma migrate deploy` before starting; `.env.example` updated with Resend SMTP vars; i18n language detection fixed to `localStorage` only (first-time visitors now default to FR instead of inheriting browser language)
+26. ✅ `isParent` flag — `GET /users/me` now returns `isParent: boolean` (computed from active managed members); exposed in `User` type on frontend; parent accounts redirect to `/parent` on login; parent button in StatusBar hidden for non-parent users
+27. ✅ Minor account protection — `parent_managed` accounts excluded from user directory (won't appear in New Conversation search); `startConversation` API blocks direct messaging to `parent_managed` accounts with a 403
+28. ✅ In-app Help page — `/help` route with jump nav, bilingual (EN/FR), sections for all features; parent section only shown to parent accounts; accessible from StatusBar (? button)
+29. ✅ Tester guide — `TESTER_GUIDE.md` at repo root; standalone markdown guide covering registration through all features; written in plain accessible language for neurodivergent users; ready to send to beta testers before first login
 
 ### Web App File Structure
 
@@ -155,7 +160,8 @@ apps/web/
 │   ├── settings/page.tsx       # ✅ Account settings (profile, prefs, time boundaries, language)
 │   ├── parent/page.tsx         # ✅ Parent dashboard (managed members, indicators, alerts)
 │   ├── moderation/page.tsx    # ✅ Moderation queue (stats, queue list, detail + resolve)
-│   ├── login/page.tsx          # ✅ Login with redirect logic (→ /dashboard)
+│   ├── help/page.tsx           # ✅ Help & guide page (bilingual, jump nav, parent section gated)
+│   ├── login/page.tsx          # ✅ Login with redirect logic (→ /parent or /dashboard)
 │   ├── register/page.tsx       # ✅ Registration with invite code
 │   ├── accept-terms/page.tsx   # ✅ Terms acceptance gate
 │   ├── onboarding/page.tsx     # ✅ 5-step onboarding form
@@ -210,7 +216,7 @@ apps/web/
 │       ├── StatsPanel.tsx         # ✅ Stats cards (pending/reviewing/resolved) + priority badges
 │       ├── QueueList.tsx          # ✅ Filterable queue listbox with status/priority dropdowns
 │       └── QueueItemDetail.tsx    # ✅ Item detail + related content + resolution form
-└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent, moderation)
+└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent, moderation, help)
 ```
 
 ### Known Issues & Debugging Notes
@@ -225,6 +231,10 @@ apps/web/
 - **Language sync:** Auth context syncs `user.language` → `i18n.changeLanguage()` after login/user fetch (covers new browser/device). LanguageSwitcher persists to API via `usersApi.updateLanguage()` in addition to localStorage. Settings page language save also updates both API and i18n.
 - **Sensory preferences applied via CSS body classes:** `SensoryProvider` (wraps app in layout) fetches sensory prefs once authenticated, applies `sensory-no-animations` (disables all transitions/animations), `sensory-reduced` (`saturate(0.6)`), or `sensory-minimal` (`saturate(0.25)`) as CSS classes on `<body>`. Cached in localStorage (`STORAGE_KEYS.SENSORY_PREFS`) for instant re-apply on page load. `useSensory()` hook exposes state + `refreshSensory()`. Settings page calls `refreshSensory()` after saving sensory section for immediate effect. `soundEnabled` is stored in context for future audio features (no UI effect yet). `notificationLimit` / `notificationGrouped` are backend concerns — not applied in UI.
 - **Moderation UI:** `/moderation` route accessible to all authenticated users (no role system in MVP). Stats summary at top (4 cards + priority breakdown), then two-panel layout: filterable queue list (status + priority dropdowns) on left, selected item detail + resolution form on right. Resolution actions: dismissed, warned, removed, suspended + optional notes (max 1000 chars). After resolving, stats refresh automatically.
+- **isParent flag:** `GET /users/me` computes `isParent` by checking `parentManagedAsParent` relation (active managed members). Parent accounts redirect to `/parent` on login via `useAuthGuard`. Parent button in StatusBar is conditionally rendered (`user?.isParent`). The `parent_managed` account type (used for minors) is separate — those accounts are excluded from the user directory and cannot be messaged directly.
+- **Deployment:** Code is production-ready. Remaining steps are manual account setup in Railway (API + PostgreSQL + Redis), Vercel (web app), and Resend (email via smtp.resend.com). See deployment section in commit history for full env var list. Local dev is completely unchanged — Docker + Mailhog + localhost.
+- **i18n language detection:** `LanguageDetector` order is `['localStorage']` only. First-time visitors with no saved preference fall back to `'fr'`. Logged-in users get their language synced from `user.language` via `fetchUser()` → `i18n.changeLanguage()`.
+- **Help page:** `/help` route uses `useAuthGuard('onboarded')`. Parent section (`sections.parent`) only renders when `user?.isParent`. Uses `help` i18n namespace. Linked from StatusBar with a ? icon button.
 
 ### Login → Onboarding Flow (how it should work)
 
@@ -232,7 +242,7 @@ apps/web/
 2. Frontend checks `user.termsAcceptedAt` → if null, redirect to `/accept-terms`
 3. `/accept-terms` → `POST /auth/accept-terms` → refresh user → redirect to `/onboarding`
 4. `/onboarding` → 5 steps, each saves via API with `sectionComplete: true`
-5. After final step → `onboardingComplete: true` → redirect to `/` (needs a real destination)
+5. After final step → `onboardingComplete: true` → redirect to `/parent` (if `user.isParent`) or `/dashboard`
 
 ### Onboarding Steps (backend progression)
 
@@ -746,4 +756,4 @@ Located in project knowledge:
 
 ---
 
-_Last updated: February 18, 2026 (applied sensory preferences + moderation UI)_
+_Last updated: February 22, 2026 (deployment config, isParent flag, minor protection, help page, tester guide)_
