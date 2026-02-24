@@ -65,7 +65,11 @@ export default function MessageBubble({ message, onDelete, onReport }: MessageBu
         {onDelete && (
           <button
             onClick={() => onDelete(message.id)}
-            className="mt-1 text-xs text-red-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600 focus:text-red-600 focus:opacity-100"
+            className={`mt-1 text-xs opacity-40 transition-opacity focus:opacity-100 md:opacity-0 md:group-hover:opacity-100 ${
+              isOwn && !isQueued
+                ? 'text-blue-200 hover:text-white focus:text-white'
+                : 'text-red-400 hover:text-red-600 focus:text-red-600'
+            }`}
           >
             {t('chat.delete_for_me')}
           </button>
@@ -76,7 +80,7 @@ export default function MessageBubble({ message, onDelete, onReport }: MessageBu
           <button
             onClick={() => onReport(message.id)}
             aria-label={t('chat.report_message')}
-            className="mt-1 text-xs text-gray-400 opacity-0 transition-opacity group-hover:opacity-100 hover:text-red-600 focus:text-red-600 focus:opacity-100"
+            className="mt-1 text-xs text-gray-400 opacity-40 transition-opacity hover:text-red-600 focus:text-red-600 focus:opacity-100 md:opacity-0 md:group-hover:opacity-100"
           >
             <svg
               className="mr-1 inline-block h-3 w-3"

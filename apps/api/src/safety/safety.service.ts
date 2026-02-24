@@ -1,14 +1,14 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { SubmitReportDto, BlockedUserResponse, ReportResponse } from './dto';
 
 @Injectable()
 export class SafetyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2
+  ) {}
 
   private async getUserId(accountId: string): Promise<string> {
     const account = await this.prisma.account.findUnique({
@@ -38,7 +38,7 @@ export class SafetyService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return blocks.map((block) => ({
+    return blocks.map(block => ({
       id: block.blocked.id,
       displayName: block.blocked.displayName,
       blockedAt: block.createdAt,
@@ -76,7 +76,7 @@ export class SafetyService {
     }
 
     // Create block and update any active conversations
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async tx => {
       await tx.blockedUser.create({
         data: {
           blockerId: userId,
@@ -120,7 +120,7 @@ export class SafetyService {
       throw new NotFoundException('User is not blocked');
     }
 
-    await this.prisma.$transaction(async (tx) => {
+    await this.prisma.$transaction(async tx => {
       await tx.blockedUser.delete({
         where: { id: block.id },
       });
@@ -154,16 +154,11 @@ export class SafetyService {
   // Reporting
   // ============================================
 
-  async submitReport(
-    accountId: string,
-    dto: SubmitReportDto,
-  ): Promise<ReportResponse> {
+  async submitReport(accountId: string, dto: SubmitReportDto): Promise<ReportResponse> {
     const userId = await this.getUserId(accountId);
 
     if (!dto.reportedUserId && !dto.reportedMessageId) {
-      throw new BadRequestException(
-        'Must provide either reportedUserId or reportedMessageId',
-      );
+      throw new BadRequestException('Must provide either reportedUserId or reportedMessageId');
     }
 
     // Validate reported user exists
@@ -220,6 +215,12 @@ export class SafetyService {
         flagReason: `${dto.reason}${dto.description ? ': ' + dto.description : ''}`,
         priority: dto.reason === 'safety_concern' ? 'high' : 'medium',
       },
+    });
+
+    // Notify moderators of new queue item
+    this.eventEmitter.emit('moderation.new_item', {
+      itemType: dto.reportedMessageId ? 'message' : 'user',
+      priority: dto.reason === 'safety_concern' ? 'high' : 'medium',
     });
 
     return {

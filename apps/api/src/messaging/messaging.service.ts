@@ -35,6 +35,21 @@ export class MessagingService {
     return account.user.id;
   }
 
+  private async getAccountWithUser(
+    accountId: string
+  ): Promise<{ userId: string; accountType: string }> {
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+      include: { user: true },
+    });
+
+    if (!account?.user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return { userId: account.user.id, accountType: account.accountType };
+  }
+
   // ============================================
   // Conversations
   // ============================================
@@ -116,7 +131,7 @@ export class MessagingService {
     otherUserId: string,
     initialMessage?: string
   ): Promise<ConversationResponse> {
-    const userId = await this.getUserIdFromAccount(accountId);
+    const { userId, accountType: senderType } = await this.getAccountWithUser(accountId);
 
     if (userId === otherUserId) {
       throw new BadRequestException('Cannot start conversation with yourself');
@@ -132,8 +147,10 @@ export class MessagingService {
       throw new NotFoundException('User not found');
     }
 
-    // Parent-managed (minor) accounts cannot be messaged directly
-    if (otherUser.account.accountType === 'parent_managed') {
+    // Block messaging between parent_managed (minor) and adult accounts in both directions
+    const senderIsManaged = senderType === 'parent_managed';
+    const recipientIsManaged = otherUser.account.accountType === 'parent_managed';
+    if (senderIsManaged !== recipientIsManaged) {
       throw new ForbiddenException({
         code: 'CANNOT_MESSAGE_MANAGED_ACCOUNT',
         message_en: 'This account cannot be messaged directly',
@@ -363,7 +380,19 @@ export class MessagingService {
       throw new ForbiddenException('Conversation is blocked');
     }
 
+    const sender = conversation.userAId === userId ? conversation.userA : conversation.userB;
     const recipient = conversation.userAId === userId ? conversation.userB : conversation.userA;
+
+    // Block cross-type messaging (parent_managed ↔ adult) in both directions
+    const senderIsManaged = sender.account.accountType === 'parent_managed';
+    const recipientIsManaged = recipient.account.accountType === 'parent_managed';
+    if (senderIsManaged !== recipientIsManaged) {
+      throw new ForbiddenException({
+        code: 'CANNOT_MESSAGE_MANAGED_ACCOUNT',
+        message_en: 'This account cannot be messaged directly',
+        message_fr: 'Ce compte ne peut pas être contacté directement',
+      });
+    }
 
     // Check if blocked
     const isBlocked = await this.isBlocked(userId, recipient.id);

@@ -38,6 +38,7 @@ export class UsersService {
       emailVerified: account.emailVerified,
       legalAccepted: !!account.legalAcceptedAt,
       isParent: account.parentManagedAsParent.length > 0,
+      isModerator: account.accountType === 'moderator',
       createdAt: account.createdAt,
     };
   }
@@ -179,7 +180,7 @@ export class UsersService {
   }
 
   async getDirectory(accountId: string, search?: string): Promise<UserDirectoryResponse> {
-    // Get the requesting user's ID
+    // Get the requesting user's ID and account type
     const requestingAccount = await this.prisma.account.findUnique({
       where: { id: accountId },
       include: { user: true },
@@ -190,6 +191,7 @@ export class UsersService {
     }
 
     const requestingUserId = requestingAccount.user.id;
+    const requesterIsManaged = requestingAccount.accountType === 'parent_managed';
 
     // Get IDs of users blocked by or blocking the requesting user
     const blocks = await this.prisma.blockedUser.findMany({
@@ -207,11 +209,18 @@ export class UsersService {
     blockedUserIds.delete(requestingUserId);
 
     // Build where clause
+    // parent_managed (minor) accounts are always excluded from results for adult users.
+    // When the requester is themselves parent_managed, only show other parent_managed
+    // accounts — adults are never visible to minors in the directory.
     const where: any = {
       onboardingComplete: true,
       profileVisibility: { not: 'hidden' },
       id: { notIn: [requestingUserId, ...blockedUserIds] },
-      account: { accountType: { not: 'parent_managed' } },
+      account: {
+        accountType: requesterIsManaged
+          ? 'parent_managed'
+          : { notIn: ['parent_managed', 'moderator'] },
+      },
     };
 
     if (search?.trim()) {

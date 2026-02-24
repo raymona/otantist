@@ -36,7 +36,7 @@ export default function HelpPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="border-b border-gray-200 bg-white px-6 py-4">
+      <header className="border-b border-gray-200 bg-white px-4 py-3 md:px-6 md:py-4">
         <div className="mx-auto flex max-w-3xl items-center justify-between">
           <div className="flex items-center gap-4">
             <Link
@@ -51,7 +51,7 @@ export default function HelpPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-10">
         {/* Intro */}
         <p className="mb-8 text-gray-600">{t('intro')}</p>
 

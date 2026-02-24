@@ -50,7 +50,7 @@ export default function TimeBoundariesEditor({
                   value={boundary.startTime}
                   onChange={e => onBoundaryChange(boundary.dayOfWeek, 'startTime', e.target.value)}
                   disabled={!boundary.isActive}
-                  className="rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40"
+                  className="w-28 rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 sm:w-auto"
                 />
               </div>
 
@@ -64,7 +64,7 @@ export default function TimeBoundariesEditor({
                   value={boundary.endTime}
                   onChange={e => onBoundaryChange(boundary.dayOfWeek, 'endTime', e.target.value)}
                   disabled={!boundary.isActive}
-                  className="rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40"
+                  className="w-28 rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 sm:w-auto"
                 />
               </div>
             </div>

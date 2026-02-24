@@ -161,6 +161,7 @@ export interface User {
   emailVerified: boolean;
   legalAccepted: boolean;
   isParent: boolean;
+  isModerator: boolean;
   onboardingComplete: boolean;
   onboardingStep?: string | null;
   createdAt?: string;
@@ -352,6 +353,15 @@ export interface TimeBoundary {
 export interface TimeBoundariesResponse {
   boundaries: TimeBoundary[];
 }
+
+// Feedback API
+export const feedbackApi = {
+  submit: (data: { name: string; message: string; category?: string }) =>
+    request<{ sent: boolean }>('/api/feedback', {
+      method: 'POST',
+      body: data,
+    }),
+};
 
 // Preferences API
 export const preferencesApi = {

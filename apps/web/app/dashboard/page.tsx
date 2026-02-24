@@ -4,10 +4,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useTranslation } from 'react-i18next';
 import { useAuthGuard } from '@/lib/use-auth-guard';
+import { useAuth } from '@/lib/auth-context';
 import { messagingApi } from '@/lib/messaging-api';
 import { safetyApi } from '@/lib/safety-api';
 import { stateApi } from '@/lib/state-api';
 import { useSocket } from '@/lib/use-socket';
+import { STORAGE_KEYS } from '@/lib/constants';
+import { useSessionTimer } from '@/lib/use-session-timer';
 import type { Conversation, Message, SocialEnergyLevel } from '@/lib/types';
 import StatusBar from '@/components/dashboard/StatusBar';
 import CalmModeBanner from '@/components/dashboard/CalmModeBanner';
@@ -17,10 +20,14 @@ import NewConversationModal from '@/components/dashboard/NewConversationModal';
 import BlockConfirmModal from '@/components/dashboard/BlockConfirmModal';
 import ReportModal from '@/components/dashboard/ReportModal';
 import BlockedUsersModal from '@/components/dashboard/BlockedUsersModal';
+import DailyCheckInModal from '@/components/dashboard/DailyCheckInModal';
+import SessionTimerBar from '@/components/dashboard/SessionTimerBar';
+import SessionBreakScreen from '@/components/dashboard/SessionBreakScreen';
 
 export default function DashboardPage() {
   const { t } = useTranslation('dashboard');
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -52,6 +59,16 @@ export default function DashboardPage() {
   } | null>(null);
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
 
+  // Session timer
+  const [showBreakScreen, setShowBreakScreen] = useState(false);
+  const { duration, setDuration, status, secondsLeft, startTimer, resetTimer } = useSessionTimer({
+    userId: user?.id,
+    onExpired: () => setShowBreakScreen(true),
+  });
+
+  // Daily check-in modal — shown once per calendar day per user
+  const [showCheckIn, setShowCheckIn] = useState(false);
+
   // Success toast
   const [toast, setToast] = useState<string | null>(null);
 
@@ -81,6 +98,39 @@ export default function DashboardPage() {
         // Non-critical: dashboard works without state data
       });
   }, [isReady]);
+
+  // Show daily check-in modal once per calendar day per user
+  useEffect(() => {
+    if (!isReady || !user?.id) return;
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DAILY_CHECKIN);
+      const stored: { userId: string; date: string } | null = raw ? JSON.parse(raw) : null;
+      if (!stored || stored.userId !== user.id || stored.date !== today) {
+        setShowCheckIn(true);
+      }
+    } catch {
+      setShowCheckIn(true);
+    }
+  }, [isReady, user?.id]);
+
+  const handleCheckInClose = (energy: SocialEnergyLevel | null, activatedCalmMode: boolean) => {
+    setShowCheckIn(false);
+    // Persist so we don't show again today
+    if (user?.id) {
+      const today = new Date().toISOString().slice(0, 10);
+      try {
+        localStorage.setItem(
+          STORAGE_KEYS.DAILY_CHECKIN,
+          JSON.stringify({ userId: user.id, date: today })
+        );
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    if (energy) setSocialEnergy(energy);
+    if (activatedCalmMode) setCalmModeActive(true);
+  };
 
   const handleCalmModeToggle = async () => {
     try {
@@ -353,8 +403,10 @@ export default function DashboardPage() {
   const handleSendViaSocket = useCallback(
     (conversationId: string, content: string, tempId: string) => {
       emit('message:send', { conversationId, content, tempId });
+      // Auto-start session timer on first message sent
+      startTimer();
     },
-    [emit]
+    [emit, startTimer]
   );
 
   const handleEmitTyping = useCallback(
@@ -495,6 +547,15 @@ export default function DashboardPage() {
       {/* Calm mode banner */}
       {calmModeActive && <CalmModeBanner onDeactivate={handleCalmModeToggle} />}
 
+      {/* Session timer bar */}
+      <SessionTimerBar
+        duration={duration}
+        status={status}
+        secondsLeft={secondsLeft}
+        onChangeDuration={setDuration}
+        onReset={resetTimer}
+      />
+
       {/* Success toast */}
       {toast && (
         <div
@@ -600,6 +661,17 @@ export default function DashboardPage() {
         onClose={() => setShowBlockedUsers(false)}
         onUnblocked={handleUnblocked}
       />
+
+      {showCheckIn && <DailyCheckInModal onClose={handleCheckInClose} />}
+
+      {showBreakScreen && (
+        <SessionBreakScreen
+          onDismiss={() => {
+            setShowBreakScreen(false);
+            resetTimer();
+          }}
+        />
+      )}
     </div>
   );
 }

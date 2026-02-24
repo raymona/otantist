@@ -20,6 +20,7 @@ export interface SocketEventHandlers {
     calmModeActive?: boolean;
   }) => void;
   onConversationUnhidden?: (data: { conversationId: string }) => void;
+  onModerationNewItem?: (data: { itemType: string; priority: string }) => void;
 }
 
 export function useSocket(handlers: SocketEventHandlers) {
@@ -123,6 +124,10 @@ export function useSocket(handlers: SocketEventHandlers) {
 
     socket.on('conversation:unhidden', data => {
       handlersRef.current.onConversationUnhidden?.(data);
+    });
+
+    socket.on('moderation:new_item', data => {
+      handlersRef.current.onModerationNewItem?.(data);
     });
 
     return () => {

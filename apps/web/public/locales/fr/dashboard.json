@@ -11,9 +11,37 @@
     "blocked_users": "Utilisateurs bloqués",
     "parent_dashboard": "Parent",
     "moderation": "Modération",
+    "moderation_badge": "{{count}} éléments à examiner",
     "help": "Aide",
     "connected": "Connecté",
-    "reconnecting": "Reconnexion..."
+    "reconnecting": "Reconnexion...",
+    "more_options": "Plus d'options"
+  },
+  "timer": {
+    "off": "Minuterie désactivée",
+    "session": "minuterie de session",
+    "winding_down": "bientôt terminé",
+    "almost_done": "presque fini!",
+    "expired": "Temps écoulé",
+    "take_a_break": "Il est temps de faire une pause",
+    "reset": "réinitialiser",
+    "start_new": "Nouvelle session",
+    "duration_label": "Durée de session",
+    "duration_off": "Désactivée",
+    "duration_min": "{{count}} min",
+    "aria_label": "Minuterie de session : {{time}} restant",
+    "break_title": "Bon travail — prenez une pause",
+    "break_body": "Vous avez atteint la fin de votre session. Éloignez-vous, reposez-vous et revenez quand vous êtes prêt·e.",
+    "break_dismiss": "Je suis prêt·e à continuer"
+  },
+  "checkin": {
+    "title": "Comment vous sentez-vous aujourd'hui?",
+    "subtitle": "Cela aide à configurer votre niveau d'énergie et préparer votre expérience.",
+    "energy_question": "Énergie sociale en ce moment",
+    "calm_mode_question": "Commencer avec le mode calme activé",
+    "skip": "Passer",
+    "save": "Définir mon humeur",
+    "saving": "Enregistrement..."
   },
   "conversations": {
     "title": "Conversations",

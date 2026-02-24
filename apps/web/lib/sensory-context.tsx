@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { preferencesApi, type ColorIntensity } from './api';
+import { useAuth } from './auth-context';
 import { STORAGE_KEYS } from './constants';
 
 interface SensoryState {
@@ -30,11 +31,7 @@ const SensoryContext = createContext<SensoryContextValue>({
 function applyBodyClasses(state: SensoryState) {
   if (typeof document === 'undefined') return;
   const { body } = document;
-
-  // Animations
   body.classList.toggle('sensory-no-animations', !state.enableAnimations);
-
-  // Color intensity — only one active at a time
   body.classList.toggle('sensory-reduced', state.colorIntensity === 'reduced');
   body.classList.toggle('sensory-minimal', state.colorIntensity === 'minimal');
 }
@@ -45,12 +42,24 @@ function clearBodyClasses() {
   body.classList.remove('sensory-no-animations', 'sensory-reduced', 'sensory-minimal');
 }
 
-function loadCached(): SensoryState | null {
+// Cache is keyed by userId inside the stored object so a different user's
+// cached prefs are never blindly applied.
+interface CachedEntry {
+  userId: string;
+  enableAnimations: boolean;
+  colorIntensity: ColorIntensity;
+  soundEnabled: boolean;
+}
+
+function loadCached(forUserId: string): SensoryState | null {
   if (typeof window === 'undefined') return null;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SENSORY_PREFS);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
+    const parsed: CachedEntry = JSON.parse(raw);
+    // Reject the cache if it belongs to a different user or has no userId
+    // (old format from before this fix).
+    if (!parsed.userId || parsed.userId !== forUserId) return null;
     return {
       enableAnimations: parsed.enableAnimations ?? true,
       colorIntensity: parsed.colorIntensity ?? 'standard',
@@ -62,29 +71,36 @@ function loadCached(): SensoryState | null {
   }
 }
 
-function saveCache(state: SensoryState) {
+function saveCache(userId: string, state: SensoryState) {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(
-      STORAGE_KEYS.SENSORY_PREFS,
-      JSON.stringify({
-        enableAnimations: state.enableAnimations,
-        colorIntensity: state.colorIntensity,
-        soundEnabled: state.soundEnabled,
-      })
-    );
+    const entry: CachedEntry = {
+      userId,
+      enableAnimations: state.enableAnimations,
+      colorIntensity: state.colorIntensity,
+      soundEnabled: state.soundEnabled,
+    };
+    localStorage.setItem(STORAGE_KEYS.SENSORY_PREFS, JSON.stringify(entry));
   } catch {
     // Ignore storage errors
   }
 }
 
-export function SensoryProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<SensoryState>(() => {
-    const cached = loadCached();
-    return cached ?? defaultState;
-  });
+function clearCache() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(STORAGE_KEYS.SENSORY_PREFS);
+  } catch {
+    // Ignore
+  }
+}
 
-  const isAuthenticated = useRef(false);
+export function SensoryProvider({ children }: { children: React.ReactNode }) {
+  const { user, isLoading: authLoading } = useAuth();
+  const [state, setState] = useState<SensoryState>(defaultState);
+
+  // Track the user ID we last fetched prefs for, so we can detect account switches.
+  const loadedForUserRef = useRef<string | null>(null);
 
   const fetchAndApply = useCallback(async () => {
     try {
@@ -96,74 +112,68 @@ export function SensoryProvider({ children }: { children: React.ReactNode }) {
         isLoaded: true,
       };
       setState(next);
-      saveCache(next);
+      if (user?.id) {
+        saveCache(user.id, next);
+        loadedForUserRef.current = user.id;
+      }
       applyBodyClasses(next);
     } catch {
-      // Not authenticated or API error — keep defaults
+      // Not authenticated or API error — keep current state
     }
-  }, []);
+  }, [user?.id]);
 
-  // On mount: check if authenticated, apply cached prefs immediately, then fetch fresh
+  // React to auth state changes:
+  // - user becomes null (logout) → reset
+  // - user.id changes (account switch) → load that user's cache then fetch fresh
+  // - auth finishes loading and we have a user → load cache or fetch
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (authLoading) return;
 
-    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-    isAuthenticated.current = !!token;
+    if (!user) {
+      // Logged out — clear everything
+      setState(defaultState);
+      clearBodyClasses();
+      clearCache();
+      loadedForUserRef.current = null;
+      return;
+    }
 
-    // Apply cached state immediately to avoid flash
-    const cached = loadCached();
+    // Already loaded for this user (e.g. re-render) — skip
+    if (loadedForUserRef.current === user.id) return;
+
+    // Different or new user — reset visuals first so we never show another
+    // user's colour settings while the fetch is in flight.
+    if (loadedForUserRef.current !== null && loadedForUserRef.current !== user.id) {
+      setState(defaultState);
+      clearBodyClasses();
+    }
+
+    // Try to apply this user's cached prefs immediately to avoid a visible flash
+    const cached = loadCached(user.id);
     if (cached) {
+      setState(cached);
       applyBodyClasses(cached);
     }
 
-    if (token) {
-      fetchAndApply();
-    }
+    // Always fetch fresh from the API
+    fetchAndApply();
+  }, [user?.id, authLoading, fetchAndApply]);
 
-    return () => {
-      clearBodyClasses();
-    };
-  }, [fetchAndApply]);
-
-  // Re-fetch when window regains focus (e.g. returning from settings)
-  useEffect(() => {
-    const handleFocus = () => {
-      if (typeof window === 'undefined') return;
-      const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-      if (token) {
-        fetchAndApply();
-      }
-    };
-
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
-  }, [fetchAndApply]);
-
-  // Re-apply classes whenever state changes
+  // Re-apply classes whenever state changes (covers refreshSensory calls from settings)
   useEffect(() => {
     if (state.isLoaded) {
       applyBodyClasses(state);
     }
   }, [state]);
 
-  // Listen for storage changes (logout clears tokens)
+  // Re-fetch when the window regains focus (e.g. returning from settings in another tab)
   useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEYS.ACCESS_TOKEN && !e.newValue) {
-        // Logged out — reset to defaults
-        setState(defaultState);
-        clearBodyClasses();
-        try {
-          localStorage.removeItem(STORAGE_KEYS.SENSORY_PREFS);
-        } catch {
-          // Ignore
-        }
-      }
+    const handleFocus = () => {
+      if (user?.id) fetchAndApply();
     };
-
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [user?.id, fetchAndApply]);
 
   const value: SensoryContextValue = {
     ...state,

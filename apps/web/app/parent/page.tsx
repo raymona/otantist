@@ -98,7 +98,7 @@ export default function ParentDashboardPage() {
             </aside>
 
             {/* Member detail */}
-            <section className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-6">
+            <section className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-4 md:p-6">
               {selectedMember ? (
                 <MemberDetail key={selectedMember.member.userId} member={selectedMember} />
               ) : (

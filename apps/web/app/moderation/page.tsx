@@ -123,7 +123,7 @@ export default function ModerationPage() {
             {stats && <StatsPanel stats={stats} />}
 
             {/* Queue + Detail panels */}
-            <div className="flex flex-col gap-6 md:flex-row">
+            <div className="flex flex-col gap-4 md:flex-row md:gap-6">
               {/* Queue list */}
               <aside className="w-full flex-shrink-0 md:w-80">
                 <h2 className="mb-3 text-sm font-semibold text-gray-900">{t('queue.title')}</h2>
@@ -139,7 +139,7 @@ export default function ModerationPage() {
               </aside>
 
               {/* Detail panel */}
-              <section className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-6">
+              <section className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 {selectedItem ? (
                   <QueueItemDetail
                     key={selectedItem.id}

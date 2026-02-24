@@ -20,6 +20,7 @@ datasource db {
 enum AccountType {
   adult
   parent_managed
+  moderator
 }
 
 enum AccountStatus {

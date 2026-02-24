@@ -11,9 +11,37 @@
     "blocked_users": "Blocked users",
     "parent_dashboard": "Parent",
     "moderation": "Moderation",
+    "moderation_badge": "{{count}} items need review",
     "help": "Help",
     "connected": "Connected",
-    "reconnecting": "Reconnecting..."
+    "reconnecting": "Reconnecting...",
+    "more_options": "More options"
+  },
+  "timer": {
+    "off": "Timer off",
+    "session": "session timer",
+    "winding_down": "winding down",
+    "almost_done": "almost done!",
+    "expired": "Time's up",
+    "take_a_break": "Time to take a break",
+    "reset": "reset",
+    "start_new": "Start new session",
+    "duration_label": "Session duration",
+    "duration_off": "Off",
+    "duration_min": "{{count}} min",
+    "aria_label": "Session timer: {{time}} remaining",
+    "break_title": "Good work — take a breath",
+    "break_body": "You've reached the end of your session. Step away, rest, and come back when you're ready.",
+    "break_dismiss": "I'm ready to continue"
+  },
+  "checkin": {
+    "title": "How are you feeling today?",
+    "subtitle": "This helps set your energy level and prepare your experience.",
+    "energy_question": "Social energy right now",
+    "calm_mode_question": "Start with calm mode on",
+    "skip": "Skip",
+    "save": "Set my mood",
+    "saving": "Saving..."
   },
   "conversations": {
     "title": "Conversations",

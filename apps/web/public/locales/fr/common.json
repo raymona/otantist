@@ -24,5 +24,27 @@
     "minutes_ago": "Il y a {{count}} min",
     "hours_ago": "Il y a {{count}} h",
     "days_ago": "Il y a {{count}} j"
+  },
+  "feedback": {
+    "title": "Envoyer vos commentaires",
+    "subtitle": "Vos commentaires nous aident à améliorer Otantist pour tout le monde.",
+    "back": "Retour au tableau de bord",
+    "back_to_dashboard": "Retour au tableau de bord",
+    "your_name": "Votre prénom",
+    "category": "Catégorie",
+    "category_bug": "Problème technique",
+    "category_suggestion": "Suggestion",
+    "category_accessibility": "Accessibilité",
+    "category_general": "Général",
+    "message": "Votre message",
+    "message_placeholder": "Décrivez votre expérience, ce qui a bien fonctionné, ce qui n'a pas marché, ou vos idées...",
+    "send": "Envoyer mes commentaires",
+    "sending": "Envoi en cours...",
+    "name_required": "Veuillez entrer votre prénom.",
+    "message_too_short": "Veuillez écrire au moins 10 caractères.",
+    "submit_error": "Impossible d'envoyer vos commentaires. Veuillez réessayer.",
+    "sent_title": "Merci pour vos commentaires!",
+    "sent_body": "Nous lisons chaque message et l'utilisons pour améliorer Otantist.",
+    "nav_link": "Commentaires"
   }
 }

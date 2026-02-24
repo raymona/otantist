@@ -77,6 +77,9 @@ export class UserProfileResponse {
   isParent!: boolean;
 
   @ApiProperty()
+  isModerator!: boolean;
+
+  @ApiProperty()
   createdAt!: Date;
 }
 

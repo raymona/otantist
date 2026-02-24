@@ -387,7 +387,7 @@ export default function SettingsPage() {
               <h2 id="settings-profile" className="mb-4 text-lg font-semibold text-gray-900">
                 {t('section_profile')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <StepProfile
                   displayName={displayName}
                   ageGroup={ageGroup}
@@ -414,7 +414,7 @@ export default function SettingsPage() {
               <h2 id="settings-communication" className="mb-4 text-lg font-semibold text-gray-900">
                 {t('section_communication')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <StepCommunication
                   preferredTone={preferredTone}
                   commModes={commModes}
@@ -448,7 +448,7 @@ export default function SettingsPage() {
               <h2 id="settings-sensory" className="mb-4 text-lg font-semibold text-gray-900">
                 {t('section_sensory')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <StepSensory
                   enableAnimations={enableAnimations}
                   colorIntensity={colorIntensity}
@@ -485,7 +485,7 @@ export default function SettingsPage() {
               <h2 id="settings-conversation" className="mb-4 text-lg font-semibold text-gray-900">
                 {t('section_conversation')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <StepConversation
                   goodTopics={goodTopics}
                   avoidTopics={avoidTopics}
@@ -509,7 +509,7 @@ export default function SettingsPage() {
               >
                 {t('section_time_boundaries')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <TimeBoundariesEditor
                   boundaries={boundaries}
                   onBoundaryChange={handleBoundaryChange}
@@ -523,7 +523,7 @@ export default function SettingsPage() {
               <h2 id="settings-language" className="mb-4 text-lg font-semibold text-gray-900">
                 {t('section_language')}
               </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
+              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
                 <p className="mb-3 text-sm text-gray-600">{t('language_description')}</p>
                 <fieldset>
                   <legend className="sr-only">{t('section_language')}</legend>

@@ -30,6 +30,8 @@ export function useAuthGuard(requirement: AuthRequirement): AuthGuardResult {
           router.push('/accept-terms');
         } else if (!user.onboardingComplete) {
           router.push('/onboarding');
+        } else if (user.isModerator) {
+          router.push('/moderation');
         } else if (user.isParent) {
           router.push('/parent');
         } else {
@@ -46,10 +48,13 @@ export function useAuthGuard(requirement: AuthRequirement): AuthGuardResult {
     }
 
     if (requirement === 'onboarded' && user) {
-      if (!user.legalAccepted) {
-        router.push('/accept-terms');
-      } else if (!user.onboardingComplete) {
-        router.push('/onboarding');
+      // Moderators bypass the normal onboarding gates
+      if (!user.isModerator) {
+        if (!user.legalAccepted) {
+          router.push('/accept-terms');
+        } else if (!user.onboardingComplete) {
+          router.push('/onboarding');
+        }
       }
     }
   }, [isLoading, isAuthenticated, user, requirement, router]);
@@ -68,7 +73,7 @@ export function useAuthGuard(requirement: AuthRequirement): AuthGuardResult {
 
   if (requirement === 'onboarded') {
     return {
-      isReady: !!user.legalAccepted && !!user.onboardingComplete,
+      isReady: !!user.isModerator || (!!user.legalAccepted && !!user.onboardingComplete),
       isLoading: false,
     };
   }

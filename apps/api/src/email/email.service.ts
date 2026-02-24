@@ -117,6 +117,26 @@ export class EmailService {
     });
   }
 
+  async sendFeedbackEmail(opts: {
+    name: string;
+    message: string;
+    category: string;
+    fromEmail: string;
+  }): Promise<void> {
+    const to = this.configService.get('FEEDBACK_EMAIL', 'info@otantist.com');
+    await this.sendEmail({
+      to,
+      subject: `[Feedback] ${opts.category} — from ${opts.name}`,
+      html: `
+        <p><strong>From:</strong> ${opts.name} (${opts.fromEmail})</p>
+        <p><strong>Category:</strong> ${opts.category}</p>
+        <hr>
+        <p style="white-space:pre-wrap">${opts.message}</p>
+      `.trim(),
+      text: `From: ${opts.name} (${opts.fromEmail})\nCategory: ${opts.category}\n\n${opts.message}`,
+    });
+  }
+
   private emailTemplate(options: {
     heading: string;
     body: string;

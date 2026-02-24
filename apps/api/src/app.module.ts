@@ -15,6 +15,7 @@ import { SafetyModule } from './safety/safety.module';
 import { ModerationModule } from './moderation/moderation.module';
 import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.module';
 import { GatewayModule } from './gateway/gateway.module';
+import { FeedbackModule } from './feedback/feedback.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { GatewayModule } from './gateway/gateway.module';
     ModerationModule,
     ParentDashboardModule,
     GatewayModule,
+    FeedbackModule,
   ],
   providers: [
     {

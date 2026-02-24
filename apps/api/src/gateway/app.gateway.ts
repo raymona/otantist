@@ -56,6 +56,11 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Join personal room
     socket.join(`user:${userId}`);
 
+    // Join moderator room if applicable
+    if (account.accountType === 'moderator') {
+      socket.join('room:moderators');
+    }
+
     // Join all active conversation rooms
     try {
       const { conversations } = await this.messagingService.listConversations(accountId);
@@ -232,6 +237,11 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
       socialEnergy: payload.socialEnergy,
       calmModeActive: payload.calmModeActive,
     });
+  }
+
+  @OnEvent('moderation.new_item')
+  handleModerationNewItem(payload: { itemType: string; priority: string }) {
+    this.server.to('room:moderators').emit('moderation:new_item', payload);
   }
 
   @OnEvent('conversation.unhidden')

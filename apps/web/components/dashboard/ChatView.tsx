@@ -167,7 +167,7 @@ export default function ChatView({
   return (
     <section className="flex h-full flex-col" aria-label={displayName}>
       {/* Chat header */}
-      <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3">
+      <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3">
         {/* Back button (visible on mobile) */}
         <button
           onClick={onBack}
@@ -340,7 +340,7 @@ export default function ChatView({
         role="log"
         aria-live="polite"
         aria-label={t('conversations.title')}
-        className="flex-1 overflow-y-auto px-4 py-4"
+        className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-4"
       >
         {error && (
           <div
@@ -393,7 +393,7 @@ export default function ChatView({
       </div>
 
       {/* Input area */}
-      <footer className="border-t border-gray-200 bg-white px-4 py-3">
+      <footer className="border-t border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3">
         <form
           onSubmit={e => {
             e.preventDefault();

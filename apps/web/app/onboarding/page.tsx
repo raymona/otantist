@@ -332,7 +332,7 @@ export default function OnboardingPage() {
           </p>
         )}
 
-        <section className="rounded-lg bg-white p-6 shadow">
+        <section className="rounded-lg bg-white p-4 shadow md:p-8">
           {currentStep === 'profile' && (
             <StepProfile
               displayName={displayName}

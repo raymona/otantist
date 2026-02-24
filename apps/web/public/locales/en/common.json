@@ -24,5 +24,27 @@
     "minutes_ago": "{{count}}m ago",
     "hours_ago": "{{count}}h ago",
     "days_ago": "{{count}}d ago"
+  },
+  "feedback": {
+    "title": "Send Feedback",
+    "subtitle": "Your feedback helps make Otantist better for everyone.",
+    "back": "Back to dashboard",
+    "back_to_dashboard": "Back to dashboard",
+    "your_name": "Your name",
+    "category": "Category",
+    "category_bug": "Bug",
+    "category_suggestion": "Suggestion",
+    "category_accessibility": "Accessibility",
+    "category_general": "General",
+    "message": "Your message",
+    "message_placeholder": "Describe your experience, what worked, what didn't, or ideas you have...",
+    "send": "Send feedback",
+    "sending": "Sending...",
+    "name_required": "Please enter your name.",
+    "message_too_short": "Please write at least 10 characters.",
+    "submit_error": "Failed to send feedback. Please try again.",
+    "sent_title": "Thank you for your feedback!",
+    "sent_body": "We read every message and use it to improve Otantist.",
+    "nav_link": "Feedback"
   }
 }

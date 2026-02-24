@@ -117,6 +117,30 @@ Click **Hide conversation** to remove it from your sidebar. If the other person 
 
 ---
 
+## Daily check-in
+
+When you open the dashboard each day, a short check-in prompt may appear. It asks two things:
+
+- How is your **social energy** right now? (high, medium, or low)
+- Would you like to start with **calm mode on**?
+
+This takes about 5 seconds. You can skip it if you prefer. The check-in only appears once per day — it will not interrupt you again until the next day.
+
+---
+
+## Session timer
+
+The session timer is a gentle reminder to take breaks. It does not lock you out — it simply lets you know when a session has been running for a while.
+
+- You can set a duration from the timer bar at the top of the chat area: **Off**, 15, 20, 25, or 30 minutes
+- The timer starts automatically when you send your first message
+- When time is running low, the bar turns **amber** (5 minutes left) then **red** (1 minute left)
+- When the session ends, a soft screen appears with a reminder to take a breath. Click **I am ready to continue** when you are ready
+
+The timer resets when you close the screen. Your chosen duration is saved for next time.
+
+---
+
 ## Settings
 
 Click your **name** in the toolbar to open Settings. You can update any part of your profile from here:
@@ -164,7 +188,7 @@ Your member's actual message content is private. Indicators show patterns only (
 
 Your feedback is the most useful thing you can give at this stage. If something is confusing, broken, feels wrong, or is missing, please let us know.
 
-There is no formal feedback form yet. Contact the person who invited you directly.
+Click the **pencil icon** (✏) in the toolbar to open the in-app feedback form. You can choose a category (general, bug report, feature request, or sensory/comfort issue), write your message, and submit — it goes directly to the Otantist team.
 
 Things that are especially helpful to hear:
 

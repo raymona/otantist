@@ -5,4 +5,6 @@ export const STORAGE_KEYS = {
   LANGUAGE: 'otantist-language',
   PENDING_EMAIL: 'otantist-pending-email',
   SENSORY_PREFS: 'otantist-sensory-prefs',
+  DAILY_CHECKIN: 'otantist-daily-checkin',
+  SESSION_TIMER: 'otantist-session-timer',
 } as const;
