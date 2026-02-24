@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SafetyService } from './safety.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
@@ -17,7 +18,11 @@ describe('SafetyService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [SafetyService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        SafetyService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
+      ],
     }).compile();
 
     service = module.get<SafetyService>(SafetyService);
