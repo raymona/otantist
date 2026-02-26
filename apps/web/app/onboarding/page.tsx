@@ -180,7 +180,7 @@ export default function OnboardingPage() {
   };
 
   const handleNext = async () => {
-    // Validate required profile fields before saving
+    // Validate required fields before saving
     if (currentStep === 'profile') {
       if (!displayName.trim()) {
         setError(t('error_display_name_required'));
@@ -188,6 +188,16 @@ export default function OnboardingPage() {
       }
       if (!ageGroup) {
         setError(t('error_age_group_required'));
+        return;
+      }
+    }
+    if (currentStep === 'communication') {
+      if (!preferredTone) {
+        setError(t('error_tone_required'));
+        return;
+      }
+      if (commModes.length === 0) {
+        setError(t('error_comm_mode_required'));
         return;
       }
     }

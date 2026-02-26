@@ -84,5 +84,7 @@
 
   "error_display_name_required": "Please enter a display name.",
   "error_age_group_required": "Please select an age group.",
+  "error_tone_required": "Please choose a preferred communication tone.",
+  "error_comm_mode_required": "Please select at least one communication mode.",
   "error_not_complete": "Some steps still need to be completed. Please fill in the highlighted section."
 }

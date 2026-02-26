@@ -84,5 +84,7 @@
 
   "error_display_name_required": "Veuillez entrer un nom d'affichage.",
   "error_age_group_required": "Veuillez sélectionner un groupe d'âge.",
+  "error_tone_required": "Veuillez choisir un ton de communication préféré.",
+  "error_comm_mode_required": "Veuillez sélectionner au moins un mode de communication.",
   "error_not_complete": "Certaines étapes ne sont pas encore complétées. Veuillez remplir la section indiquée."
 }
