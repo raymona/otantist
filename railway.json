@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "npm install && cd apps/api && npx prisma generate && cd ../.. && npm run build:api"
+    "buildCommand": "npm install --include=dev && cd apps/api && npx prisma generate && npx nest build && echo 'Build complete' && ls dist/"
   },
   "deploy": {
-    "startCommand": "npm run start:prod -w @otantist/api",
+    "startCommand": "cd apps/api && npx prisma migrate deploy && node dist/main",
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10
   }
