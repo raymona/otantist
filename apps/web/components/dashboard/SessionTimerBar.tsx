@@ -101,7 +101,7 @@ export default function SessionTimerBar({
 
       <div className="ml-auto flex items-center gap-2">
         <TimerSelector duration={duration} onChangeDuration={onChangeDuration} />
-        {status !== 'idle' && status !== 'expired' && (
+        {status !== 'expired' && (
           <button type="button" onClick={onReset} className="text-xs underline hover:no-underline">
             {t('timer.reset')}
           </button>
