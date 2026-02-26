@@ -60,13 +60,19 @@ export default function OnboardingPage() {
   const [avoidTopics, setAvoidTopics] = useState<string[]>([]);
   const [interactionTips, setInteractionTips] = useState<string[]>([]);
 
-  // Redirect if onboarding already complete, or resume at correct step
+  // Redirect if onboarding already complete, pre-populate profile fields, resume at correct step
   useEffect(() => {
     if (!user) return;
     if (user.onboardingComplete) {
       router.push('/dashboard');
       return;
     }
+
+    // Always pre-populate profile fields from the auth context so they
+    // persist after "Save & continue later" regardless of onboardingStep.
+    if (user.displayName) setDisplayName(user.displayName);
+    if (user.ageGroup) setAgeGroup(user.ageGroup as AgeGroup);
+    if (user.profileVisibility) setProfileVisibility(user.profileVisibility as ProfileVisibility);
 
     const stepMap: Record<string, Step> = {
       basic_profile: 'profile',
@@ -84,63 +90,48 @@ export default function OnboardingPage() {
     }
   }, [user, router]);
 
-  // Load previously saved data when resuming
+  // Load previously saved preference data.
+  // Runs whenever auth is ready — not gated on resumed — so data always
+  // appears even when onboardingStep is null (e.g. profile-step save & exit).
   useEffect(() => {
-    if (!resumed || !isReady) return;
+    if (!isReady) return;
 
-    const loadSavedData = async () => {
+    const loadSavedPreferences = async () => {
       try {
-        if (user?.displayName) setDisplayName(user.displayName);
-        if (user?.ageGroup) setAgeGroup(user.ageGroup as AgeGroup);
-        if (user?.profileVisibility)
-          setProfileVisibility(user.profileVisibility as ProfileVisibility);
-
-        try {
-          const commPrefs = await preferencesApi.getCommunication();
-          if (commPrefs) {
-            if (commPrefs.commModes?.length) setCommModes(commPrefs.commModes);
-            if (commPrefs.preferredTone) setPreferredTone(commPrefs.preferredTone);
-            if (commPrefs.slowRepliesOk != null) setSlowRepliesOk(commPrefs.slowRepliesOk);
-            if (commPrefs.oneMessageAtTime != null) setOneMessageAtTime(commPrefs.oneMessageAtTime);
-            if (commPrefs.readWithoutReply != null) setReadWithoutReply(commPrefs.readWithoutReply);
-          }
-        } catch {
-          /* No saved data yet */
-        }
-
-        try {
-          const sensPrefs = await preferencesApi.getSensory();
-          if (sensPrefs) {
-            if (sensPrefs.enableAnimations != null) setEnableAnimations(sensPrefs.enableAnimations);
-            if (sensPrefs.colorIntensity) setColorIntensity(sensPrefs.colorIntensity);
-            if (sensPrefs.soundEnabled != null) setSoundEnabled(sensPrefs.soundEnabled);
-            if (sensPrefs.notificationLimit != null)
-              setNotificationLimit(sensPrefs.notificationLimit);
-            if (sensPrefs.notificationGrouped != null)
-              setNotificationGrouped(sensPrefs.notificationGrouped);
-          }
-        } catch {
-          /* No saved data yet */
-        }
-
-        try {
-          const convStarters = await preferencesApi.getConversationStarters();
-          if (convStarters) {
-            if (convStarters.goodTopics?.length) setGoodTopics(convStarters.goodTopics);
-            if (convStarters.avoidTopics?.length) setAvoidTopics(convStarters.avoidTopics);
-            if (convStarters.interactionTips?.length)
-              setInteractionTips(convStarters.interactionTips);
-          }
-        } catch {
-          /* No saved data yet */
-        }
+        const commPrefs = await preferencesApi.getCommunication();
+        if (commPrefs.commModes?.length) setCommModes(commPrefs.commModes);
+        if (commPrefs.preferredTone) setPreferredTone(commPrefs.preferredTone);
+        if (commPrefs.slowRepliesOk != null) setSlowRepliesOk(commPrefs.slowRepliesOk);
+        if (commPrefs.oneMessageAtTime != null) setOneMessageAtTime(commPrefs.oneMessageAtTime);
+        if (commPrefs.readWithoutReply != null) setReadWithoutReply(commPrefs.readWithoutReply);
       } catch {
-        // Silently ignore load errors
+        /* No saved data yet */
+      }
+
+      try {
+        const sensPrefs = await preferencesApi.getSensory();
+        if (sensPrefs.enableAnimations != null) setEnableAnimations(sensPrefs.enableAnimations);
+        if (sensPrefs.colorIntensity) setColorIntensity(sensPrefs.colorIntensity);
+        if (sensPrefs.soundEnabled != null) setSoundEnabled(sensPrefs.soundEnabled);
+        if (sensPrefs.notificationLimit != null) setNotificationLimit(sensPrefs.notificationLimit);
+        if (sensPrefs.notificationGrouped != null)
+          setNotificationGrouped(sensPrefs.notificationGrouped);
+      } catch {
+        /* No saved data yet */
+      }
+
+      try {
+        const convStarters = await preferencesApi.getConversationStarters();
+        if (convStarters.goodTopics?.length) setGoodTopics(convStarters.goodTopics);
+        if (convStarters.avoidTopics?.length) setAvoidTopics(convStarters.avoidTopics);
+        if (convStarters.interactionTips?.length) setInteractionTips(convStarters.interactionTips);
+      } catch {
+        /* No saved data yet */
       }
     };
 
-    loadSavedData();
-  }, [resumed, isReady]);
+    loadSavedPreferences();
+  }, [isReady]);
 
   const currentStepIndex = STEPS.indexOf(currentStep);
 
@@ -241,20 +232,28 @@ export default function OnboardingPage() {
   const handleFinish = async () => {
     setIsLoading(true);
     try {
-      // Fetch fresh user data to verify onboarding is actually complete.
-      // Using usersApi.getMe() directly (not refreshUser) so we get the
-      // updated value in the same call, not from stale React closure state.
-      const freshUser = await usersApi.getMe();
+      // Use onboarding status endpoint for a full step-by-step breakdown so
+      // we can log exactly which condition is still unmet (aids production debugging).
+      const [status, freshUser] = await Promise.all([
+        usersApi.getOnboardingStatus(),
+        usersApi.getMe(),
+      ]);
 
-      if (!freshUser.onboardingComplete) {
-        // Backend says onboarding isn't done — navigate back to the missing step.
+      if (!status.complete) {
+        // Log the full breakdown to the browser console for debugging.
+        console.warn('[Onboarding] handleFinish: onboardingComplete still false', {
+          currentStep: status.currentStep,
+          steps: status.steps,
+        });
+
+        // Navigate back to the specific missing step.
         const stepMapping: Record<string, Step> = {
           basic_profile: 'profile',
           communication_preferences: 'communication',
           sensory_preferences: 'sensory',
           conversation_starters: 'conversation',
         };
-        const targetStep = freshUser.onboardingStep && stepMapping[freshUser.onboardingStep];
+        const targetStep = status.currentStep && stepMapping[status.currentStep];
         if (targetStep) {
           setCurrentStep(targetStep);
         }
