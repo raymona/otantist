@@ -122,7 +122,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 1. ✅ Registration & login (with invite code)
 2. ✅ Email verification (verify-email + verify-email-sent pages)
 3. ✅ Accept terms gate page
-4. ✅ Onboarding (5-step, split into step components — orchestrator in page.tsx, rendering in components/onboarding/)
+4. ✅ Onboarding (5-step, split into step components — orchestrator in page.tsx, rendering in components/onboarding/; required-field validation before each step advance; completion verified via fresh API call before navigating to dashboard)
 5. ✅ Forgot password / reset password flow
 6. ✅ i18n setup (EN/FR) with translation files for auth + onboarding
 7. ✅ Auth context (JWT token management, refresh, user state)
@@ -258,7 +258,16 @@ apps/web/
 2. Frontend checks `user.termsAcceptedAt` → if null, redirect to `/accept-terms`
 3. `/accept-terms` → `POST /auth/accept-terms` → refresh user → redirect to `/onboarding`
 4. `/onboarding` → 5 steps, each saves via API with `sectionComplete: true`
-5. After final step → `onboardingComplete: true` → redirect to `/parent` (if `user.isParent`) or `/dashboard`
+5. After final step → `handleFinish` calls `GET /users/me` to verify `onboardingComplete: true` before navigating; if still false, navigates back to the missing step with an error message → on success, redirect to `/parent` (if `user.isParent`) or `/dashboard`
+
+### Onboarding Required Fields
+
+| Step          | Required fields                                     | Notes                                                 |
+| ------------- | --------------------------------------------------- | ----------------------------------------------------- |
+| Profile       | `displayName`, `ageGroup`                           | Frontend validation blocks advance if either is empty |
+| Communication | `preferredTone`, at least one `commModes` selection | Frontend validation blocks advance if either missing  |
+| Sensory       | none                                                | All fields have sensible defaults                     |
+| Conversation  | none                                                | Topic/tips arrays are intentionally optional          |
 
 ### Onboarding Steps (backend progression)
 
@@ -864,4 +873,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: February 26, 2026 (production deployment to Railway + Vercel, deployment lessons learned)_
+_Last updated: February 26, 2026 (onboarding required-field validation + completion guard fix)_
