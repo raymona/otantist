@@ -217,10 +217,14 @@ export default function OnboardingPage() {
   };
 
   const handleFinish = async () => {
-    await refreshUser();
-    // Don't push manually — the useEffect watching `user` will redirect
-    // to /dashboard once user.onboardingComplete is true in the context.
-    // Pushing immediately races with React committing the setUser update.
+    setIsLoading(true);
+    try {
+      await refreshUser();
+    } finally {
+      // Full page navigation so auth context re-initializes with fresh data,
+      // bypassing any React state update timing issues.
+      window.location.href = user?.isParent ? '/parent' : '/dashboard';
+    }
   };
 
   const toggleCommMode = (mode: string) => {
