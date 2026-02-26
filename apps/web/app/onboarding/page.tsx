@@ -218,7 +218,9 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     await refreshUser();
-    router.push('/dashboard');
+    // Don't push manually — the useEffect watching `user` will redirect
+    // to /dashboard once user.onboardingComplete is true in the context.
+    // Pushing immediately races with React committing the setUser update.
   };
 
   const toggleCommMode = (mode: string) => {
