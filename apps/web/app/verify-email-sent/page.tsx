@@ -4,21 +4,22 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { authApi, ApiException } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
 
 export default function VerifyEmailSentPage() {
   const { t, i18n } = useTranslation('auth');
+  const { user } = useAuth();
   const [email, setEmail] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Get the email from session storage (set during registration)
+    // Prefer sessionStorage (set during registration), fall back to the
+    // logged-in user's email so the resend button works from any session.
     const storedEmail = sessionStorage.getItem('otantist-pending-email');
-    if (storedEmail) {
-      setEmail(storedEmail);
-    }
-  }, []);
+    setEmail(storedEmail || user?.email || null);
+  }, [user]);
 
   const handleResend = async () => {
     if (!email) return;

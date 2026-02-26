@@ -50,7 +50,9 @@ export function useAuthGuard(requirement: AuthRequirement): AuthGuardResult {
     if (requirement === 'onboarded' && user) {
       // Moderators bypass the normal onboarding gates
       if (!user.isModerator) {
-        if (!user.legalAccepted) {
+        if (!user.emailVerified) {
+          router.push('/verify-email-sent');
+        } else if (!user.legalAccepted) {
           router.push('/accept-terms');
         } else if (!user.onboardingComplete) {
           router.push('/onboarding');

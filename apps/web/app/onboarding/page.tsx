@@ -63,6 +63,10 @@ export default function OnboardingPage() {
   // Redirect if onboarding already complete, pre-populate profile fields, resume at correct step
   useEffect(() => {
     if (!user) return;
+    if (!user.emailVerified) {
+      router.push('/verify-email-sent');
+      return;
+    }
     if (user.onboardingComplete) {
       router.push('/dashboard');
       return;
