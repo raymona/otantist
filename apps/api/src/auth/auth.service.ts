@@ -1,4 +1,9 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
@@ -79,12 +84,18 @@ export class AuthService {
       return newAccount;
     });
 
-    // Send verification email
-    await this.sendVerificationEmail(account.id, account.email, data.language);
+    // Send verification email — non-fatal: account is created regardless
+    let verificationSent = false;
+    try {
+      await this.sendVerificationEmail(account.id, account.email, data.language);
+      verificationSent = true;
+    } catch (err) {
+      console.error('[AuthService] Failed to send verification email during registration:', err);
+    }
 
     return {
       accountId: account.id,
-      verificationSent: true,
+      verificationSent,
     };
   }
 
@@ -171,14 +182,28 @@ export class AuthService {
     }
 
     if (account.emailVerified) {
-      throw new BadRequestException('Email is already verified');
+      throw new BadRequestException({
+        code: 'EMAIL_ALREADY_VERIFIED',
+        message_en: 'This email address is already verified.',
+        message_fr: 'Cette adresse courriel est déjà vérifiée.',
+      });
     }
 
-    await this.sendVerificationEmail(
-      account.id,
-      account.email,
-      account.preferredLanguage as 'fr' | 'en'
-    );
+    try {
+      await this.sendVerificationEmail(
+        account.id,
+        account.email,
+        account.preferredLanguage as 'fr' | 'en'
+      );
+    } catch (err) {
+      console.error('[AuthService] Failed to send verification email on resend:', err);
+      throw new InternalServerErrorException({
+        code: 'EMAIL_SEND_FAILED',
+        message_en: 'Failed to send the verification email. Please try again in a few minutes.',
+        message_fr:
+          "Échec de l'envoi du courriel de vérification. Veuillez réessayer dans quelques minutes.",
+      });
+    }
 
     return { sent: true };
   }
@@ -213,11 +238,21 @@ export class AuthService {
     });
 
     // Send the email
-    await this.emailService.sendPasswordResetEmail(
-      account.email,
-      token,
-      account.preferredLanguage as 'fr' | 'en'
-    );
+    try {
+      await this.emailService.sendPasswordResetEmail(
+        account.email,
+        token,
+        account.preferredLanguage as 'fr' | 'en'
+      );
+    } catch (err) {
+      console.error('[AuthService] Failed to send password reset email:', err);
+      throw new InternalServerErrorException({
+        code: 'EMAIL_SEND_FAILED',
+        message_en: 'Failed to send the password reset email. Please try again in a few minutes.',
+        message_fr:
+          "Échec de l'envoi du courriel de réinitialisation. Veuillez réessayer dans quelques minutes.",
+      });
+    }
 
     return { sent: true };
   }
