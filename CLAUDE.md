@@ -766,10 +766,102 @@ Located in project knowledge:
 
 ---
 
+## Production Deployment (as of Feb 26, 2026)
+
+### Live URLs
+
+| Service | URL                                             |
+| ------- | ----------------------------------------------- |
+| **API** | https://otantist-repo-production.up.railway.app |
+| **Web** | https://otantist-web.vercel.app                 |
+
+### Infrastructure
+
+| Service          | Provider | Notes                                                                                                  |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| API + DB + Redis | Railway  | NestJS monorepo service                                                                                |
+| Web app          | Vercel   | Root directory: `apps/web`                                                                             |
+| Email            | Resend   | Shared domain (`onboarding@resend.dev`) — switch to `noreply@otantist.com` once domain access restored |
+
+### Railway Environment Variables (API service)
+
+```
+NODE_ENV=production
+DATABASE_URL=<Railway internal PostgreSQL URL>
+REDIS_URL=<Railway internal Redis URL>
+JWT_SECRET=<generated>
+JWT_REFRESH_SECRET=<generated>
+JWT_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=resend
+SMTP_PASS=<Resend API key>
+EMAIL_FROM_NAME=Otantist
+EMAIL_FROM=onboarding@resend.dev
+FEEDBACK_EMAIL=info@otantist.com
+API_URL=https://otantist-repo-production.up.railway.app
+WEB_URL=https://otantist-web.vercel.app
+```
+
+Note: `ANTHROPIC_API_KEY` not set — AI moderation flagging disabled for MVP beta.
+
+### Vercel Environment Variables (web app)
+
+```
+NEXT_PUBLIC_API_URL=https://otantist-repo-production.up.railway.app
+```
+
+### Database Operations (from local machine)
+
+Use the **public** DATABASE_URL from Railway → Postgres service → Variables (`DATABASE_PUBLIC_URL`). The internal URL (`postgres.railway.internal`) is only accessible within Railway's network.
+
+```powershell
+# Seed database
+$env:DATABASE_URL="postgresql://...@ballast.proxy.rlwy.net:PORT/railway"; npm run db:seed
+
+# Run migrations manually
+$env:DATABASE_URL="postgresql://...@ballast.proxy.rlwy.net:PORT/railway"; cd apps/api; npx prisma migrate deploy
+```
+
+### Build Configuration Notes
+
+- `railway.json` uses `tsc` directly (not `nest build`) — Nixpacks + `nest build` produced no JS output
+- `apps/api/tsconfig.json`: `rootDir: "src"`, `incremental: false`, spec files excluded from build
+- `package.json` prepare script: `husky install || true` — prevents CI/Vercel failures
+- Swagger docs disabled in production (`NODE_ENV=production` guard in `main.ts`)
+- `WEB_URL` in Railway must have **no trailing slash** — trailing slash breaks CORS
+
+---
+
+## Deployment Lessons Learned
+
+These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) and are documented to avoid repeating them.
+
+### Railway
+
+1. **"Redeploy" replays old snapshots** — it does NOT pull fresh code from GitHub. A new git push is required to trigger a genuine fresh deployment.
+2. **`nest build` silently fails under Nixpacks** — Nixpacks sets `NODE_ENV=production` which skips devDependencies (including `@nestjs/cli`). Even with `--include=dev` in the build command, `nest build` produced only `tsconfig.tsbuildinfo`. Solution: use `npx tsc` directly.
+3. **`rootDir` must be set explicitly** — Without `rootDir: "src"` in tsconfig, TypeScript infers the root as `apps/api/` and outputs `dist/src/main.js` instead of `dist/main.js`. The start command `node dist/main` then fails.
+4. **Spec files must be excluded from production build** — `src/**/*.spec.ts` files import from `test/prisma-mock` which is outside `rootDir: "src"`. Add `**/*.spec.ts` to tsconfig exclude.
+5. **Internal vs public DB URL** — `postgres.railway.internal` only works within Railway's private network. Use `DATABASE_PUBLIC_URL` for local seed/migration commands.
+6. **GitHub repo connection can break** — If Railway shows "GitHub Repo not found", go to GitHub → Settings → Applications → Authorized GitHub Apps → Railway → ensure repo access is granted.
+7. **`WEB_URL` trailing slash breaks CORS** — The CORS origin check is exact-match. `https://otantist-web.vercel.app/` (with slash) will not match requests from `https://otantist-web.vercel.app`.
+
+### Vercel
+
+1. **Root Directory must be `apps/web`** — Without this, Vercel reads the root `package.json` (no Next.js) and fails with "No Next.js version detected".
+2. **Husky breaks CI install** — The root `prepare` script runs `husky install` during `npm install`. In CI environments without git, this fails. Fix: `"prepare": "husky install || true"`.
+3. **Next.js strict TypeScript build** — Next.js builds with strict TypeScript. Redundant type narrowing checks (e.g., checking `status !== 'idle'` after an early return that already narrowed the type) will fail the build. Test with `npm run build -w @otantist/web` locally before deploying.
+4. **Add env vars before first deploy** — `NEXT_PUBLIC_API_URL` must be set before deploying, not after. Adding it post-deploy requires a manual redeploy.
+
+---
+
 ## Session Continuity Rule
 
 **IMPORTANT: Update this file whenever a module, feature, or flow is completed or significantly changed.** Keep the "Current Development Phase" and "Known Issues" sections accurate so that new sessions can pick up where the last one left off. When completing work, update the relevant status markers (pending/in-progress/complete) and add any new known issues or context that would help resume work after a crash or new session.
 
 ---
 
-_Last updated: February 24, 2026 (responsive CSS, sensory cross-user bug fix, minor↔adult messaging security, moderator account type, feedback form, daily mood check-in, session focus timer)_
+_Last updated: February 26, 2026 (production deployment to Railway + Vercel, deployment lessons learned)_
