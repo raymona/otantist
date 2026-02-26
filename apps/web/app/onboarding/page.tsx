@@ -26,7 +26,7 @@ const STEPS: Step[] = ['profile', 'communication', 'sensory', 'conversation', 'c
 export default function OnboardingPage() {
   const { t } = useTranslation('onboarding');
   const router = useRouter();
-  const { user, refreshUser, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { isReady, isLoading: authLoading } = useAuthGuard('authenticated');
   const { getErrorMessage } = useApiError();
 
@@ -180,6 +180,18 @@ export default function OnboardingPage() {
   };
 
   const handleNext = async () => {
+    // Validate required profile fields before saving
+    if (currentStep === 'profile') {
+      if (!displayName.trim()) {
+        setError(t('error_display_name_required'));
+        return;
+      }
+      if (!ageGroup) {
+        setError(t('error_age_group_required'));
+        return;
+      }
+    }
+
     setError('');
     setIsLoading(true);
     try {
@@ -219,11 +231,33 @@ export default function OnboardingPage() {
   const handleFinish = async () => {
     setIsLoading(true);
     try {
-      await refreshUser();
+      // Fetch fresh user data to verify onboarding is actually complete.
+      // Using usersApi.getMe() directly (not refreshUser) so we get the
+      // updated value in the same call, not from stale React closure state.
+      const freshUser = await usersApi.getMe();
+
+      if (!freshUser.onboardingComplete) {
+        // Backend says onboarding isn't done — navigate back to the missing step.
+        const stepMapping: Record<string, Step> = {
+          basic_profile: 'profile',
+          communication_preferences: 'communication',
+          sensory_preferences: 'sensory',
+          conversation_starters: 'conversation',
+        };
+        const targetStep = freshUser.onboardingStep && stepMapping[freshUser.onboardingStep];
+        if (targetStep) {
+          setCurrentStep(targetStep);
+        }
+        setError(t('error_not_complete'));
+        return;
+      }
+
+      // Full page navigation so auth context re-initializes with fresh data.
+      window.location.href = freshUser.isParent ? '/parent' : '/dashboard';
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
-      // Full page navigation so auth context re-initializes with fresh data,
-      // bypassing any React state update timing issues.
-      window.location.href = user?.isParent ? '/parent' : '/dashboard';
+      setIsLoading(false);
     }
   };
 

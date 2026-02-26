@@ -80,5 +80,9 @@
 
   "complete_title": "You're all set!",
   "complete_description": "Your profile is ready. You can always update these settings later.",
-  "go_to_app": "Start using Otantist"
+  "go_to_app": "Start using Otantist",
+
+  "error_display_name_required": "Please enter a display name.",
+  "error_age_group_required": "Please select an age group.",
+  "error_not_complete": "Some steps still need to be completed. Please fill in the highlighted section."
 }

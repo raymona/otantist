@@ -80,5 +80,9 @@
 
   "complete_title": "Vous êtes prêt(e)!",
   "complete_description": "Votre profil est configuré. Vous pouvez toujours modifier ces paramètres plus tard.",
-  "go_to_app": "Commencer à utiliser Otantist"
+  "go_to_app": "Commencer à utiliser Otantist",
+
+  "error_display_name_required": "Veuillez entrer un nom d'affichage.",
+  "error_age_group_required": "Veuillez sélectionner un groupe d'âge.",
+  "error_not_complete": "Certaines étapes ne sont pas encore complétées. Veuillez remplir la section indiquée."
 }
