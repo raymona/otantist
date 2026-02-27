@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 
@@ -11,6 +11,7 @@ interface EmailOptions {
 
 @Injectable()
 export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
@@ -31,13 +32,35 @@ export class EmailService {
     const fromName = this.configService.get('EMAIL_FROM_NAME', 'Otantist');
     const fromEmail = this.configService.get('EMAIL_FROM', 'noreply@otantist.com');
 
-    await this.transporter.sendMail({
-      from: `"${fromName}" <${fromEmail}>`,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      text: options.text,
-    });
+    const maxAttempts = 3;
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await this.transporter.sendMail({
+          from: `"${fromName}" <${fromEmail}>`,
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          text: options.text,
+        });
+        return; // Success — exit immediately
+      } catch (error: any) {
+        lastError = error;
+        if (attempt < maxAttempts) {
+          const delay = Math.pow(2, attempt - 1) * 1000; // 1s, 2s
+          this.logger.warn(
+            `Email send attempt ${attempt}/${maxAttempts} failed (to: ${options.to}), retrying in ${delay}ms: ${error.message}`
+          );
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    this.logger.error(
+      `Email send failed after ${maxAttempts} attempts (to: ${options.to}): ${lastError?.message}`
+    );
+    throw lastError;
   }
 
   async sendVerificationEmail(to: string, token: string, language: 'fr' | 'en'): Promise<void> {

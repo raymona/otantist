@@ -13,7 +13,29 @@ import { StateService } from '../state/state.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*',
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void
+    ) => {
+      // Allow same-origin, server-to-server, and mobile requests
+      if (!origin) return callback(null, true);
+
+      const webUrl = (process.env.WEB_URL || 'http://localhost:3000').replace(/\/$/, '');
+      if (origin === webUrl) return callback(null, true);
+
+      // Additional exact origins from CORS_ORIGINS env var
+      const extraOrigins = (process.env.CORS_ORIGINS || '')
+        .split(',')
+        .map((s: string) => s.trim())
+        .filter(Boolean);
+      if (extraOrigins.includes(origin)) return callback(null, true);
+
+      // Vercel preview deployments (*.vercel.app)
+      if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) return callback(null, true);
+
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    credentials: true,
   },
 })
 export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {

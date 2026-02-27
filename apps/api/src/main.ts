@@ -6,17 +6,43 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
+function buildCorsOriginChecker(webUrl: string, extraOrigins: string[]) {
+  return (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Allow same-origin, server-to-server, and mobile requests (no Origin header)
+    if (!origin) return callback(null, true);
+
+    // Primary web URL
+    if (origin === webUrl) return callback(null, true);
+
+    // Additional exact origins from CORS_ORIGINS env var
+    if (extraOrigins.includes(origin)) return callback(null, true);
+
+    // Vercel preview deployments (*.vercel.app)
+    if (/^https:\/\/[\w-]+\.vercel\.app$/.test(origin)) return callback(null, true);
+
+    callback(new Error(`Origin ${origin} not allowed by CORS`));
+  };
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
+  // Trust proxy — required for correct IP detection behind Railway's proxy
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
+
   // Security
   app.use(helmet());
+
+  const webUrl = configService.get('WEB_URL', 'http://localhost:3000');
+  const extraOrigins = (configService.get('CORS_ORIGINS', '') as string)
+    .split(',')
+    .map((s: string) => s.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: [
-      configService.get('WEB_URL', 'http://localhost:3000'),
-      // Add mobile app URLs as needed
-    ],
+    origin: buildCorsOriginChecker(webUrl, extraOrigins),
     credentials: true,
   });
 
