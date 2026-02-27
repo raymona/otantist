@@ -20,6 +20,8 @@
     "db:migrate": "npm run db:migrate -w @otantist/api",
     "db:seed": "npm run db:seed -w @otantist/api",
     "db:studio": "npm run db:studio -w @otantist/api",
+    "db:check-drift": "sh scripts/check-migration-drift.sh",
+    "db:validate": "cd apps/api && npx prisma validate",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f",

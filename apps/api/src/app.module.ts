@@ -16,6 +16,7 @@ import { ModerationModule } from './moderation/moderation.module';
 import { ParentDashboardModule } from './parent-dashboard/parent-dashboard.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { FeedbackModule } from './feedback/feedback.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { FeedbackModule } from './feedback/feedback.module';
     ParentDashboardModule,
     GatewayModule,
     FeedbackModule,
+    HealthModule,
   ],
   providers: [
     {

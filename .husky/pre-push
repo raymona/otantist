@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Validate Prisma schema syntax (fast, no DB needed)
+cd apps/api && npx prisma validate && cd ../..
+
 npm test

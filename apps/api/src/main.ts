@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
@@ -28,7 +29,7 @@ async function bootstrap() {
       transformOptions: {
         enableImplicitConversion: true,
       },
-    }),
+    })
   );
 
   // API prefix
@@ -58,13 +59,10 @@ async function bootstrap() {
   const port = configService.get('PORT', 3001);
   await app.listen(port);
 
-  console.log(`
-  🚀 Otantist API is running!
-  
-  📍 Local:    http://localhost:${port}
-  📚 Swagger:  http://localhost:${port}/api/docs
-  🔧 Mode:     ${configService.get('NODE_ENV', 'development')}
-  `);
+  const logger = new Logger('Bootstrap');
+  logger.log(
+    `Otantist API running on port ${port} [${configService.get('NODE_ENV', 'development')}]`
+  );
 }
 
 bootstrap();

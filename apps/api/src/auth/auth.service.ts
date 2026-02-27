@@ -1,5 +1,6 @@
 import {
   Injectable,
+  Logger,
   UnauthorizedException,
   BadRequestException,
   InternalServerErrorException,
@@ -13,6 +14,8 @@ import { EmailService } from '../email/email.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -90,7 +93,7 @@ export class AuthService {
       await this.sendVerificationEmail(account.id, account.email, data.language);
       verificationSent = true;
     } catch (err) {
-      console.error('[AuthService] Failed to send verification email during registration:', err);
+      this.logger.error('Failed to send verification email during registration', err);
     }
 
     return {
@@ -196,7 +199,7 @@ export class AuthService {
         account.preferredLanguage as 'fr' | 'en'
       );
     } catch (err) {
-      console.error('[AuthService] Failed to send verification email on resend:', err);
+      this.logger.error('Failed to send verification email on resend', err);
       throw new InternalServerErrorException({
         code: 'EMAIL_SEND_FAILED',
         message_en: 'Failed to send the verification email. Please try again in a few minutes.',
@@ -245,7 +248,7 @@ export class AuthService {
         account.preferredLanguage as 'fr' | 'en'
       );
     } catch (err) {
-      console.error('[AuthService] Failed to send password reset email:', err);
+      this.logger.error('Failed to send password reset email', err);
       throw new InternalServerErrorException({
         code: 'EMAIL_SEND_FAILED',
         message_en: 'Failed to send the password reset email. Please try again in a few minutes.',
