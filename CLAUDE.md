@@ -244,6 +244,9 @@ apps/web/
 - **Session focus timer:** `useSessionTimer` hook manages countdown state. Duration stored per-user in `STORAGE_KEYS.SESSION_TIMER`. Auto-starts on first `message:send` socket emit. `SessionTimerBar` visible at all times below StatusBar (shows Off selector when duration=0, countdown when running). Color states: blue → amber (5 min) → red (1 min) → `SessionBreakScreen` at 0 (soft overlay, never blocks UI). User can reset or change duration at any time.
 - **isParent flag:** `GET /users/me` computes `isParent` by checking `parentManagedAsParent` relation (active managed members). Parent accounts redirect to `/parent` on login via `useAuthGuard`. Parent button in StatusBar is conditionally rendered (`user?.isParent`). The `parent_managed` account type (used for minors) is separate — those accounts are excluded from the user directory and cannot be messaged directly.
 - **Deployment:** Code is production-ready. Remaining steps are manual account setup in Railway (API + PostgreSQL + Redis), Vercel (web app), and Resend (email via smtp.resend.com). See deployment section in commit history for full env var list. Local dev is completely unchanged — Docker + Mailhog + localhost.
+- **CORS multi-origin:** `main.ts` uses a function-based origin checker (`buildCorsOriginChecker`). Allows `WEB_URL` (exact), `CORS_ORIGINS` env var (comma-separated exact origins), and any `*.vercel.app` subdomain (regex). Same logic duplicated in `app.gateway.ts` for WebSocket CORS (uses `process.env` directly since decorator context has no DI). `trust proxy` is set on Express for correct IP detection behind Railway's proxy.
+- **Email retry:** `EmailService.sendEmail()` retries up to 3 times with exponential backoff (1s, 2s delays). Logs `Logger.warn` per retry, `Logger.error` on final failure. Re-throws so callers keep existing error handling.
+- **Auth rate limits:** `/login` 5/5min, `/refresh` 10/min, `/verify-email` 5/min, `/reset-password` 5/min, `/accept-terms` 5/min. `/register` 3/min, `/resend-verification` 2/min, `/forgot-password` 3/min unchanged.
 - **i18n language detection:** `LanguageDetector` order is `['localStorage']` only. First-time visitors with no saved preference fall back to `'fr'`. Logged-in users get their language synced from `user.language` via `fetchUser()` → `i18n.changeLanguage()`.
 - **Help page:** `/help` route uses `useAuthGuard('onboarded')`. Parent section (`sections.parent`) only renders when `user?.isParent`. Uses `help` i18n namespace. Linked from StatusBar with a ? icon button.
 - **French translations — pending human review:** A first-pass review was done and clear-cut issues were fixed (Feb 22). The following items need a native Quebec French speaker to review before public beta:
@@ -812,6 +815,7 @@ EMAIL_FROM=onboarding@resend.dev
 FEEDBACK_EMAIL=info@otantist.com
 API_URL=https://otantist-repo-production.up.railway.app
 WEB_URL=https://otantist-web.vercel.app
+CORS_ORIGINS=                              # optional, comma-separated extra origins
 ```
 
 Note: `ANTHROPIC_API_KEY` not set — AI moderation flagging disabled for MVP beta.
@@ -873,4 +877,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: February 26, 2026 (onboarding required-field validation + completion guard fix)_
+_Last updated: February 27, 2026 (CORS multi-origin, email retry, auth rate limiting)_
