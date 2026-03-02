@@ -137,6 +137,13 @@ export default function OnboardingPage() {
     loadSavedPreferences();
   }, [isReady]);
 
+  // Scroll to top when an error appears so the user sees the notification
+  useEffect(() => {
+    if (error) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [error]);
+
   const currentStepIndex = STEPS.indexOf(currentStep);
 
   const saveCurrentStep = async (markComplete: boolean) => {
