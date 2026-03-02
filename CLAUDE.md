@@ -46,6 +46,8 @@ otantist/
 │   │       ├── moderation/  # ✅ AI flagging queue, human review
 │   │       ├── parent-dashboard/ # ✅ Indicators, alerts, managed members
 │   │       ├── gateway/     # ✅ WebSocket gateway (auth, real-time messaging, presence)
+│   │       ├── redis/        # ✅ Redis service (global module, ioredis wrapper)
+│   │       ├── throttler/    # ✅ Redis-backed throttler storage (fallback to in-memory)
 │   │       ├── email/       # ✅ Email service
 │   │       └── prisma/      # ✅ Prisma service
 │   ├── web/                 # Next.js 16 web app ✅ DEMO-READY
@@ -155,6 +157,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 34. ✅ Tester feedback form — `POST /api/feedback` sends email to `info@otantist.com` via EmailService; `/feedback` page with name/category/message form; link in StatusBar nav (all users); bilingual (EN/FR)
 35. ✅ Daily mood check-in modal — shown once per calendar day per user on dashboard load; asks social energy + calm mode preference; updates UserState via existing API; stores `{ userId, date }` in localStorage to suppress until next day
 36. ✅ Session focus timer — `useSessionTimer` hook (auto-start on first message sent); duration presets: Off/15/20/25/30 min (localStorage per user, default 20 min); `SessionTimerBar` below StatusBar shows countdown with colour states (blue → amber@5min → red@1min); `SessionBreakScreen` soft overlay at 0 (never hard-locks); reset/change duration at any time
+37. ✅ Redis-backed rate limiting — `RedisModule` (global, ioredis wrapper) + `RedisThrottlerStorage` implements `ThrottlerStorage` with atomic `INCR`/`PEXPIRE`; graceful fallback to in-memory `ThrottlerStorageService` when Redis is disconnected or command fails; health check (`GET /api/health`) reports Redis status (`ok`/`disconnected`/`error`); overall status degrades (not errors) when Redis is down
 
 ### Web App File Structure
 
@@ -247,6 +250,7 @@ apps/web/
 - **CORS multi-origin:** `main.ts` uses a function-based origin checker (`buildCorsOriginChecker`). Allows `WEB_URL` (exact), `CORS_ORIGINS` env var (comma-separated exact origins), and any `*.vercel.app` subdomain (regex). Same logic duplicated in `app.gateway.ts` for WebSocket CORS (uses `process.env` directly since decorator context has no DI). `trust proxy` is set on Express for correct IP detection behind Railway's proxy.
 - **Email retry:** `EmailService.sendEmail()` retries up to 3 times with exponential backoff (1s, 2s delays). Logs `Logger.warn` per retry, `Logger.error` on final failure. Re-throws so callers keep existing error handling.
 - **Auth rate limits:** `/login` 5/5min, `/refresh` 10/min, `/verify-email` 5/min, `/reset-password` 5/min, `/accept-terms` 5/min. `/register` 3/min, `/resend-verification` 2/min, `/forgot-password` 3/min unchanged.
+- **Redis-backed rate limiting:** `RedisModule` (`src/redis/`) is a `@Global()` module wrapping ioredis. `RedisThrottlerStorage` (`src/throttler/`) uses atomic `INCR` + `PEXPIRE` for shared rate-limit counters across restarts and instances. If Redis is unavailable (no `REDIS_URL`, connection lost, command error), it falls back transparently to NestJS's built-in in-memory `ThrottlerStorageService`. Health endpoint reports Redis status separately — overall status is `degraded` (not `error`) when Redis is down, since the app still functions with the fallback.
 - **i18n language detection:** `LanguageDetector` order is `['localStorage']` only. First-time visitors with no saved preference fall back to `'fr'`. Logged-in users get their language synced from `user.language` via `fetchUser()` → `i18n.changeLanguage()`.
 - **Help page:** `/help` route uses `useAuthGuard('onboarded')`. Parent section (`sections.parent`) only renders when `user?.isParent`. Uses `help` i18n namespace. Linked from StatusBar with a ? icon button.
 - **French translations — pending human review:** A first-pass review was done and clear-cut issues were fixed (Feb 22). The following items need a native Quebec French speaker to review before public beta:
@@ -877,4 +881,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: February 27, 2026 (CORS multi-origin, email retry, auth rate limiting)_
+_Last updated: March 2, 2026 (Redis-backed rate limiting with graceful fallback)_

@@ -5,6 +5,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module';
+import { RedisModule } from './redis/redis.module';
+import { RedisService } from './redis/redis.service';
+import { RedisThrottlerStorage } from './throttler/redis-throttler-storage';
 import { EmailModule } from './email/email.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -26,24 +29,21 @@ import { HealthModule } from './health/health.module';
       envFilePath: ['.env.local', '.env'],
     }),
 
-    // Rate limiting
-    ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000,
-        limit: 3,
-      },
-      {
-        name: 'medium',
-        ttl: 10000,
-        limit: 20,
-      },
-      {
-        name: 'long',
-        ttl: 60000,
-        limit: 100,
-      },
-    ]),
+    // Redis (global — must be before ThrottlerModule)
+    RedisModule,
+
+    // Rate limiting (backed by Redis with in-memory fallback)
+    ThrottlerModule.forRootAsync({
+      inject: [RedisService],
+      useFactory: (redis: RedisService) => ({
+        storage: new RedisThrottlerStorage(redis),
+        throttlers: [
+          { name: 'short', ttl: 1000, limit: 3 },
+          { name: 'medium', ttl: 10000, limit: 20 },
+          { name: 'long', ttl: 60000, limit: 100 },
+        ],
+      }),
+    }),
 
     // Events
     EventEmitterModule.forRoot(),
