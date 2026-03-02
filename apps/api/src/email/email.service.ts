@@ -12,20 +12,28 @@ interface EmailOptions {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter | null = null;
+  private resendApiKey: string | undefined;
 
   constructor(private configService: ConfigService) {
-    this.transporter = nodemailer.createTransport({
-      host: this.configService.get('SMTP_HOST', 'localhost'),
-      port: parseInt(this.configService.get('SMTP_PORT', '1025'), 10),
-      secure: this.configService.get('SMTP_SECURE', 'false') === 'true',
-      ...(this.configService.get('SMTP_USER') && {
-        auth: {
-          user: this.configService.get('SMTP_USER'),
-          pass: this.configService.get('SMTP_PASS'),
-        },
-      }),
-    });
+    this.resendApiKey = this.configService.get('RESEND_API_KEY');
+
+    if (this.resendApiKey) {
+      this.logger.log('Email: using Resend HTTP API');
+    } else {
+      this.logger.log('Email: using SMTP transport');
+      this.transporter = nodemailer.createTransport({
+        host: this.configService.get('SMTP_HOST', 'localhost'),
+        port: parseInt(this.configService.get('SMTP_PORT', '1025'), 10),
+        secure: this.configService.get('SMTP_SECURE', 'false') === 'true',
+        ...(this.configService.get('SMTP_USER') && {
+          auth: {
+            user: this.configService.get('SMTP_USER'),
+            pass: this.configService.get('SMTP_PASS'),
+          },
+        }),
+      });
+    }
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
@@ -37,13 +45,17 @@ export class EmailService {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
-        await this.transporter.sendMail({
-          from: `"${fromName}" <${fromEmail}>`,
-          to: options.to,
-          subject: options.subject,
-          html: options.html,
-          text: options.text,
-        });
+        if (this.resendApiKey) {
+          await this.sendViaResend(options, `${fromName} <${fromEmail}>`);
+        } else {
+          await this.transporter!.sendMail({
+            from: `"${fromName}" <${fromEmail}>`,
+            to: options.to,
+            subject: options.subject,
+            html: options.html,
+            text: options.text,
+          });
+        }
         return; // Success — exit immediately
       } catch (error: any) {
         lastError = error;
@@ -61,6 +73,31 @@ export class EmailService {
       `Email send failed after ${maxAttempts} attempts (to: ${options.to}): ${lastError?.message}`
     );
     throw lastError;
+  }
+
+  private async sendViaResend(options: EmailOptions, from: string): Promise<void> {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.resendApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from,
+        to: [options.to],
+        subject: options.subject,
+        html: options.html,
+        ...(options.text && { text: options.text }),
+      }),
+    });
+
+    if (!response.ok) {
+      const body = await response.text();
+      throw new Error(`Resend API error ${response.status}: ${body}`);
+    }
+
+    const result = (await response.json()) as { id: string };
+    this.logger.log(`Email sent via Resend (id: ${result.id}, to: ${options.to})`);
   }
 
   async sendVerificationEmail(to: string, token: string, language: 'fr' | 'en'): Promise<void> {
