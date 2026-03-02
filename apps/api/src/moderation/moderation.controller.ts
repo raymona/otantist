@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Param,
-  Body,
-  Query,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Query, UseGuards, Request } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
@@ -18,11 +9,7 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { ModerationService } from './moderation.service';
-import {
-  ResolveQueueItemDto,
-  ModerationQueueItemResponse,
-  ModerationStatsResponse,
-} from './dto';
+import { ResolveQueueItemDto, ModerationQueueItemResponse, ModerationStatsResponse } from './dto';
 
 @ApiTags('moderation')
 @Controller('moderation')
@@ -39,7 +26,7 @@ export class ModerationController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getQueue(
     @Query('status') status?: string,
-    @Query('priority') priority?: string,
+    @Query('priority') priority?: string
   ): Promise<ModerationQueueItemResponse[]> {
     return this.moderationService.getQueue(status, priority);
   }
@@ -50,9 +37,7 @@ export class ModerationController {
   @ApiResponse({ status: 200, type: ModerationQueueItemResponse })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Item not found' })
-  async getQueueItem(
-    @Param('id') id: string,
-  ): Promise<ModerationQueueItemResponse> {
+  async getQueueItem(@Param('id') id: string): Promise<ModerationQueueItemResponse> {
     return this.moderationService.getQueueItem(id);
   }
 
@@ -65,7 +50,7 @@ export class ModerationController {
   async resolveQueueItem(
     @Request() req: any,
     @Param('id') id: string,
-    @Body() dto: ResolveQueueItemDto,
+    @Body() dto: ResolveQueueItemDto
   ): Promise<ModerationQueueItemResponse> {
     return this.moderationService.resolveQueueItem(id, req.user.id, dto);
   }

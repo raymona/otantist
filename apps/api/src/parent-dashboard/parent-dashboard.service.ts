@@ -1,22 +1,12 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  ManagedMemberResponse,
-  MemberIndicatorResponse,
-  ParentAlertResponse,
-} from './dto';
+import { ManagedMemberResponse, MemberIndicatorResponse, ParentAlertResponse } from './dto';
 
 @Injectable()
 export class ParentDashboardService {
   constructor(private prisma: PrismaService) {}
 
-  async getManagedMembers(
-    parentAccountId: string,
-  ): Promise<ManagedMemberResponse[]> {
+  async getManagedMembers(parentAccountId: string): Promise<ManagedMemberResponse[]> {
     const relations = await this.prisma.parentManagedAccount.findMany({
       where: { parentAccountId, status: 'active' },
       include: {
@@ -29,7 +19,7 @@ export class ParentDashboardService {
       orderBy: { createdAt: 'asc' },
     });
 
-    return relations.map((rel) => ({
+    return relations.map(rel => ({
       id: rel.id,
       memberAccountId: rel.memberAccountId,
       relationship: rel.relationship,
@@ -46,7 +36,7 @@ export class ParentDashboardService {
 
   async getMemberIndicators(
     parentAccountId: string,
-    memberUserId: string,
+    memberUserId: string
   ): Promise<MemberIndicatorResponse[]> {
     await this.verifyParentAccess(parentAccountId, memberUserId);
 
@@ -56,7 +46,7 @@ export class ParentDashboardService {
       take: 30, // Last 30 days
     });
 
-    return indicators.map((ind) => ({
+    return indicators.map(ind => ({
       recordedAt: ind.recordedAt,
       socialEnergyAvg: ind.socialEnergyAvg,
       calmModeMinutes: ind.calmModeMinutes,
@@ -67,7 +57,7 @@ export class ParentDashboardService {
 
   async getMemberAlerts(
     parentAccountId: string,
-    memberUserId: string,
+    memberUserId: string
   ): Promise<ParentAlertResponse[]> {
     await this.verifyParentAccess(parentAccountId, memberUserId);
 
@@ -77,7 +67,7 @@ export class ParentDashboardService {
       take: 50,
     });
 
-    return alerts.map((alert) => ({
+    return alerts.map(alert => ({
       id: alert.id,
       alertType: alert.alertType,
       severity: alert.severity,
@@ -92,7 +82,7 @@ export class ParentDashboardService {
   async acknowledgeAlert(
     parentAccountId: string,
     memberUserId: string,
-    alertId: string,
+    alertId: string
   ): Promise<ParentAlertResponse> {
     await this.verifyParentAccess(parentAccountId, memberUserId);
 
@@ -128,10 +118,7 @@ export class ParentDashboardService {
     };
   }
 
-  private async verifyParentAccess(
-    parentAccountId: string,
-    memberUserId: string,
-  ): Promise<void> {
+  private async verifyParentAccess(parentAccountId: string, memberUserId: string): Promise<void> {
     // Look up the member's account ID from their user ID
     const memberUser = await this.prisma.user.findUnique({
       where: { id: memberUserId },
@@ -152,9 +139,7 @@ export class ParentDashboardService {
     });
 
     if (!relation || relation.status !== 'active') {
-      throw new ForbiddenException(
-        'Not authorized to access this member',
-      );
+      throw new ForbiddenException('Not authorized to access this member');
     }
   }
 }

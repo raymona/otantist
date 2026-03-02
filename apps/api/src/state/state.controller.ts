@@ -1,25 +1,8 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Body,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Body, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { StateService } from './state.service';
-import {
-  UpdateSocialEnergyDto,
-  UserStateResponse,
-  CalmModeResponse,
-} from './dto';
+import { UpdateSocialEnergyDto, UserStateResponse, CalmModeResponse } from './dto';
 
 @ApiTags('state')
 @Controller('state')
@@ -42,7 +25,7 @@ export class StateController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateSocialEnergy(
     @Request() req: any,
-    @Body() dto: UpdateSocialEnergyDto,
+    @Body() dto: UpdateSocialEnergyDto
   ): Promise<UserStateResponse> {
     return this.stateService.updateSocialEnergy(req.user.id, dto.level);
   }

@@ -1,37 +1,24 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  ResolveQueueItemDto,
-  ModerationQueueItemResponse,
-  ModerationStatsResponse,
-} from './dto';
+import { ResolveQueueItemDto, ModerationQueueItemResponse, ModerationStatsResponse } from './dto';
 
 @Injectable()
 export class ModerationService {
   constructor(private prisma: PrismaService) {}
 
-  async getQueue(
-    status?: string,
-    priority?: string,
-  ): Promise<ModerationQueueItemResponse[]> {
+  async getQueue(status?: string, priority?: string): Promise<ModerationQueueItemResponse[]> {
     const where: any = {};
     if (status) where.status = status;
     if (priority) where.priority = priority;
 
     const items = await this.prisma.moderationQueue.findMany({
       where,
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'asc' },
-      ],
+      orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
     });
 
     return Promise.all(
-      items.map(async (item) => {
-        const relatedContent = await this.getRelatedContent(
-          item.itemType,
-          item.itemId,
-        );
+      items.map(async item => {
+        const relatedContent = await this.getRelatedContent(item.itemType, item.itemId);
 
         return {
           id: item.id,
@@ -48,7 +35,7 @@ export class ModerationService {
           resolvedAt: item.resolvedAt,
           relatedContent,
         };
-      }),
+      })
     );
   }
 
@@ -61,10 +48,7 @@ export class ModerationService {
       throw new NotFoundException('Queue item not found');
     }
 
-    const relatedContent = await this.getRelatedContent(
-      item.itemType,
-      item.itemId,
-    );
+    const relatedContent = await this.getRelatedContent(item.itemType, item.itemId);
 
     return {
       id: item.id,
@@ -86,7 +70,7 @@ export class ModerationService {
   async resolveQueueItem(
     id: string,
     reviewerAccountId: string,
-    dto: ResolveQueueItemDto,
+    dto: ResolveQueueItemDto
   ): Promise<ModerationQueueItemResponse> {
     const item = await this.prisma.moderationQueue.findUnique({
       where: { id },
@@ -139,29 +123,28 @@ export class ModerationService {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [pending, reviewing, resolvedToday, totalResolved, byPriority] =
-      await Promise.all([
-        this.prisma.moderationQueue.count({ where: { status: 'pending' } }),
-        this.prisma.moderationQueue.count({ where: { status: 'reviewing' } }),
+    const [pending, reviewing, resolvedToday, totalResolved, byPriority] = await Promise.all([
+      this.prisma.moderationQueue.count({ where: { status: 'pending' } }),
+      this.prisma.moderationQueue.count({ where: { status: 'reviewing' } }),
+      this.prisma.moderationQueue.count({
+        where: { status: 'resolved', resolvedAt: { gte: today } },
+      }),
+      this.prisma.moderationQueue.count({ where: { status: 'resolved' } }),
+      Promise.all([
         this.prisma.moderationQueue.count({
-          where: { status: 'resolved', resolvedAt: { gte: today } },
+          where: { status: 'pending', priority: 'low' },
         }),
-        this.prisma.moderationQueue.count({ where: { status: 'resolved' } }),
-        Promise.all([
-          this.prisma.moderationQueue.count({
-            where: { status: 'pending', priority: 'low' },
-          }),
-          this.prisma.moderationQueue.count({
-            where: { status: 'pending', priority: 'medium' },
-          }),
-          this.prisma.moderationQueue.count({
-            where: { status: 'pending', priority: 'high' },
-          }),
-          this.prisma.moderationQueue.count({
-            where: { status: 'pending', priority: 'urgent' },
-          }),
-        ]),
-      ]);
+        this.prisma.moderationQueue.count({
+          where: { status: 'pending', priority: 'medium' },
+        }),
+        this.prisma.moderationQueue.count({
+          where: { status: 'pending', priority: 'high' },
+        }),
+        this.prisma.moderationQueue.count({
+          where: { status: 'pending', priority: 'urgent' },
+        }),
+      ]),
+    ]);
 
     return {
       pending,
@@ -177,10 +160,7 @@ export class ModerationService {
     };
   }
 
-  private async getRelatedContent(
-    itemType: string,
-    itemId: string,
-  ): Promise<any> {
+  private async getRelatedContent(itemType: string, itemId: string): Promise<any> {
     if (itemType === 'message') {
       const message = await this.prisma.message.findUnique({
         where: { id: itemId },

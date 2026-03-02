@@ -1,18 +1,5 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Put,
-  Body,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Get, Patch, Put, Body, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { PreferencesService } from './preferences.service';
 import {
@@ -51,7 +38,7 @@ export class PreferencesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateCommunicationPrefs(
     @Request() req: any,
-    @Body() dto: UpdateCommunicationPrefsDto,
+    @Body() dto: UpdateCommunicationPrefsDto
   ): Promise<CommunicationPrefsResponse> {
     return this.preferencesService.updateCommunicationPrefs(req.user.id, dto);
   }
@@ -74,7 +61,7 @@ export class PreferencesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateSensoryPrefs(
     @Request() req: any,
-    @Body() dto: UpdateSensoryPrefsDto,
+    @Body() dto: UpdateSensoryPrefsDto
   ): Promise<SensoryPrefsResponse> {
     return this.preferencesService.updateSensoryPrefs(req.user.id, dto);
   }
@@ -97,7 +84,7 @@ export class PreferencesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateTimeBoundaries(
     @Request() req: any,
-    @Body() dto: UpdateTimeBoundariesDto,
+    @Body() dto: UpdateTimeBoundariesDto
   ): Promise<TimeBoundaryResponse[]> {
     return this.preferencesService.updateTimeBoundaries(req.user.id, dto);
   }
@@ -120,7 +107,7 @@ export class PreferencesController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async updateConversationStarters(
     @Request() req: any,
-    @Body() dto: UpdateConversationStartersDto,
+    @Body() dto: UpdateConversationStartersDto
   ): Promise<ConversationStartersResponse> {
     return this.preferencesService.updateConversationStarters(req.user.id, dto);
   }

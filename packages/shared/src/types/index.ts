@@ -29,7 +29,11 @@ export type ModerationAction = 'dismissed' | 'warned' | 'removed' | 'suspended';
 export type ReportReason = 'harassment' | 'inappropriate' | 'spam' | 'safety_concern' | 'other';
 
 // Parent Dashboard
-export type AlertType = 'flagged_message' | 'stress_indicator' | 'prolonged_calm_mode' | 'inactivity';
+export type AlertType =
+  | 'flagged_message'
+  | 'stress_indicator'
+  | 'prolonged_calm_mode'
+  | 'inactivity';
 export type AlertSeverity = 'info' | 'warning' | 'urgent';
 export type ParentRelationship = 'parent' | 'legal_guardian' | 'other';
 export type RelationshipStatus = 'pending' | 'active' | 'ended';

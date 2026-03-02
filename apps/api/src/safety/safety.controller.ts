@@ -10,13 +10,7 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { SafetyService } from './safety.service';
 import { SubmitReportDto, BlockedUserResponse, ReportResponse } from './dto';
@@ -49,7 +43,7 @@ export class SafetyController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async blockUser(
     @Request() req: any,
-    @Param('userId') userId: string,
+    @Param('userId') userId: string
   ): Promise<BlockedUserResponse> {
     return this.safetyService.blockUser(req.user.id, userId);
   }
@@ -61,10 +55,7 @@ export class SafetyController {
   @ApiResponse({ status: 204, description: 'User unblocked' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not blocked' })
-  async unblockUser(
-    @Request() req: any,
-    @Param('userId') userId: string,
-  ): Promise<void> {
+  async unblockUser(@Request() req: any, @Param('userId') userId: string): Promise<void> {
     return this.safetyService.unblockUser(req.user.id, userId);
   }
 
@@ -78,10 +69,7 @@ export class SafetyController {
   @ApiResponse({ status: 400, description: 'Invalid report' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Reported user or message not found' })
-  async submitReport(
-    @Request() req: any,
-    @Body() dto: SubmitReportDto,
-  ): Promise<ReportResponse> {
+  async submitReport(@Request() req: any, @Body() dto: SubmitReportDto): Promise<ReportResponse> {
     return this.safetyService.submitReport(req.user.id, dto);
   }
 }

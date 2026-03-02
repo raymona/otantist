@@ -12,10 +12,7 @@ describe('ParentDashboardService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ParentDashboardService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [ParentDashboardService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<ParentDashboardService>(ParentDashboardService);
@@ -79,10 +76,7 @@ describe('ParentDashboardService', () => {
         },
       ]);
 
-      const result = await service.getMemberAlerts(
-        'parent-account-id',
-        'member-user-id',
-      );
+      const result = await service.getMemberAlerts('parent-account-id', 'member-user-id');
 
       expect(result).toHaveLength(1);
       expect(result[0].alertType).toBe('stress_indicator');
@@ -94,17 +88,17 @@ describe('ParentDashboardService', () => {
       });
       prisma.parentManagedAccount.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getMemberAlerts('wrong-parent-id', 'member-user-id'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.getMemberAlerts('wrong-parent-id', 'member-user-id')).rejects.toThrow(
+        ForbiddenException
+      );
     });
 
     it('should throw if member not found', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.getMemberAlerts('parent-account-id', 'nonexistent-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getMemberAlerts('parent-account-id', 'nonexistent-id')).rejects.toThrow(
+        NotFoundException
+      );
     });
   });
 
@@ -139,7 +133,7 @@ describe('ParentDashboardService', () => {
       const result = await service.acknowledgeAlert(
         'parent-account-id',
         'member-user-id',
-        'alert-id',
+        'alert-id'
       );
 
       expect(result.acknowledged).toBe(true);
@@ -159,11 +153,7 @@ describe('ParentDashboardService', () => {
       prisma.parentAlert.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.acknowledgeAlert(
-          'parent-account-id',
-          'member-user-id',
-          'missing-alert-id',
-        ),
+        service.acknowledgeAlert('parent-account-id', 'member-user-id', 'missing-alert-id')
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -185,11 +175,7 @@ describe('ParentDashboardService', () => {
       });
 
       await expect(
-        service.acknowledgeAlert(
-          'parent-account-id',
-          'member-user-id',
-          'alert-id',
-        ),
+        service.acknowledgeAlert('parent-account-id', 'member-user-id', 'alert-id')
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -216,10 +202,7 @@ describe('ParentDashboardService', () => {
         },
       ]);
 
-      const result = await service.getMemberIndicators(
-        'parent-account-id',
-        'member-user-id',
-      );
+      const result = await service.getMemberIndicators('parent-account-id', 'member-user-id');
 
       expect(result).toHaveLength(1);
       expect(result[0].calmModeMinutes).toBe(15);

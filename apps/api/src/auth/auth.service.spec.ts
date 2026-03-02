@@ -71,9 +71,7 @@ describe('AuthService', () => {
     it('should throw if invite code is invalid', async () => {
       prisma.inviteCode.findUnique.mockResolvedValue(null);
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw if invite code is expired', async () => {
@@ -85,9 +83,7 @@ describe('AuthService', () => {
         expiresAt: new Date('2020-01-01'),
       });
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw if invite code is fully used', async () => {
@@ -99,9 +95,7 @@ describe('AuthService', () => {
         expiresAt: null,
       });
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw if email already registered', async () => {
@@ -114,9 +108,7 @@ describe('AuthService', () => {
       });
       prisma.account.findUnique.mockResolvedValue({ id: 'existing-id' });
 
-      await expect(service.register(registerDto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.register(registerDto)).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -147,9 +139,9 @@ describe('AuthService', () => {
     it('should throw on invalid email', async () => {
       prisma.account.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.login('wrong@example.com', 'password'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login('wrong@example.com', 'password')).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw on invalid password', async () => {
@@ -161,9 +153,9 @@ describe('AuthService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
 
-      await expect(
-        service.login('test@example.com', 'wrong'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login('test@example.com', 'wrong')).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw if account is suspended', async () => {
@@ -175,9 +167,9 @@ describe('AuthService', () => {
       });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
-      await expect(
-        service.login('test@example.com', 'password'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.login('test@example.com', 'password')).rejects.toThrow(
+        UnauthorizedException
+      );
     });
   });
 
@@ -201,9 +193,7 @@ describe('AuthService', () => {
     it('should throw on invalid token', async () => {
       prisma.authToken.findUnique.mockResolvedValue(null);
 
-      await expect(service.verifyEmail('bad-token')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.verifyEmail('bad-token')).rejects.toThrow(BadRequestException);
     });
 
     it('should throw on expired token', async () => {
@@ -217,9 +207,7 @@ describe('AuthService', () => {
         account: { id: 'account-id' },
       });
 
-      await expect(service.verifyEmail('expired-token')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.verifyEmail('expired-token')).rejects.toThrow(BadRequestException);
     });
 
     it('should throw on already-used token', async () => {
@@ -233,9 +221,7 @@ describe('AuthService', () => {
         account: { id: 'account-id' },
       });
 
-      await expect(service.verifyEmail('used-token')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.verifyEmail('used-token')).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -260,9 +246,9 @@ describe('AuthService', () => {
     it('should throw on invalid token', async () => {
       prisma.authToken.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.resetPassword('bad-token', 'NewPass123!'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.resetPassword('bad-token', 'NewPass123!')).rejects.toThrow(
+        BadRequestException
+      );
     });
   });
 
@@ -286,9 +272,7 @@ describe('AuthService', () => {
         throw new Error('invalid');
       });
 
-      await expect(service.refreshToken('bad-token')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.refreshToken('bad-token')).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw if account is suspended', async () => {
@@ -299,9 +283,7 @@ describe('AuthService', () => {
         status: 'suspended',
       });
 
-      await expect(service.refreshToken('valid-token')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(service.refreshToken('valid-token')).rejects.toThrow(UnauthorizedException);
     });
   });
 });

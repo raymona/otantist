@@ -1,25 +1,8 @@
-import {
-  Controller,
-  Get,
-  Patch,
-  Param,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { Controller, Get, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { ParentDashboardService } from './parent-dashboard.service';
-import {
-  ManagedMemberResponse,
-  MemberIndicatorResponse,
-  ParentAlertResponse,
-} from './dto';
+import { ManagedMemberResponse, MemberIndicatorResponse, ParentAlertResponse } from './dto';
 
 @ApiTags('parent')
 @Controller('parent')
@@ -32,9 +15,7 @@ export class ParentDashboardController {
   @ApiOperation({ summary: 'List managed members' })
   @ApiResponse({ status: 200, type: [ManagedMemberResponse] })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getMembers(
-    @Request() req: any,
-  ): Promise<ManagedMemberResponse[]> {
+  async getMembers(@Request() req: any): Promise<ManagedMemberResponse[]> {
     return this.parentDashboardService.getManagedMembers(req.user.id);
   }
 
@@ -47,12 +28,9 @@ export class ParentDashboardController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getMemberIndicators(
     @Request() req: any,
-    @Param('id') memberUserId: string,
+    @Param('id') memberUserId: string
   ): Promise<MemberIndicatorResponse[]> {
-    return this.parentDashboardService.getMemberIndicators(
-      req.user.id,
-      memberUserId,
-    );
+    return this.parentDashboardService.getMemberIndicators(req.user.id, memberUserId);
   }
 
   @Get('members/:id/alerts')
@@ -64,12 +42,9 @@ export class ParentDashboardController {
   @ApiResponse({ status: 404, description: 'Member not found' })
   async getMemberAlerts(
     @Request() req: any,
-    @Param('id') memberUserId: string,
+    @Param('id') memberUserId: string
   ): Promise<ParentAlertResponse[]> {
-    return this.parentDashboardService.getMemberAlerts(
-      req.user.id,
-      memberUserId,
-    );
+    return this.parentDashboardService.getMemberAlerts(req.user.id, memberUserId);
   }
 
   @Patch('members/:id/alerts/:alertId/acknowledge')
@@ -83,12 +58,8 @@ export class ParentDashboardController {
   async acknowledgeAlert(
     @Request() req: any,
     @Param('id') memberUserId: string,
-    @Param('alertId') alertId: string,
+    @Param('alertId') alertId: string
   ): Promise<ParentAlertResponse> {
-    return this.parentDashboardService.acknowledgeAlert(
-      req.user.id,
-      memberUserId,
-      alertId,
-    );
+    return this.parentDashboardService.acknowledgeAlert(req.user.id, memberUserId, alertId);
   }
 }
