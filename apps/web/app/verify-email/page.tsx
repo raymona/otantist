@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useRef, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
@@ -14,13 +14,18 @@ function VerifyEmailContent() {
 
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState('');
+  const attempted = useRef(false);
 
   useEffect(() => {
+    if (attempted.current) return;
+
     if (!token) {
       setStatus('error');
       setError(t('verify_error'));
       return;
     }
+
+    attempted.current = true;
 
     const verifyEmail = async () => {
       try {
