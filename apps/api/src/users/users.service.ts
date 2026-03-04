@@ -38,7 +38,8 @@ export class UsersService {
       emailVerified: account.emailVerified,
       legalAccepted: !!account.legalAcceptedAt,
       isParent: account.parentManagedAsParent.length > 0,
-      isModerator: account.accountType === 'moderator',
+      isModerator: account.accountType === 'moderator' || account.accountType === 'super_admin',
+      isSuperAdmin: account.accountType === 'super_admin',
       createdAt: account.createdAt,
     };
   }
@@ -219,7 +220,7 @@ export class UsersService {
       account: {
         accountType: requesterIsManaged
           ? 'parent_managed'
-          : { notIn: ['parent_managed', 'moderator'] },
+          : { notIn: ['parent_managed', 'moderator', 'super_admin'] },
       },
     };
 

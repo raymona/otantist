@@ -147,6 +147,19 @@ export class MessagingService {
       throw new NotFoundException('User not found');
     }
 
+    // Block messaging to/from moderator and super_admin accounts
+    const nonMessagableTypes = ['moderator', 'super_admin'];
+    if (
+      nonMessagableTypes.includes(senderType) ||
+      nonMessagableTypes.includes(otherUser.account.accountType)
+    ) {
+      throw new ForbiddenException({
+        code: 'CANNOT_MESSAGE_ACCOUNT',
+        message_en: 'This account cannot be messaged directly',
+        message_fr: 'Ce compte ne peut pas être contacté directement',
+      });
+    }
+
     // Block messaging between parent_managed (minor) and adult accounts in both directions
     const senderIsManaged = senderType === 'parent_managed';
     const recipientIsManaged = otherUser.account.accountType === 'parent_managed';

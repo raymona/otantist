@@ -1,0 +1,42 @@
+{
+  "title": "User Management",
+  "search_placeholder": "Search by email or name...",
+  "table": {
+    "email": "Email",
+    "display_name": "Display Name",
+    "role": "Role",
+    "status": "Status",
+    "verified": "Verified",
+    "onboarded": "Onboarded",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "roles": {
+    "adult": "User",
+    "parent_managed": "Minor",
+    "moderator": "Moderator",
+    "super_admin": "Super Admin"
+  },
+  "set_role": {
+    "to_moderator": "Set Moderator",
+    "to_admin": "Set Admin",
+    "to_user": "Set User",
+    "confirm_title": "Change role?",
+    "confirm_message": "Change {{name}} from {{from}} to {{to}}?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "success": "Role updated successfully",
+    "error": "Failed to update role"
+  },
+  "status": {
+    "active": "Active",
+    "pending": "Pending",
+    "suspended": "Suspended"
+  },
+  "yes": "Yes",
+  "no": "No",
+  "no_results": "No users found",
+  "loading": "Loading users...",
+  "error": "Failed to load users",
+  "total_users": "{{count}} users"
+}

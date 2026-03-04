@@ -80,6 +80,9 @@ export class UserProfileResponse {
   isModerator!: boolean;
 
   @ApiProperty()
+  isSuperAdmin!: boolean;
+
+  @ApiProperty()
   createdAt!: Date;
 }
 

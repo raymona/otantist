@@ -1,0 +1,33 @@
+import { Controller, Get, Patch, Body, Query, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { Roles } from '../auth/decorators';
+import { AdminService } from './admin.service';
+import { SetRoleDto, AdminUserResponse } from './dto';
+
+@ApiTags('admin')
+@Controller('admin')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('super_admin')
+@ApiBearerAuth()
+export class AdminController {
+  constructor(private adminService: AdminService) {}
+
+  @Get('users')
+  @ApiOperation({ summary: 'List all users (admin)' })
+  @ApiQuery({ name: 'search', required: false, description: 'Search by email or display name' })
+  @ApiResponse({ status: 200, type: [AdminUserResponse] })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  async listUsers(@Query('search') search?: string): Promise<AdminUserResponse[]> {
+    return this.adminService.listUsers(search);
+  }
+
+  @Patch('users/set-role')
+  @ApiOperation({ summary: 'Change user role (admin)' })
+  @ApiResponse({ status: 200, type: AdminUserResponse })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async setRole(@Body() dto: SetRoleDto): Promise<AdminUserResponse> {
+    return this.adminService.setRole(dto);
+  }
+}

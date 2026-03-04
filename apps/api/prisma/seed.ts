@@ -166,6 +166,29 @@ async function main() {
     },
   });
 
+  // Super admin account
+  const adminAccount = await prisma.account.create({
+    data: {
+      email: 'admin@test.com',
+      passwordHash,
+      accountType: 'super_admin',
+      status: 'active',
+      emailVerified: true,
+      preferredLanguage: 'en',
+      inviteCodeUsed: 'BETA2024',
+      legalAcceptedAt: daysAgo(30),
+    },
+  });
+  await prisma.user.create({
+    data: {
+      accountId: adminAccount.id,
+      displayName: 'Admin',
+      ageGroup: 'age_26_40',
+      profileVisibility: 'hidden',
+      onboardingComplete: true,
+    },
+  });
+
   // Parent account
   const parentAccount = await prisma.account.create({
     data: {
@@ -223,7 +246,7 @@ async function main() {
     },
   });
 
-  console.log('  ✓ Created 7 test users');
+  console.log('  ✓ Created 8 test users');
 
   // ─────────────────────────────────────────
   // Communication preferences
@@ -931,6 +954,7 @@ async function main() {
   console.log('  sam@test.com     — adult, English, partial onboarding (blocked by Alex)');
   console.log('  jordan@test.com  — adult, English, fully onboarded');
   console.log('  mod@test.com     — moderator account (redirects to /moderation)');
+  console.log('  admin@test.com   — super admin account (redirects to /admin)');
   console.log('  parent@test.com  — parent account (manages Léo)');
   console.log('  minor@test.com   — parent-managed minor (Léo)');
   console.log('\nConversations:');

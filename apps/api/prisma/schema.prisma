@@ -21,6 +21,7 @@ enum AccountType {
   adult
   parent_managed
   moderator
+  super_admin
 }
 
 enum AccountStatus {

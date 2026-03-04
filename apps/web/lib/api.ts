@@ -162,6 +162,7 @@ export interface User {
   legalAccepted: boolean;
   isParent: boolean;
   isModerator: boolean;
+  isSuperAdmin: boolean;
   onboardingComplete: boolean;
   onboardingStep?: string | null;
   createdAt?: string;

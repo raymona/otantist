@@ -43,9 +43,9 @@ export default function StatusBar({
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const [pendingModerationCount, setPendingModerationCount] = useState(0);
 
-  // Poll moderation pending count every 60s for moderators
+  // Poll moderation pending count every 60s for moderators/admins
   useEffect(() => {
-    if (!user?.isModerator) return;
+    if (!user?.isModerator && !user?.isSuperAdmin) return;
     const fetchCount = () => {
       moderationApi
         .getStats()
@@ -55,7 +55,7 @@ export default function StatusBar({
     fetchCount();
     const interval = setInterval(fetchCount, 60_000);
     return () => clearInterval(interval);
-  }, [user?.isModerator]);
+  }, [user?.isModerator, user?.isSuperAdmin]);
 
   const handleLogout = () => {
     logout();
@@ -227,8 +227,38 @@ export default function StatusBar({
             </Link>
           )}
 
-          {/* Moderation link — moderators only */}
-          {user?.isModerator && (
+          {/* Admin link — super_admin only */}
+          {user?.isSuperAdmin && (
+            <Link
+              href="/admin"
+              className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            >
+              <svg
+                className="h-3.5 w-3.5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+              {t('status_bar.admin')}
+            </Link>
+          )}
+
+          {/* Moderation link — moderators and super_admin */}
+          {(user?.isModerator || user?.isSuperAdmin) && (
             <Link
               href="/moderation"
               className="relative flex items-center gap-1.5 rounded-full border border-gray-200 bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-200"
@@ -401,8 +431,40 @@ export default function StatusBar({
                 </Link>
               )}
 
-              {/* Moderation link — moderators only */}
-              {user?.isModerator && (
+              {/* Admin link — super_admin only */}
+              {user?.isSuperAdmin && (
+                <Link
+                  role="menuitem"
+                  href="/admin"
+                  onClick={() => setMoreMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                >
+                  <svg
+                    className="h-4 w-4 flex-shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573-1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                    />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                  </svg>
+                  {t('status_bar.admin')}
+                </Link>
+              )}
+
+              {/* Moderation link — moderators and super_admin */}
+              {(user?.isModerator || user?.isSuperAdmin) && (
                 <Link
                   role="menuitem"
                   href="/moderation"

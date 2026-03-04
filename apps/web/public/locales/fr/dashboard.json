@@ -12,6 +12,7 @@
     "parent_dashboard": "Parent",
     "moderation": "Modération",
     "moderation_badge": "{{count}} éléments à examiner",
+    "admin": "Admin",
     "help": "Aide",
     "connected": "Connecté",
     "reconnecting": "Reconnexion...",

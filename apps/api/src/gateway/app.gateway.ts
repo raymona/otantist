@@ -79,7 +79,7 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     socket.join(`user:${userId}`);
 
     // Join moderator room if applicable
-    if (account.accountType === 'moderator') {
+    if (account.accountType === 'moderator' || account.accountType === 'super_admin') {
       socket.join('room:moderators');
     }
 

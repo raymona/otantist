@@ -43,7 +43,8 @@ otantist/
 │   │       ├── state/       # ✅ Social energy, calm mode
 │   │       ├── messaging/   # ✅ 1:1 messaging, time boundary queuing, delivery scheduler
 │   │       ├── safety/      # ✅ Blocking, reporting
-│   │       ├── moderation/  # ✅ AI flagging queue, human review
+│   │       ├── moderation/  # ✅ AI flagging queue, human review (role-guarded)
+│   │       ├── admin/       # ✅ Super admin user management (list users, set roles)
 │   │       ├── parent-dashboard/ # ✅ Indicators, alerts, managed members
 │   │       ├── gateway/     # ✅ WebSocket gateway (auth, real-time messaging, presence)
 │   │       ├── redis/        # ✅ Redis service (global module, ioredis wrapper)
@@ -158,6 +159,9 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 35. ✅ Daily mood check-in modal — shown once per calendar day per user on dashboard load; asks social energy + calm mode preference; updates UserState via existing API; stores `{ userId, date }` in localStorage to suppress until next day
 36. ✅ Session focus timer — `useSessionTimer` hook (auto-start on first message sent); duration presets: Off/15/20/25/30 min (localStorage per user, default 20 min); `SessionTimerBar` below StatusBar shows countdown with colour states (blue → amber@5min → red@1min); `SessionBreakScreen` soft overlay at 0 (never hard-locks); reset/change duration at any time
 37. ✅ Redis-backed rate limiting — `RedisModule` (global, ioredis wrapper) + `RedisThrottlerStorage` implements `ThrottlerStorage` with atomic `INCR`/`PEXPIRE`; graceful fallback to in-memory `ThrottlerStorageService` when Redis is disconnected or command fails; health check (`GET /api/health`) reports Redis status (`ok`/`disconnected`/`error`); overall status degrades (not errors) when Redis is down
+38. ✅ Super admin account type + role guards — `AccountType.super_admin` enum added (Prisma migration); `isSuperAdmin` flag on `GET /users/me`; `@Roles()` decorator + `RolesGuard` for role-based access control; moderation endpoints locked to `moderator` + `super_admin` (security fix — was previously accessible to any authenticated user); super admins bypass onboarding, redirect to `/admin` on login, join moderators socket room, excluded from directory, cannot be messaged; test account `admin@test.com` in seed
+39. ✅ Admin module — `GET /admin/users?search=` lists all users with account type/status/email/name; `PATCH /admin/users/set-role` changes role (adult/moderator/super_admin); rejects changes to `parent_managed` accounts; `/admin` page with searchable user table and role change buttons with confirmation dialog; bilingual (EN/FR)
+40. ✅ Tester guide rewrite — comprehensive `TESTER_GUIDE.md` with test account credentials table, step-by-step instructions for all features, sections for parent/moderator/super admin accounts
 
 ### Web App File Structure
 
@@ -170,8 +174,9 @@ apps/web/
 │   ├── settings/page.tsx       # ✅ Account settings (profile, prefs, time boundaries, language)
 │   ├── parent/page.tsx         # ✅ Parent dashboard (managed members, indicators, alerts)
 │   ├── moderation/page.tsx    # ✅ Moderation queue (stats, queue list, detail + resolve)
+│   ├── admin/page.tsx          # ✅ Admin user management (searchable table, role changes)
 │   ├── help/page.tsx           # ✅ Help & guide page (bilingual, jump nav, parent section gated)
-│   ├── login/page.tsx          # ✅ Login with redirect logic (→ /parent or /dashboard)
+│   ├── login/page.tsx          # ✅ Login with redirect logic (→ /admin, /moderation, /parent, or /dashboard)
 │   ├── register/page.tsx       # ✅ Registration with invite code
 │   ├── accept-terms/page.tsx   # ✅ Terms acceptance gate
 │   ├── onboarding/page.tsx     # ✅ 5-step onboarding form
@@ -190,6 +195,7 @@ apps/web/
 │   ├── safety-api.ts           # ✅ API client for block/unblock/report
 │   ├── parent-api.ts           # ✅ API client for parent dashboard (members, indicators, alerts)
 │   ├── moderation-api.ts       # ✅ API client for moderation (queue, stats, resolve)
+│   ├── admin-api.ts            # ✅ API client for admin (list users, set role)
 │   ├── sensory-context.tsx     # ✅ SensoryProvider + useSensory() hook (body CSS classes)
 │   ├── use-auth-guard.ts       # ✅ Auth redirect hook (guest/authenticated/onboarded)
 │   ├── use-api-error.ts        # ✅ Localized error message hook
@@ -226,7 +232,7 @@ apps/web/
 │       ├── StatsPanel.tsx         # ✅ Stats cards (pending/reviewing/resolved) + priority badges
 │       ├── QueueList.tsx          # ✅ Filterable queue listbox with status/priority dropdowns
 │       └── QueueItemDetail.tsx    # ✅ Item detail + related content + resolution form
-└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent, moderation, help)
+└── public/locales/{en,fr}/     # ✅ Translation JSON files (auth, onboarding, common, dashboard, settings, parent, moderation, help, admin)
 ```
 
 ### Known Issues & Debugging Notes
@@ -241,7 +247,10 @@ apps/web/
 - **Language sync:** Auth context syncs `user.language` → `i18n.changeLanguage()` after login/user fetch (covers new browser/device). LanguageSwitcher persists to API via `usersApi.updateLanguage()` in addition to localStorage. Settings page language save also updates both API and i18n.
 - **Sensory preferences applied via CSS body classes:** `SensoryProvider` (wraps app in layout) fetches sensory prefs once authenticated, applies `sensory-no-animations` (disables all transitions/animations), `sensory-reduced` (`saturate(0.6)`), or `sensory-minimal` (`saturate(0.25)`) as CSS classes on `<body>`. Cached in localStorage (`STORAGE_KEYS.SENSORY_PREFS`) for instant re-apply on page load. `useSensory()` hook exposes state + `refreshSensory()`. Settings page calls `refreshSensory()` after saving sensory section for immediate effect. `soundEnabled` is stored in context for future audio features (no UI effect yet). `notificationLimit` / `notificationGrouped` are backend concerns — not applied in UI.
 - **Moderation UI:** `/moderation` route restricted to `moderator` account type (isModerator flag). Stats summary at top (4 cards + priority breakdown), then two-panel layout: filterable queue list (status + priority dropdowns) on left, selected item detail + resolution form on right. Resolution actions: dismissed, warned, removed, suspended + optional notes (max 1000 chars). After resolving, stats refresh automatically. Moderators see a pending badge count in StatusBar (60s polling + live Socket.io `moderation:new_item` event when a report is submitted).
-- **Moderator account type:** `AccountType.moderator` added to Prisma schema. `isModerator` computed from `account.accountType === 'moderator'` in `getProfile()`. Moderators bypass onboarding gates. Excluded from user directory and cannot be messaged. Test account: `mod@test.com` / `Password123!`.
+- **Moderator account type:** `AccountType.moderator` added to Prisma schema. `isModerator` computed from `account.accountType === 'moderator' || 'super_admin'` in `getProfile()`. Moderators bypass onboarding gates. Excluded from user directory and cannot be messaged. Test account: `mod@test.com` / `Password123!`.
+- **Super admin account type:** `AccountType.super_admin` added to Prisma schema. `isSuperAdmin` flag on `GET /users/me`. Super admins get all moderator privileges plus access to the admin module (`GET /admin/users`, `PATCH /admin/users/set-role`). Redirects to `/admin` on login. Test account: `admin@test.com` / `Password123!`.
+- **Role-based access control:** `@Roles()` decorator + `RolesGuard` (`src/auth/guards/roles.guard.ts`) checks `request.user.accountType` against required roles. Returns 403 with bilingual message. No `@Roles()` = allow any authenticated user (backward compatible). Moderation endpoints locked to `moderator` + `super_admin`. Admin endpoints locked to `super_admin`.
+- **Admin module:** `GET /admin/users?search=` lists all accounts with type/status/email/name. `PATCH /admin/users/set-role` accepts `{ accountId, role }` where role is `adult | moderator | super_admin`. Rejects changes to `parent_managed` accounts. Frontend `/admin` page has searchable table and role change buttons with confirmation dialog.
 - **Feedback form:** `POST /api/feedback` sends email via EmailService to `FEEDBACK_EMAIL` env var (defaults to `info@otantist.com`). Add `FEEDBACK_EMAIL=info@otantist.com` to Railway env. Frontend `/feedback` page with name/category/message form; linked from StatusBar for all users.
 - **Daily mood check-in:** Shows `DailyCheckInModal` once per calendar day per user on dashboard load. Checks `STORAGE_KEYS.DAILY_CHECKIN` (`{ userId, date }` format). Submits energy + calm mode to existing state API endpoints. Never shows again that calendar day for that user.
 - **Session focus timer:** `useSessionTimer` hook manages countdown state. Duration stored per-user in `STORAGE_KEYS.SESSION_TIMER`. Auto-starts on first `message:send` socket emit. `SessionTimerBar` visible at all times below StatusBar (shows Off selector when duration=0, countdown when running). Color states: blue → amber (5 min) → red (1 min) → `SessionBreakScreen` at 0 (soft overlay, never blocks UI). User can reset or change duration at any time.
@@ -374,6 +383,13 @@ apps/web/
 | `/members/:id/alerts`                      | GET    | Get alerts              |
 | `/members/:id/alerts/:alertId/acknowledge` | PATCH  | Acknowledge alert       |
 
+### Admin Module (`/admin/`)
+
+| Endpoint          | Method | Description                         |
+| ----------------- | ------ | ----------------------------------- |
+| `/users`          | GET    | List all users (super_admin only)   |
+| `/users/set-role` | PATCH  | Change user role (super_admin only) |
+
 ---
 
 ## Key MVP Decisions
@@ -394,6 +410,8 @@ apps/web/
 
 - `adult` — Self-managed adult account
 - `parent_managed` — Minor account supervised by parent
+- `moderator` — Moderation team (access to moderation queue, bypasses onboarding)
+- `super_admin` — Full admin (all moderator privileges + user management, bypasses onboarding)
 
 ### Key Tables
 
@@ -881,4 +899,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 2, 2026 (Redis-backed rate limiting with graceful fallback)_
+_Last updated: March 4, 2026 (Super admin account type, role guards, admin module)_

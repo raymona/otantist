@@ -7,13 +7,15 @@ import {
   ApiParam,
   ApiQuery,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards';
+import { JwtAuthGuard, RolesGuard } from '../auth/guards';
+import { Roles } from '../auth/decorators';
 import { ModerationService } from './moderation.service';
 import { ResolveQueueItemDto, ModerationQueueItemResponse, ModerationStatsResponse } from './dto';
 
 @ApiTags('moderation')
 @Controller('moderation')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('moderator', 'super_admin')
 @ApiBearerAuth()
 export class ModerationController {
   constructor(private moderationService: ModerationService) {}
