@@ -79,7 +79,6 @@ apps/mobile/android/app/build/
 # ===========================================
 # Prisma
 # ===========================================
-apps/api/prisma/migrations/**/migration_lock.toml
 
 # ===========================================
 # Docker
