@@ -23,7 +23,7 @@
       "features": [
         "See how to talk to someone — click the info button next to their name in the chat header.",
         "Delete a message — only removes it from your view. The other person can still see it.",
-        "Hide a conversation — removes it from your list. It will come back automatically if they send you a new message."
+        "Hide a conversation — removes it from your list. To see or restore hidden conversations, click the eye icon in the sidebar header. Hidden conversations also come back automatically if the other person sends you a new message."
       ]
     },
     "message_status": {

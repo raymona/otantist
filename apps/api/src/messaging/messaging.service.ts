@@ -54,14 +54,14 @@ export class MessagingService {
   // Conversations
   // ============================================
 
-  async listConversations(accountId: string): Promise<ConversationListResponse> {
+  async listConversations(accountId: string, hidden?: boolean): Promise<ConversationListResponse> {
     const userId = await this.getUserIdFromAccount(accountId);
 
     const conversations = await this.prisma.conversation.findMany({
       where: {
         OR: [{ userAId: userId }, { userBId: userId }],
         status: 'active',
-        hidden: { none: { userId } },
+        hidden: hidden ? { some: { userId } } : { none: { userId } },
       },
       include: {
         userA: {

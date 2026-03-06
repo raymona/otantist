@@ -23,7 +23,7 @@
       "features": [
         "Voir comment parler à quelqu'un — cliquez sur le bouton d'information à côté de son nom dans l'en-tête de la conversation.",
         "Supprimer un message — le retire seulement de votre vue. L'autre personne peut toujours le voir.",
-        "Masquer une conversation — la retire de votre liste. Elle réapparaîtra automatiquement si l'autre personne vous envoie un nouveau message."
+        "Masquer une conversation — la retire de votre liste. Pour voir ou restaurer les conversations masquées, cliquez sur l'icône d'œil dans l'en-tête de la barre latérale. Les conversations masquées réapparaissent aussi automatiquement si l'autre personne vous envoie un nouveau message."
       ]
     },
     "message_status": {

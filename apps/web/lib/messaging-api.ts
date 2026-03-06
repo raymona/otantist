@@ -8,8 +8,10 @@ import type {
 } from './types';
 
 export const messagingApi = {
-  getConversations: () =>
-    request<ConversationListResponse>('/api/conversations', { method: 'GET' }),
+  getConversations: (options?: { hidden?: boolean }) => {
+    const url = options?.hidden ? '/api/conversations?hidden=true' : '/api/conversations';
+    return request<ConversationListResponse>(url, { method: 'GET' });
+  },
 
   getConversation: (id: string) =>
     request<Conversation>(`/api/conversations/${id}`, { method: 'GET' }),

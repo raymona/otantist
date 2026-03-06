@@ -53,7 +53,13 @@
     "unread_one": "{{count}} non lu",
     "unread_other": "{{count}} non lus",
     "online": "En ligne",
-    "offline": "Hors ligne"
+    "offline": "Hors ligne",
+    "hidden_title": "Conversations masquées",
+    "show_hidden": "Voir les masquées",
+    "show_active": "Voir les actives",
+    "unhide": "Afficher",
+    "hidden_empty": "Aucune conversation masquée",
+    "conversation_unhidden": "Conversation restaurée"
   },
   "chat": {
     "placeholder": "Écrivez un message...",

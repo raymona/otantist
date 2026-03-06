@@ -43,10 +43,18 @@ export class MessagingController {
 
   @Get('conversations')
   @ApiOperation({ summary: 'List all conversations' })
+  @ApiQuery({
+    name: 'hidden',
+    required: false,
+    description: 'When true, returns hidden conversations instead of active ones',
+  })
   @ApiResponse({ status: 200, type: ConversationListResponse })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async listConversations(@Request() req: any): Promise<ConversationListResponse> {
-    return this.messagingService.listConversations(req.user.id);
+  async listConversations(
+    @Request() req: any,
+    @Query('hidden') hidden?: string
+  ): Promise<ConversationListResponse> {
+    return this.messagingService.listConversations(req.user.id, hidden === 'true');
   }
 
   @Post('conversations')

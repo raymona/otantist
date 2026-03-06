@@ -145,7 +145,7 @@ Click **Delete** on any message to remove it from your view. The other person ca
 
 ### Hiding a conversation
 
-Click **Hide conversation** to remove it from your sidebar. If the other person sends you a new message, it will automatically reappear.
+Click **Hide conversation** to remove it from your sidebar. To see your hidden conversations, click the **eye icon** in the sidebar header. From the hidden view, you can click **Unhide** next to any conversation to restore it. Hidden conversations also come back automatically if the other person sends you a new message.
 
 ---
 

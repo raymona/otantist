@@ -53,7 +53,13 @@
     "unread_one": "{{count}} unread",
     "unread_other": "{{count}} unread",
     "online": "Online",
-    "offline": "Offline"
+    "offline": "Offline",
+    "hidden_title": "Hidden conversations",
+    "show_hidden": "Show hidden",
+    "show_active": "Show active",
+    "unhide": "Unhide",
+    "hidden_empty": "No hidden conversations",
+    "conversation_unhidden": "Conversation restored"
   },
   "chat": {
     "placeholder": "Type a message...",
