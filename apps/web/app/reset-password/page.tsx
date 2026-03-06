@@ -91,7 +91,7 @@ function ResetPasswordContent() {
           <div className="space-y-4 rounded-lg bg-white p-6 shadow">
             <div className="text-center text-4xl text-green-500">✓</div>
             <p className="text-center text-green-700">{t('reset_password_success')}</p>
-            <p className="text-center text-sm text-gray-500">Redirecting to login...</p>
+            <p className="text-center text-sm text-gray-500">{t('redirecting_to_login')}</p>
           </div>
         </div>
       </div>

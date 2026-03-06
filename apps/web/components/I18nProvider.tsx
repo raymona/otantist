@@ -15,7 +15,7 @@ export default function I18nProvider({ children }: { children: React.ReactNode }
   if (!mounted) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-gray-500">Loading...</div>
+        <div className="text-gray-500">...</div>
       </div>
     );
   }

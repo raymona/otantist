@@ -155,8 +155,8 @@ export default function RegisterPage() {
                 onChange={e => setLanguage(e.target.value as 'fr' | 'en')}
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
               >
-                <option value="fr">Français</option>
-                <option value="en">English</option>
+                <option value="fr">{t('common:french')}</option>
+                <option value="en">{t('common:english')}</option>
               </select>
             </div>
           </div>

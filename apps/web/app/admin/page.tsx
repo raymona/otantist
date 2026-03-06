@@ -92,7 +92,7 @@ export default function AdminPage() {
   if (!user?.isSuperAdmin) {
     return (
       <main className="flex min-h-screen items-center justify-center">
-        <p className="text-red-600">403 — Access denied</p>
+        <p className="text-red-600">{t('auth:forbidden')}</p>
       </main>
     );
   }
@@ -107,13 +107,13 @@ export default function AdminPage() {
               href="/dashboard"
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
             >
-              Dashboard
+              {t('dashboard:title')}
             </a>
             <a
               href="/moderation"
               className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
             >
-              {t('common:moderation', 'Moderation')}
+              {t('dashboard:status_bar.moderation')}
             </a>
           </div>
         </header>

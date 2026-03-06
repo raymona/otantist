@@ -51,7 +51,7 @@ export default function AcceptTermsPage() {
       if (err instanceof ApiException) {
         setError(err.getLocalizedMessage(lang));
       } else {
-        setError(lang === 'fr' ? 'Une erreur est survenue' : 'An error occurred');
+        setError(t('common:error'));
       }
     } finally {
       setIsLoading(false);
@@ -80,20 +80,10 @@ export default function AcceptTermsPage() {
 
             {/* Placeholder for actual terms content */}
             <div className="mb-6 h-48 overflow-y-auto rounded border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-              <p className="mb-2 font-medium">Terms of Service</p>
-              <p className="mb-2">
-                By using Otantist, you agree to treat all users with respect and kindness. This
-                platform is designed to be an emotionally safe space for autistic and neurodivergent
-                individuals.
-              </p>
-              <p className="mb-2">
-                You agree not to share harmful content, harass other users, or violate anyone&apos;s
-                privacy.
-              </p>
-              <p>
-                We reserve the right to moderate content and suspend accounts that violate these
-                terms.
-              </p>
+              <p className="mb-2 font-medium">{t('terms_heading')}</p>
+              <p className="mb-2">{t('terms_paragraph_1')}</p>
+              <p className="mb-2">{t('terms_paragraph_2')}</p>
+              <p>{t('terms_paragraph_3')}</p>
             </div>
 
             {error && (

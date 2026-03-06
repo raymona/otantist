@@ -142,7 +142,7 @@ export function useApiError() {
     if (error instanceof Error) {
       return error.message;
     }
-    return language === 'fr' ? 'Une erreur est survenue' : 'An error occurred';
+    return language === 'fr' ? "Une erreur s'est produite" : 'An error occurred';
   }, []);
 
   return { getErrorMessage };

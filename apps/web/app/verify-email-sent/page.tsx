@@ -36,7 +36,7 @@ export default function VerifyEmailSentPage() {
       if (err instanceof ApiException) {
         setError(err.getLocalizedMessage(lang));
       } else {
-        setError(lang === 'fr' ? 'Une erreur est survenue' : 'An error occurred');
+        setError(t('common:error'));
       }
     } finally {
       setIsResending(false);

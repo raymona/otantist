@@ -68,7 +68,7 @@ function VerifyEmailContent() {
             <div className="text-center">
               <div className="mb-4 text-4xl text-green-500">✓</div>
               <p className="text-green-700">{t('verify_success')}</p>
-              <p className="mt-2 text-sm text-gray-500">Redirecting to login...</p>
+              <p className="mt-2 text-sm text-gray-500">{t('redirecting_to_login')}</p>
             </div>
           )}
 

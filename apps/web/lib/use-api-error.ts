@@ -18,7 +18,7 @@ export function useApiError() {
       if (error instanceof Error) {
         return error.message;
       }
-      return lang === 'fr' ? 'Une erreur est survenue' : 'An error occurred';
+      return i18n.t('common:error');
     },
     [i18n.language]
   );
