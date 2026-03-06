@@ -1,4 +1,13 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Request,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
@@ -97,7 +106,11 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async acceptTerms(@Request() req: any, @Body() dto: AcceptTermsDto) {
     if (!dto.accepted) {
-      throw new Error('Terms must be accepted');
+      throw new BadRequestException({
+        code: 'TERMS_NOT_ACCEPTED',
+        message_en: 'Terms must be accepted',
+        message_fr: 'Les conditions doivent être acceptées',
+      });
     }
     return this.authService.acceptTerms(req.user.id);
   }

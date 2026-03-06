@@ -17,11 +17,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(payload: { sub: string; email: string; iat?: number }) {
     const account = await this.authService.validateToken(payload);
 
     if (!account) {
       throw new UnauthorizedException();
+    }
+
+    // Reject tokens issued before a password change
+    if (account.passwordChangedAt && payload.iat) {
+      if (payload.iat * 1000 < account.passwordChangedAt.getTime()) {
+        throw new UnauthorizedException('Token invalidated by password change');
+      }
     }
 
     return account;

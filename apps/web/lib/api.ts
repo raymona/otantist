@@ -346,9 +346,10 @@ export interface UpdateConversationStarters {
 // Time boundary types
 export interface TimeBoundary {
   dayOfWeek: number; // 0 = Sunday, 6 = Saturday
-  startTime: string; // HH:mm format
-  endTime: string; // HH:mm format
-  isActive: boolean;
+  availableStart: string; // HH:mm format
+  availableEnd: string; // HH:mm format
+  isActive: boolean; // client-only toggle (not sent to API)
+  timezone?: string;
 }
 
 export interface TimeBoundariesResponse {
@@ -407,6 +408,8 @@ export const preferencesApi = {
   updateTimeBoundaries: (boundaries: TimeBoundary[]) =>
     request<TimeBoundariesResponse>('/api/preferences/time-boundaries', {
       method: 'PUT',
-      body: { boundaries },
+      body: {
+        boundaries: boundaries.filter(b => b.isActive).map(({ isActive, ...rest }) => rest),
+      },
     }),
 };

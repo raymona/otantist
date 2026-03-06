@@ -100,7 +100,12 @@ export class MessagingController {
     @Query('limit') limit?: number,
     @Query('before') before?: string
   ): Promise<MessageListResponse> {
-    return this.messagingService.getMessages(req.user.id, conversationId, limit || 50, before);
+    return this.messagingService.getMessages(
+      req.user.id,
+      conversationId,
+      Math.min(Number(limit) || 50, 100),
+      before
+    );
   }
 
   @Post('conversations/:id/messages')

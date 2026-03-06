@@ -165,8 +165,9 @@ model Account {
   inviteCodeUsed   String?       @map("invite_code_used")
   legalAcceptedAt  DateTime?     @map("legal_accepted_at")
   preferredLanguage LanguageCode @default(fr) @map("preferred_language")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  lastLogin        DateTime?     @map("last_login")
+  createdAt          DateTime      @default(now()) @map("created_at")
+  lastLogin          DateTime?     @map("last_login")
+  passwordChangedAt  DateTime?     @map("password_changed_at")
 
   // Relations
   user                    User?

@@ -235,6 +235,7 @@ export class UsersService {
       where,
       include: { state: true },
       orderBy: { displayName: 'asc' },
+      take: 50,
     });
 
     return {

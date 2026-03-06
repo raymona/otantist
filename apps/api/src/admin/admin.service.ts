@@ -20,6 +20,7 @@ export class AdminService {
       where,
       include: { user: true },
       orderBy: { createdAt: 'desc' },
+      take: 200,
     });
 
     return accounts.map(account => ({

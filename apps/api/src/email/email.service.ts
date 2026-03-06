@@ -184,17 +184,32 @@ export class EmailService {
     fromEmail: string;
   }): Promise<void> {
     const to = this.configService.get('FEEDBACK_EMAIL', 'info@otantist.com');
+    const safeName = this.escapeHtml(opts.name);
+    const safeEmail = this.escapeHtml(opts.fromEmail);
+    const safeCategory = this.escapeHtml(opts.category);
+    const safeMessage = this.escapeHtml(opts.message);
+    // Strip newlines from subject to prevent header injection
+    const safeSubject = `[Feedback] ${opts.category} — from ${opts.name}`.replace(/[\r\n]/g, ' ');
     await this.sendEmail({
       to,
-      subject: `[Feedback] ${opts.category} — from ${opts.name}`,
+      subject: safeSubject,
       html: `
-        <p><strong>From:</strong> ${opts.name} (${opts.fromEmail})</p>
-        <p><strong>Category:</strong> ${opts.category}</p>
+        <p><strong>From:</strong> ${safeName} (${safeEmail})</p>
+        <p><strong>Category:</strong> ${safeCategory}</p>
         <hr>
-        <p style="white-space:pre-wrap">${opts.message}</p>
+        <p style="white-space:pre-wrap">${safeMessage}</p>
       `.trim(),
       text: `From: ${opts.name} (${opts.fromEmail})\nCategory: ${opts.category}\n\n${opts.message}`,
     });
+  }
+
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   private emailTemplate(options: {

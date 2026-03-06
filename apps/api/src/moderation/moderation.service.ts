@@ -14,6 +14,7 @@ export class ModerationService {
     const items = await this.prisma.moderationQueue.findMany({
       where,
       orderBy: [{ priority: 'desc' }, { createdAt: 'asc' }],
+      take: 200,
     });
 
     return Promise.all(
@@ -92,14 +93,18 @@ export class ModerationService {
     }
 
     if (dto.action === 'suspended' && item.itemType === 'user') {
+      const targetUser = await this.prisma.user.findUnique({
+        where: { id: item.itemId },
+      });
+      if (!targetUser?.accountId) {
+        throw new NotFoundException({
+          code: 'USER_NOT_FOUND',
+          message_en: 'User not found',
+          message_fr: 'Utilisateur introuvable',
+        });
+      }
       await this.prisma.account.update({
-        where: {
-          id: (
-            await this.prisma.user.findUnique({
-              where: { id: item.itemId },
-            })
-          )?.accountId,
-        },
+        where: { id: targetUser.accountId },
         data: { status: 'suspended' },
       });
     }

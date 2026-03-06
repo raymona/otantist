@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useAuthGuard } from '@/lib/use-auth-guard';
+import { useAuth } from '@/lib/auth-context';
 import {
   moderationApi,
   type ModerationQueueItem,
@@ -14,8 +15,9 @@ import QueueList from '@/components/moderation/QueueList';
 import QueueItemDetail from '@/components/moderation/QueueItemDetail';
 
 export default function ModerationPage() {
-  const { t, ready: i18nReady } = useTranslation('moderation');
+  const { t, ready: i18nReady } = useTranslation(['moderation', 'auth']);
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
+  const { user } = useAuth();
 
   const [stats, setStats] = useState<ModerationStats | null>(null);
   const [queue, setQueue] = useState<ModerationQueueItem[]>([]);
@@ -88,6 +90,14 @@ export default function ModerationPage() {
 
   if (!isReady) {
     return null;
+  }
+
+  if (!user?.isModerator) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-red-600">{t('auth:forbidden')}</p>
+      </main>
+    );
   }
 
   return (

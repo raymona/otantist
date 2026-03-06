@@ -47,8 +47,10 @@ export default function TimeBoundariesEditor({
                 <input
                   id={`start-${boundary.dayOfWeek}`}
                   type="time"
-                  value={boundary.startTime}
-                  onChange={e => onBoundaryChange(boundary.dayOfWeek, 'startTime', e.target.value)}
+                  value={boundary.availableStart}
+                  onChange={e =>
+                    onBoundaryChange(boundary.dayOfWeek, 'availableStart', e.target.value)
+                  }
                   disabled={!boundary.isActive}
                   className="w-28 rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 sm:w-auto"
                 />
@@ -61,8 +63,10 @@ export default function TimeBoundariesEditor({
                 <input
                   id={`end-${boundary.dayOfWeek}`}
                   type="time"
-                  value={boundary.endTime}
-                  onChange={e => onBoundaryChange(boundary.dayOfWeek, 'endTime', e.target.value)}
+                  value={boundary.availableEnd}
+                  onChange={e =>
+                    onBoundaryChange(boundary.dayOfWeek, 'availableEnd', e.target.value)
+                  }
                   disabled={!boundary.isActive}
                   className="w-28 rounded-md border border-gray-300 px-2 py-1 text-sm disabled:opacity-40 sm:w-auto"
                 />

@@ -139,13 +139,39 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const meta = this.socketMeta.get(socket.id);
     if (!meta) return;
 
+    // Validate conversationId format
+    if (!payload.conversationId || !/^[0-9a-f-]{36}$/i.test(payload.conversationId)) {
+      socket.emit('error', {
+        code: 'INVALID_INPUT',
+        message_en: 'Invalid conversation ID',
+        message_fr: 'Identifiant de conversation invalide',
+      });
+      return;
+    }
+
+    // Validate content
+    if (!payload.content || typeof payload.content !== 'string' || payload.content.length > 2000) {
+      socket.emit('error', {
+        code: 'INVALID_INPUT',
+        message_en: 'Message content is required and must be 2000 characters or fewer',
+        message_fr: 'Le contenu du message est requis et doit contenir 2000 caractères ou moins',
+      });
+      return;
+    }
+
+    // Restrict messageType to allowed values
+    const allowedTypes = ['text', 'emoji'];
+    const messageType = allowedTypes.includes(payload.messageType || '')
+      ? payload.messageType!
+      : 'text';
+
     try {
       const result = await this.messagingService.sendMessage(
         meta.accountId,
         payload.conversationId,
         {
           content: payload.content,
-          messageType: (payload.messageType as any) || 'text',
+          messageType: messageType as any,
         }
       );
 

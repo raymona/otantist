@@ -78,11 +78,18 @@ export class AuthService {
         },
       });
 
-      // Increment invite code usage
-      await tx.inviteCode.update({
-        where: { id: invite.id },
+      // Atomically increment invite code usage (race-condition safe)
+      const updated = await tx.inviteCode.updateMany({
+        where: { id: invite.id, currentUses: { lt: invite.maxUses } },
         data: { currentUses: { increment: 1 } },
       });
+      if (updated.count === 0) {
+        throw new BadRequestException({
+          code: 'INVITE_CODE_USED',
+          message_en: 'Invite code has been fully used',
+          message_fr: "Le code d'invitation a atteint sa limite d'utilisation",
+        });
+      }
 
       return newAccount;
     });
@@ -288,7 +295,7 @@ export class AuthService {
     await this.prisma.$transaction([
       this.prisma.account.update({
         where: { id: authToken.accountId },
-        data: { passwordHash },
+        data: { passwordHash, passwordChangedAt: new Date() },
       }),
       this.prisma.authToken.update({
         where: { id: authToken.id },
@@ -394,6 +401,13 @@ export class AuthService {
 
       if (!account || account.status === 'suspended') {
         throw new UnauthorizedException();
+      }
+
+      // Reject refresh tokens issued before a password change
+      if (account.passwordChangedAt && payload.iat) {
+        if (payload.iat * 1000 < account.passwordChangedAt.getTime()) {
+          throw new UnauthorizedException('Token invalidated by password change');
+        }
       }
 
       const newPayload = { sub: account.id, email: account.email };

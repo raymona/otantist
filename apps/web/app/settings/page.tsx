@@ -22,8 +22,8 @@ import TimeBoundariesEditor from '@/components/settings/TimeBoundariesEditor';
 
 const DEFAULT_BOUNDARIES: TimeBoundary[] = Array.from({ length: 7 }, (_, i) => ({
   dayOfWeek: i,
-  startTime: '09:00',
-  endTime: '21:00',
+  availableStart: '09:00',
+  availableEnd: '21:00',
   isActive: false,
 }));
 
@@ -128,9 +128,16 @@ export default function SettingsPage() {
         setAvoidTopics(convStarters.avoidTopics || []);
         setInteractionTips(convStarters.interactionTips || []);
 
-        // Time boundaries
+        // Time boundaries — merge saved boundaries into 7-day grid
         if (timeBounds.boundaries.length > 0) {
-          setBoundaries(timeBounds.boundaries);
+          setBoundaries(prev =>
+            prev.map(def => {
+              const saved = timeBounds.boundaries.find(
+                (b: TimeBoundary) => b.dayOfWeek === def.dayOfWeek
+              );
+              return saved ? { ...saved, isActive: true } : def;
+            })
+          );
         }
 
         // Language
