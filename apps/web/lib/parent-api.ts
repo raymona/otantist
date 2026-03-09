@@ -33,7 +33,28 @@ export interface ParentAlert {
   createdAt: string;
 }
 
+export interface GenerateCodeResponse {
+  code: string;
+  expiresAt: string;
+}
+
+export interface LinkToParentResponse {
+  success: boolean;
+}
+
 export const parentApi = {
+  generateLinkingCode: (relationship?: 'parent' | 'legal_guardian' | 'other') =>
+    request<GenerateCodeResponse>('/api/parent/generate-code', {
+      method: 'POST',
+      body: relationship ? { relationship } : {},
+    }),
+
+  linkToParent: (code: string) =>
+    request<LinkToParentResponse>('/api/parent/link', {
+      method: 'POST',
+      body: { code },
+    }),
+
   getMembers: () => request<ManagedMember[]>('/api/parent/members', { method: 'GET' }),
 
   getMemberIndicators: (userId: string) =>

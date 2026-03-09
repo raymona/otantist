@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   UpdateProfileDto,
@@ -52,6 +57,20 @@ export class UsersService {
 
     if (!account || !account.user) {
       throw new NotFoundException('User not found');
+    }
+
+    // Age group boundary lock: after onboarding, cannot switch between minor and adult groups
+    if (data.ageGroup && account.user.onboardingComplete) {
+      const currentIsMinor = account.user.ageGroup === 'age_14_17';
+      const newIsMinor = data.ageGroup === 'age_14_17';
+      if (currentIsMinor !== newIsMinor) {
+        throw new BadRequestException({
+          code: 'AGE_GROUP_LOCKED',
+          message_en: 'Age group cannot be changed between minor and adult after setup',
+          message_fr:
+            "Le groupe d'âge ne peut pas être modifié entre mineur et adulte après la configuration",
+        });
+      }
     }
 
     // Update user profile

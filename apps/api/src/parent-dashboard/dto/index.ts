@@ -1,4 +1,32 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsOptional, IsEnum, IsNotEmpty } from 'class-validator';
+
+export class GenerateCodeDto {
+  @ApiPropertyOptional({ enum: ['parent', 'legal_guardian', 'other'] })
+  @IsOptional()
+  @IsEnum(['parent', 'legal_guardian', 'other'])
+  relationship?: 'parent' | 'legal_guardian' | 'other';
+}
+
+export class GenerateCodeResponse {
+  @ApiProperty()
+  code!: string;
+
+  @ApiProperty()
+  expiresAt!: Date;
+}
+
+export class LinkToParentDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  code!: string;
+}
+
+export class LinkToParentResponse {
+  @ApiProperty()
+  success!: boolean;
+}
 
 export class ManagedMemberResponse {
   @ApiProperty()

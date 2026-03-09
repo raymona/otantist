@@ -16,16 +16,18 @@ This is an early beta. Some things may not be finished, and your feedback helps 
 
 All test accounts use the same password: **`Password123!`**
 
-| Email             | Role        | Notes                                                 |
-| ----------------- | ----------- | ----------------------------------------------------- |
-| `marie@test.com`  | User        | French, fully onboarded                               |
-| `alex@test.com`   | User        | English, fully onboarded, has blocked Sam             |
-| `sam@test.com`    | User        | English, partial onboarding (stopped at sensory step) |
-| `jordan@test.com` | User        | English, fully onboarded                              |
-| `mod@test.com`    | Moderator   | Redirects to /moderation on login                     |
-| `admin@test.com`  | Super Admin | Redirects to /admin on login                          |
-| `parent@test.com` | Parent      | Manages Léo, redirects to /parent on login            |
-| `minor@test.com`  | Minor       | Léo — parent-managed account                          |
+| Email             | Role        | Notes                                                  |
+| ----------------- | ----------- | ------------------------------------------------------ |
+| `marie@test.com`  | User        | French, fully onboarded                                |
+| `alex@test.com`   | User        | English, fully onboarded, has blocked Sam              |
+| `sam@test.com`    | User        | English, partial onboarding (stopped at sensory step)  |
+| `jordan@test.com` | User        | English, fully onboarded                               |
+| `mod@test.com`    | Moderator   | Redirects to /moderation on login                      |
+| `admin@test.com`  | Super Admin | Redirects to /admin on login                           |
+| `parent@test.com` | Parent      | Manages Léo, Emma, Noah; redirects to /parent on login |
+| `minor@test.com`  | Minor       | Léo — parent-managed account                           |
+| `minor2@test.com` | Minor       | Emma — parent-managed account                          |
+| `minor3@test.com` | Minor       | Noah — parent-managed (legal guardian relationship)    |
 
 **Invite codes:** `BETA2024`, `TESTCODE`
 
@@ -202,6 +204,21 @@ To report a user or a specific message, click the **Report** button in the conve
 ---
 
 ## For parents
+
+### Linking a child's account
+
+To link a child's account to yours:
+
+1. Log in to your account and go to **Settings** (click your name in the toolbar)
+2. Scroll to the bottom — find the **"Link a Minor"** section
+3. Click **"Generate linking code"** — you'll get a code like `LINK-ABCD1234`
+4. Give this code to your child
+5. Your child registers their own account, selects **14-17** as their age group during onboarding, and enters the code when prompted
+6. Their account becomes parent-managed and linked to yours
+
+Each code can only be used once and expires after 7 days. You can generate new codes at any time.
+
+### Parent dashboard
 
 If your account is linked to a managed member (minor), you will see a **Parent** button in the toolbar. This takes you to the parent dashboard where you can:
 

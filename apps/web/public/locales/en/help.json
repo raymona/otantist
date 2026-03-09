@@ -56,7 +56,9 @@
     },
     "parent": {
       "title": "For parents",
-      "content": "If you have a managed member, you can access the Parent dashboard from the toolbar. There you can see your member's recent activity indicators and any alerts. You can acknowledge alerts once you have seen them. Your member's actual message content is private — indicators show patterns only, not individual messages."
+      "content": "If you have a managed member, you can access the Parent dashboard from the toolbar. There you can see your member's recent activity indicators and any alerts. You can acknowledge alerts once you have seen them. Your member's actual message content is private — indicators show patterns only, not individual messages.",
+      "linking_title": "Linking a child's account",
+      "linking_content": "To link a child's account to yours, go to Settings and find the \"Link a Minor\" section at the bottom. Click \"Generate linking code\" to get a one-time code. Give the code to your child — they will enter it during their profile setup after selecting the 14-17 age group. Each code expires after 7 days and can only be used once."
     },
     "feedback": {
       "title": "Giving feedback",

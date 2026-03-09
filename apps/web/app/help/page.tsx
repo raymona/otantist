@@ -162,6 +162,10 @@ export default function HelpPage() {
                 {t('sections.parent.title')}
               </h2>
               <p className="text-gray-700">{t('sections.parent.content')}</p>
+              <h3 className="mt-4 mb-2 text-lg font-semibold text-gray-900">
+                {t('sections.parent.linking_title')}
+              </h3>
+              <p className="text-gray-700">{t('sections.parent.linking_content')}</p>
             </section>
           )}
 

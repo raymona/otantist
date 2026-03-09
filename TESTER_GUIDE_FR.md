@@ -16,16 +16,18 @@ Il s'agit d'une version bêta. Certaines choses peuvent ne pas être terminées,
 
 Tous les comptes de test utilisent le même mot de passe : **`Password123!`**
 
-| Courriel          | Rôle        | Notes                                                  |
-| ----------------- | ----------- | ------------------------------------------------------ |
-| `marie@test.com`  | Utilisateur | Français, profil complété                              |
-| `alex@test.com`   | Utilisateur | Anglais, profil complété, a bloqué Sam                 |
-| `sam@test.com`    | Utilisateur | Anglais, profil partiel (arrêté à l'étape sensorielle) |
-| `jordan@test.com` | Utilisateur | Anglais, profil complété                               |
-| `mod@test.com`    | Modérateur  | Redirige vers /moderation à la connexion               |
-| `admin@test.com`  | Super admin | Redirige vers /admin à la connexion                    |
-| `parent@test.com` | Parent      | Gère Léo, redirige vers /parent à la connexion         |
-| `minor@test.com`  | Mineur      | Léo — compte géré par un parent                        |
+| Courriel          | Rôle        | Notes                                                      |
+| ----------------- | ----------- | ---------------------------------------------------------- |
+| `marie@test.com`  | Utilisateur | Français, profil complété                                  |
+| `alex@test.com`   | Utilisateur | Anglais, profil complété, a bloqué Sam                     |
+| `sam@test.com`    | Utilisateur | Anglais, profil partiel (arrêté à l'étape sensorielle)     |
+| `jordan@test.com` | Utilisateur | Anglais, profil complété                                   |
+| `mod@test.com`    | Modérateur  | Redirige vers /moderation à la connexion                   |
+| `admin@test.com`  | Super admin | Redirige vers /admin à la connexion                        |
+| `parent@test.com` | Parent      | Gère Léo, Emma, Noah; redirige vers /parent à la connexion |
+| `minor@test.com`  | Mineur      | Léo — compte géré par un parent                            |
+| `minor2@test.com` | Mineur      | Emma — compte géré par un parent                           |
+| `minor3@test.com` | Mineur      | Noah — compte géré (relation tuteur légal)                 |
 
 **Codes d'invitation :** `BETA2024`, `TESTCODE`
 
@@ -202,6 +204,21 @@ Pour signaler un utilisateur ou un message spécifique, cliquez sur le bouton **
 ---
 
 ## Pour les parents
+
+### Lier le compte d'un enfant
+
+Pour lier le compte d'un enfant au vôtre :
+
+1. Connectez-vous à votre compte et allez dans **Paramètres** (cliquez sur votre nom dans la barre d'outils)
+2. Faites défiler vers le bas — trouvez la section **« Lier un mineur »**
+3. Cliquez sur **« Générer un code de liaison »** — vous obtiendrez un code comme `LINK-ABCD1234`
+4. Donnez ce code à votre enfant
+5. Votre enfant crée son propre compte, sélectionne **14-17** comme groupe d'âge lors de la configuration, et entre le code lorsqu'il y est invité
+6. Son compte devient géré par un parent et lié au vôtre
+
+Chaque code ne peut être utilisé qu'une seule fois et expire après 7 jours. Vous pouvez générer de nouveaux codes à tout moment.
+
+### Tableau de bord parent
 
 Si votre compte est lié à un membre géré (mineur), vous verrez un bouton **Parent** dans la barre d'outils. Cela vous amène au tableau de bord parent où vous pouvez :
 

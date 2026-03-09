@@ -14,6 +14,9 @@ import {
   type ColorIntensity,
   type TimeBoundary,
 } from '@/lib/api';
+import { useAuth } from '@/lib/auth-context';
+import { parentApi, type GenerateCodeResponse } from '@/lib/parent-api';
+import { useApiError } from '@/lib/use-api-error';
 import StepProfile from '@/components/onboarding/StepProfile';
 import StepCommunication from '@/components/onboarding/StepCommunication';
 import StepSensory from '@/components/onboarding/StepSensory';
@@ -39,7 +42,9 @@ export default function SettingsPage() {
   const { t, i18n, ready: i18nReady } = useTranslation('settings');
   const router = useRouter();
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
+  const { user } = useAuth();
   const { refreshSensory } = useSensory();
+  const { getErrorMessage } = useApiError();
 
   const [isLoadingData, setIsLoadingData] = useState(true);
 
@@ -72,6 +77,12 @@ export default function SettingsPage() {
 
   // Language state
   const [language, setLanguage] = useState<'fr' | 'en'>('fr');
+
+  // Link minor state
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState<GenerateCodeResponse | null>(null);
+  const [linkMinorError, setLinkMinorError] = useState('');
+  const [codeCopied, setCodeCopied] = useState(false);
 
   // Dirty tracking + save status
   const [dirtySections, setDirtySections] = useState<Set<SectionName>>(new Set());
@@ -324,6 +335,34 @@ export default function SettingsPage() {
     markDirty('conversation');
   }, []);
 
+  const handleGenerateCode = async () => {
+    setIsGeneratingCode(true);
+    setLinkMinorError('');
+    setCodeCopied(false);
+    try {
+      const result = await parentApi.generateLinkingCode();
+      setGeneratedCode(result);
+    } catch (err) {
+      setLinkMinorError(getErrorMessage(err));
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (!generatedCode) return;
+    try {
+      await navigator.clipboard.writeText(generatedCode.code);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch {
+      // Fallback: select the text
+    }
+  };
+
+  // Determine if user is a plain adult (can generate linking codes)
+  const isAdultAccount = user && !user.isModerator && !user.isSuperAdmin;
+
   // Loading states
   if (authLoading || !i18nReady) {
     return (
@@ -411,6 +450,7 @@ export default function SettingsPage() {
                     setProfileVisibility(v);
                     markDirty('profile');
                   }}
+                  ageGroupLocked
                 />
                 {renderSectionFooter('profile', handleSaveProfile)}
               </div>
@@ -568,6 +608,69 @@ export default function SettingsPage() {
                 {renderSectionFooter('language', handleSaveLanguage)}
               </div>
             </section>
+
+            {/* Link a Minor Section — only for adult accounts */}
+            {isAdultAccount && (
+              <section aria-labelledby="settings-link-minor">
+                <h2 id="settings-link-minor" className="mb-4 text-lg font-semibold text-gray-900">
+                  {t('section_link_minor')}
+                </h2>
+                <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
+                  <p className="mb-4 text-sm text-gray-600">{t('link_minor_description')}</p>
+
+                  {linkMinorError && (
+                    <p
+                      role="alert"
+                      className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                    >
+                      {linkMinorError}
+                    </p>
+                  )}
+
+                  {generatedCode ? (
+                    <div className="space-y-4">
+                      <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 text-center">
+                        <p className="mb-1 text-sm font-medium text-blue-700">
+                          {t('code_generated')}
+                        </p>
+                        <p className="font-mono text-2xl font-bold tracking-wider text-blue-900">
+                          {generatedCode.code}
+                        </p>
+                        <p className="mt-2 text-xs text-blue-600">
+                          {t('code_expires', {
+                            date: new Date(generatedCode.expiresAt).toLocaleDateString(),
+                          })}
+                        </p>
+                      </div>
+                      <div className="flex gap-3">
+                        <button
+                          onClick={handleCopyCode}
+                          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                        >
+                          {codeCopied ? t('code_copied') : t('copy_code')}
+                        </button>
+                        <button
+                          onClick={handleGenerateCode}
+                          disabled={isGeneratingCode}
+                          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {t('generate_code')}
+                        </button>
+                      </div>
+                      <p className="text-sm text-gray-500">{t('code_instructions')}</p>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={handleGenerateCode}
+                      disabled={isGeneratingCode}
+                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                    >
+                      {isGeneratingCode ? t('generating_code') : t('generate_code')}
+                    </button>
+                  )}
+                </div>
+              </section>
+            )}
           </div>
         )}
       </main>

@@ -162,6 +162,7 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 38. ✅ Super admin account type + role guards — `AccountType.super_admin` enum added (Prisma migration); `isSuperAdmin` flag on `GET /users/me`; `@Roles()` decorator + `RolesGuard` for role-based access control; moderation endpoints locked to `moderator` + `super_admin` (security fix — was previously accessible to any authenticated user); super admins bypass onboarding, redirect to `/admin` on login, join moderators socket room, excluded from directory, cannot be messaged; test account `admin@test.com` in seed
 39. ✅ Admin module — `GET /admin/users?search=` lists all users with account type/status/email/name; `PATCH /admin/users/set-role` changes role (adult/moderator/super_admin); rejects changes to `parent_managed` accounts; `/admin` page with searchable user table and role change buttons with confirmation dialog; bilingual (EN/FR)
 40. ✅ Tester guide rewrite — comprehensive `TESTER_GUIDE.md` with test account credentials table, step-by-step instructions for all features, sections for parent/moderator/super admin accounts
+41. ✅ Parent linking code + age group lock — `ParentLinkingCode` model; `POST /parent/generate-code` generates LINK-XXXXXXXX codes (7-day expiry, adult-only); `POST /parent/link` converts caller to `parent_managed` + creates relationship (14-17 age group required); age group boundary lock in `updateProfile()` prevents switching between minor↔adult after onboarding; onboarding shows parent code input after selecting 14-17; Settings has "Link a Minor" section for adults to generate codes; bilingual (EN/FR)
 
 ### Web App File Structure
 
@@ -251,6 +252,8 @@ apps/web/
 - **Super admin account type:** `AccountType.super_admin` added to Prisma schema. `isSuperAdmin` flag on `GET /users/me`. Super admins get all moderator privileges plus access to the admin module (`GET /admin/users`, `PATCH /admin/users/set-role`). Redirects to `/admin` on login. Test account: `admin@test.com` / `Password123!`.
 - **Role-based access control:** `@Roles()` decorator + `RolesGuard` (`src/auth/guards/roles.guard.ts`) checks `request.user.accountType` against required roles. Returns 403 with bilingual message. No `@Roles()` = allow any authenticated user (backward compatible). Moderation endpoints locked to `moderator` + `super_admin`. Admin endpoints locked to `super_admin`.
 - **Admin module:** `GET /admin/users?search=` lists all accounts with type/status/email/name. `PATCH /admin/users/set-role` accepts `{ accountId, role }` where role is `adult | moderator | super_admin`. Rejects changes to `parent_managed` accounts. Frontend `/admin` page has searchable table and role change buttons with confirmation dialog.
+- **Parent linking code:** `POST /parent/generate-code` generates a `LINK-XXXXXXXX` code (8 random chars, excludes ambiguous I/O/1/0). Only `adult` accounts can call it. Accepts optional `relationship` (`parent | legal_guardian | other`, defaults to `parent`). Code expires after 7 days. Returns `{ code, expiresAt }`. `POST /parent/link` accepts `{ code }`. Validates: code exists, not expired, not used, caller is `adult` accountType with `age_14_17` ageGroup. In a transaction: sets caller's accountType to `parent_managed`, creates `ParentManagedAccount`, marks code as used. Bilingual error messages for all failure cases. Frontend: onboarding shows parent code input after profile step when ageGroup is 14-17; Settings page has "Link a Minor" section (only for adult accounts) with generate code button + copy + instructions.
+- **Age group boundary lock:** After onboarding is complete, users cannot switch between minor (14-17) and adult age groups. Adults can freely change between 18-25/26-40/40+, but 14-17 is removed from the dropdown. Minors see a disabled dropdown. Backend validation in `updateProfile()` throws `AGE_GROUP_LOCKED` with bilingual message.
 - **Feedback form:** `POST /api/feedback` sends email via EmailService to `FEEDBACK_EMAIL` env var (defaults to `info@otantist.com`). Add `FEEDBACK_EMAIL=info@otantist.com` to Railway env. Frontend `/feedback` page with name/category/message form; linked from StatusBar for all users.
 - **Daily mood check-in:** Shows `DailyCheckInModal` once per calendar day per user on dashboard load. Checks `STORAGE_KEYS.DAILY_CHECKIN` (`{ userId, date }` format). Submits energy + calm mode to existing state API endpoints. Never shows again that calendar day for that user.
 - **Session focus timer:** `useSessionTimer` hook manages countdown state. Duration stored per-user in `STORAGE_KEYS.SESSION_TIMER`. Auto-starts on first `message:send` socket emit. `SessionTimerBar` visible at all times below StatusBar (shows Off selector when duration=0, countdown when running). Color states: blue → amber (5 min) → red (1 min) → `SessionBreakScreen` at 0 (soft overlay, never blocks UI). User can reset or change duration at any time.
@@ -376,12 +379,14 @@ apps/web/
 
 ### Parent Dashboard Module (`/parent/`)
 
-| Endpoint                                   | Method | Description             |
-| ------------------------------------------ | ------ | ----------------------- |
-| `/members`                                 | GET    | List managed members    |
-| `/members/:id/indicators`                  | GET    | Get activity indicators |
-| `/members/:id/alerts`                      | GET    | Get alerts              |
-| `/members/:id/alerts/:alertId/acknowledge` | PATCH  | Acknowledge alert       |
+| Endpoint                                   | Method | Description                  |
+| ------------------------------------------ | ------ | ---------------------------- |
+| `/generate-code`                           | POST   | Generate parent linking code |
+| `/link`                                    | POST   | Link minor account to parent |
+| `/members`                                 | GET    | List managed members         |
+| `/members/:id/indicators`                  | GET    | Get activity indicators      |
+| `/members/:id/alerts`                      | GET    | Get alerts                   |
+| `/members/:id/alerts/:alertId/acknowledge` | PATCH  | Acknowledge alert            |
 
 ### Admin Module (`/admin/`)
 
@@ -899,4 +904,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 4, 2026 (Super admin account type, role guards, admin module)_
+_Last updated: March 9, 2026 (Parent linking code + age group boundary lock)_

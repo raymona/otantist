@@ -15,12 +15,12 @@ export function loadTimerDuration(userId: string): TimerDuration {
   if (typeof window === 'undefined') return 0;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SESSION_TIMER);
-    if (!raw) return 20; // default 20 min
+    if (!raw) return 0; // default off
     const stored: StoredTimer = JSON.parse(raw);
-    if (stored.userId !== userId) return 20;
+    if (stored.userId !== userId) return 0;
     return stored.duration;
   } catch {
-    return 20;
+    return 0;
   }
 }
 

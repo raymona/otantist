@@ -10,6 +10,7 @@ interface StepProfileProps {
   onDisplayNameChange: (v: string) => void;
   onAgeGroupChange: (v: AgeGroup) => void;
   onVisibilityChange: (v: ProfileVisibility) => void;
+  ageGroupLocked?: boolean;
 }
 
 export default function StepProfile({
@@ -19,6 +20,7 @@ export default function StepProfile({
   onDisplayNameChange,
   onAgeGroupChange,
   onVisibilityChange,
+  ageGroupLocked,
 }: StepProfileProps) {
   const { t } = useTranslation('onboarding');
 
@@ -47,18 +49,35 @@ export default function StepProfile({
         <label htmlFor="age-group" className="block text-sm font-medium text-gray-700">
           {t('age_group')}
         </label>
-        <select
-          id="age-group"
-          value={ageGroup}
-          onChange={e => onAgeGroupChange(e.target.value as AgeGroup)}
-          className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
-        >
-          <option value="">{t('age_group_placeholder')}</option>
-          <option value="age_14_17">{t('age_14_17')}</option>
-          <option value="age_18_25">{t('age_18_25')}</option>
-          <option value="age_26_40">{t('age_26_40')}</option>
-          <option value="age_40_plus">{t('age_40_plus')}</option>
-        </select>
+        {ageGroupLocked && ageGroup === 'age_14_17' ? (
+          <>
+            <select
+              id="age-group"
+              value={ageGroup}
+              disabled
+              className="mt-1 block w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500 shadow-sm"
+            >
+              <option value="age_14_17">{t('age_14_17')}</option>
+            </select>
+            <p className="mt-1 text-sm text-gray-500">{t('age_group_locked_minor')}</p>
+          </>
+        ) : (
+          <select
+            id="age-group"
+            value={ageGroup}
+            onChange={e => onAgeGroupChange(e.target.value as AgeGroup)}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="">{t('age_group_placeholder')}</option>
+            {!ageGroupLocked && <option value="age_14_17">{t('age_14_17')}</option>}
+            <option value="age_18_25">{t('age_18_25')}</option>
+            <option value="age_26_40">{t('age_26_40')}</option>
+            <option value="age_40_plus">{t('age_40_plus')}</option>
+          </select>
+        )}
+        {ageGroupLocked && ageGroup !== 'age_14_17' && (
+          <p className="mt-1 text-sm text-gray-500">{t('age_group_locked_adult')}</p>
+        )}
       </div>
 
       <fieldset>

@@ -177,6 +177,7 @@ model Account {
   moderationReviews       ModerationQueue[]      @relation("ReviewedBy")
   parentAlerts            ParentAlert[]
   authTokens              AuthToken[]
+  parentLinkingCodes      ParentLinkingCode[]    @relation("ParentLinkingCodes")
 
   @@map("accounts")
 }
@@ -261,6 +262,20 @@ model ParentManagedAccount {
 
   @@unique([parentAccountId, memberAccountId])
   @@map("parent_managed_accounts")
+}
+
+model ParentLinkingCode {
+  id              String             @id @default(uuid())
+  code            String             @unique @db.VarChar(20)
+  parentAccountId String             @map("parent_account_id")
+  usedByAccountId String?            @map("used_by_account_id")
+  relationship    ParentRelationship @default(parent)
+  expiresAt       DateTime           @map("expires_at")
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  parentAccount   Account            @relation("ParentLinkingCodes", fields: [parentAccountId], references: [id])
+
+  @@map("parent_linking_codes")
 }
 
 // ===========================================

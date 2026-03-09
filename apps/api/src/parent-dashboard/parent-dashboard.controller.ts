@@ -1,8 +1,16 @@
-import { Controller, Get, Patch, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiParam } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards';
 import { ParentDashboardService } from './parent-dashboard.service';
-import { ManagedMemberResponse, MemberIndicatorResponse, ParentAlertResponse } from './dto';
+import {
+  ManagedMemberResponse,
+  MemberIndicatorResponse,
+  ParentAlertResponse,
+  GenerateCodeDto,
+  GenerateCodeResponse,
+  LinkToParentDto,
+  LinkToParentResponse,
+} from './dto';
 
 @ApiTags('parent')
 @Controller('parent')
@@ -10,6 +18,30 @@ import { ManagedMemberResponse, MemberIndicatorResponse, ParentAlertResponse } f
 @ApiBearerAuth()
 export class ParentDashboardController {
   constructor(private parentDashboardService: ParentDashboardService) {}
+
+  @Post('generate-code')
+  @ApiOperation({ summary: 'Generate a parent linking code' })
+  @ApiResponse({ status: 201, type: GenerateCodeResponse })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Only adult accounts can generate codes' })
+  async generateCode(
+    @Request() req: any,
+    @Body() body: GenerateCodeDto
+  ): Promise<GenerateCodeResponse> {
+    return this.parentDashboardService.generateLinkingCode(req.user.id, body.relationship);
+  }
+
+  @Post('link')
+  @ApiOperation({ summary: 'Link a minor account to a parent using a code' })
+  @ApiResponse({ status: 201, type: LinkToParentResponse })
+  @ApiResponse({ status: 400, description: 'Invalid, expired, or used code' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async linkToParent(
+    @Request() req: any,
+    @Body() body: LinkToParentDto
+  ): Promise<LinkToParentResponse> {
+    return this.parentDashboardService.linkToParent(req.user.id, body.code);
+  }
 
   @Get('members')
   @ApiOperation({ summary: 'List managed members' })

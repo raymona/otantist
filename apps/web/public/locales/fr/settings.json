@@ -25,5 +25,15 @@
   "active": "Actif",
   "language_description": "Choisissez votre langue préférée pour l'application.",
   "language_fr": "Français",
-  "language_en": "Anglais"
+  "language_en": "Anglais",
+
+  "section_link_minor": "Lier un mineur",
+  "link_minor_description": "Générez un code pour lier le compte de votre enfant au vôtre. Il l'entrera lors de la configuration de son profil.",
+  "generate_code": "Générer un code de liaison",
+  "generating_code": "Génération...",
+  "code_generated": "Votre code de liaison :",
+  "code_expires": "Expire le {{date}}",
+  "code_instructions": "Donnez ce code à votre enfant. Il l'entrera lors de la configuration de son profil. Chaque code ne peut être utilisé qu'une seule fois et expire dans 7 jours.",
+  "copy_code": "Copier le code",
+  "code_copied": "Copié!"
 }

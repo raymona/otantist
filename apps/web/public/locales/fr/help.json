@@ -56,7 +56,9 @@
     },
     "parent": {
       "title": "Pour les parents",
-      "content": "Si vous avez un membre géré, vous pouvez accéder au tableau de bord parent depuis la barre d'outils. Vous y verrez les indicateurs d'activité récente de votre membre et les alertes éventuelles. Vous pouvez marquer les alertes comme vues une fois que vous les avez consultées. Le contenu des messages de votre membre est privé — les indicateurs montrent des tendances uniquement, pas les messages individuels."
+      "content": "Si vous avez un membre géré, vous pouvez accéder au tableau de bord parent depuis la barre d'outils. Vous y verrez les indicateurs d'activité récente de votre membre et les alertes éventuelles. Vous pouvez marquer les alertes comme vues une fois que vous les avez consultées. Le contenu des messages de votre membre est privé — les indicateurs montrent des tendances uniquement, pas les messages individuels.",
+      "linking_title": "Lier le compte d'un enfant",
+      "linking_content": "Pour lier le compte d'un enfant au vôtre, allez dans Paramètres et trouvez la section « Lier un mineur » en bas de page. Cliquez sur « Générer un code de liaison » pour obtenir un code à usage unique. Donnez le code à votre enfant — il l'entrera lors de la configuration de son profil après avoir sélectionné le groupe d'âge 14-17. Chaque code expire après 7 jours et ne peut être utilisé qu'une seule fois."
     },
     "feedback": {
       "title": "Donner votre avis",

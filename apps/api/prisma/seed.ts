@@ -22,6 +22,7 @@ async function main() {
   await prisma.conversationStarter.deleteMany();
   await prisma.timeBoundary.deleteMany();
   await prisma.communicationPreference.deleteMany();
+  await prisma.parentLinkingCode.deleteMany();
   await prisma.parentManagedAccount.deleteMany();
   await prisma.user.deleteMany();
   await prisma.inviteCode.deleteMany();
@@ -235,7 +236,53 @@ async function main() {
     },
   });
 
-  // Parent-child relationship
+  // Minor (parent-managed) — Emma
+  const minor2Account = await prisma.account.create({
+    data: {
+      email: 'minor2@test.com',
+      passwordHash,
+      accountType: 'parent_managed',
+      status: 'active',
+      emailVerified: true,
+      preferredLanguage: 'en',
+      inviteCodeUsed: 'BETA2024',
+      legalAcceptedAt: daysAgo(20),
+    },
+  });
+  const minor2 = await prisma.user.create({
+    data: {
+      accountId: minor2Account.id,
+      displayName: 'Emma',
+      ageGroup: 'age_14_17',
+      profileVisibility: 'visible',
+      onboardingComplete: true,
+    },
+  });
+
+  // Minor (parent-managed) — Noah
+  const minor3Account = await prisma.account.create({
+    data: {
+      email: 'minor3@test.com',
+      passwordHash,
+      accountType: 'parent_managed',
+      status: 'active',
+      emailVerified: true,
+      preferredLanguage: 'fr',
+      inviteCodeUsed: 'BETA2024',
+      legalAcceptedAt: daysAgo(15),
+    },
+  });
+  const minor3 = await prisma.user.create({
+    data: {
+      accountId: minor3Account.id,
+      displayName: 'Noah',
+      ageGroup: 'age_14_17',
+      profileVisibility: 'visible',
+      onboardingComplete: true,
+    },
+  });
+
+  // Parent-child relationships
   await prisma.parentManagedAccount.create({
     data: {
       parentAccountId: parentAccount.id,
@@ -245,8 +292,26 @@ async function main() {
       consentGivenAt: daysAgo(30),
     },
   });
+  await prisma.parentManagedAccount.create({
+    data: {
+      parentAccountId: parentAccount.id,
+      memberAccountId: minor2Account.id,
+      relationship: 'parent',
+      status: 'active',
+      consentGivenAt: daysAgo(20),
+    },
+  });
+  await prisma.parentManagedAccount.create({
+    data: {
+      parentAccountId: parentAccount.id,
+      memberAccountId: minor3Account.id,
+      relationship: 'legal_guardian',
+      status: 'active',
+      consentGivenAt: daysAgo(15),
+    },
+  });
 
-  console.log('  ✓ Created 8 test users');
+  console.log('  ✓ Created 10 test users');
 
   // ─────────────────────────────────────────
   // Communication preferences
@@ -286,6 +351,24 @@ async function main() {
         commModes: ['text', 'emoji'],
         preferredTone: 'enthusiastic',
         slowRepliesOk: true,
+        oneMessageAtTime: true,
+        readWithoutReply: false,
+        sectionComplete: true,
+      },
+      {
+        userId: minor2.id,
+        commModes: ['text', 'emoji', 'images'],
+        preferredTone: 'gentle',
+        slowRepliesOk: true,
+        oneMessageAtTime: false,
+        readWithoutReply: true,
+        sectionComplete: true,
+      },
+      {
+        userId: minor3.id,
+        commModes: ['text'],
+        preferredTone: 'direct',
+        slowRepliesOk: false,
         oneMessageAtTime: true,
         readWithoutReply: false,
         sectionComplete: true,
@@ -349,6 +432,24 @@ async function main() {
         ],
         sectionComplete: true,
       },
+      {
+        userId: minor2.id,
+        goodTopics: ['horses', 'baking', 'anime', 'crafts', 'nature walks'],
+        avoidTopics: ['arguments', 'scary movies', 'being rushed'],
+        interactionTips: ['I like pictures!', 'Please be patient, I think before I type'],
+        sectionComplete: true,
+      },
+      {
+        userId: minor3.id,
+        goodTopics: ['hockey', 'space', 'coding', 'robots'],
+        avoidTopics: ['crowds', 'phone calls', 'surprises'],
+        interactionTips: [
+          'I prefer short, clear messages',
+          'No voice notes please',
+          'I may read and reply later',
+        ],
+        sectionComplete: true,
+      },
     ],
   });
   console.log('  ✓ Created conversation starters');
@@ -392,6 +493,24 @@ async function main() {
         colorIntensity: 'minimal',
         soundEnabled: false,
         notificationLimit: 3,
+        notificationGrouped: true,
+        sectionComplete: true,
+      },
+      {
+        userId: minor2.id,
+        enableAnimations: true,
+        colorIntensity: 'reduced',
+        soundEnabled: false,
+        notificationLimit: 5,
+        notificationGrouped: true,
+        sectionComplete: true,
+      },
+      {
+        userId: minor3.id,
+        enableAnimations: false,
+        colorIntensity: 'minimal',
+        soundEnabled: false,
+        notificationLimit: 2,
         notificationGrouped: true,
         sectionComplete: true,
       },
@@ -486,6 +605,22 @@ async function main() {
         calmModeStarted: minsAgo(45),
         isOnline: true,
         lastSeen: now,
+      },
+      {
+        userId: minor2.id,
+        socialEnergy: 'high',
+        energyUpdatedAt: hoursAgo(1),
+        calmModeActive: false,
+        isOnline: true,
+        lastSeen: now,
+      },
+      {
+        userId: minor3.id,
+        socialEnergy: 'medium',
+        energyUpdatedAt: hoursAgo(3),
+        calmModeActive: false,
+        isOnline: false,
+        lastSeen: hoursAgo(2),
       },
     ],
   });
@@ -727,7 +862,138 @@ async function main() {
     ],
   });
 
-  console.log('  ✓ Created 4 conversations with messages');
+  // ── Conversation 5: Léo ↔ Emma (minors chatting)
+  const convLeoEmma = await prisma.conversation.create({
+    data: { userAId: minor.id, userBId: minor2.id, status: 'active' },
+  });
+  await prisma.message.createMany({
+    data: [
+      {
+        conversationId: convLeoEmma.id,
+        senderId: minor.id,
+        content: 'Salut Emma! Tu aimes les animaux aussi?',
+        status: 'read',
+        createdAt: daysAgo(4),
+        deliveredAt: daysAgo(4),
+        readAt: daysAgo(4),
+      },
+      {
+        conversationId: convLeoEmma.id,
+        senderId: minor2.id,
+        content: 'Yes!! I love horses the most. Do you have any pets?',
+        status: 'read',
+        createdAt: new Date(daysAgo(4).getTime() + 3 * 60 * 60 * 1000),
+        deliveredAt: new Date(daysAgo(4).getTime() + 3 * 60 * 60 * 1000),
+        readAt: new Date(daysAgo(4).getTime() + 4 * 60 * 60 * 1000),
+      },
+      {
+        conversationId: convLeoEmma.id,
+        senderId: minor.id,
+        content: 'I have a cat named Pixel! 🐱',
+        status: 'read',
+        createdAt: daysAgo(3),
+        deliveredAt: daysAgo(3),
+        readAt: daysAgo(3),
+      },
+      {
+        conversationId: convLeoEmma.id,
+        senderId: minor2.id,
+        content: "That's such a cute name! I want to see a picture someday 😊",
+        status: 'read',
+        createdAt: new Date(daysAgo(3).getTime() + 2 * 60 * 60 * 1000),
+        deliveredAt: new Date(daysAgo(3).getTime() + 2 * 60 * 60 * 1000),
+        readAt: new Date(daysAgo(3).getTime() + 3 * 60 * 60 * 1000),
+      },
+      {
+        conversationId: convLeoEmma.id,
+        senderId: minor.id,
+        content: 'I drew Pixel yesterday! I can describe it haha',
+        status: 'delivered',
+        createdAt: hoursAgo(5),
+        deliveredAt: hoursAgo(5),
+      },
+    ],
+  });
+
+  // ── Conversation 6: Emma ↔ Noah (minors chatting)
+  const convEmmaNoah = await prisma.conversation.create({
+    data: { userAId: minor2.id, userBId: minor3.id, status: 'active' },
+  });
+  await prisma.message.createMany({
+    data: [
+      {
+        conversationId: convEmmaNoah.id,
+        senderId: minor2.id,
+        content: 'Hi Noah! I saw you like space stuff. What is your favourite planet?',
+        status: 'read',
+        createdAt: daysAgo(2),
+        deliveredAt: daysAgo(2),
+        readAt: daysAgo(2),
+      },
+      {
+        conversationId: convEmmaNoah.id,
+        senderId: minor3.id,
+        content: 'Saturn. The rings are cool. Do you like space too?',
+        status: 'read',
+        createdAt: new Date(daysAgo(2).getTime() + 4 * 60 * 60 * 1000),
+        deliveredAt: new Date(daysAgo(2).getTime() + 4 * 60 * 60 * 1000),
+        readAt: new Date(daysAgo(2).getTime() + 5 * 60 * 60 * 1000),
+      },
+      {
+        conversationId: convEmmaNoah.id,
+        senderId: minor2.id,
+        content: 'A little bit! I watched a documentary about Mars last week',
+        status: 'read',
+        createdAt: daysAgo(1),
+        deliveredAt: daysAgo(1),
+        readAt: daysAgo(1),
+      },
+      {
+        conversationId: convEmmaNoah.id,
+        senderId: minor3.id,
+        content: 'Mars is great. I want to build a Mars rover with Lego someday.',
+        status: 'sent',
+        createdAt: hoursAgo(2),
+      },
+    ],
+  });
+
+  // ── Conversation 7: Léo ↔ Noah (minors chatting)
+  const convLeoNoah = await prisma.conversation.create({
+    data: { userAId: minor.id, userBId: minor3.id, status: 'active' },
+  });
+  await prisma.message.createMany({
+    data: [
+      {
+        conversationId: convLeoNoah.id,
+        senderId: minor3.id,
+        content: 'Salut Léo. Tu joues à Minecraft?',
+        status: 'read',
+        createdAt: daysAgo(1),
+        deliveredAt: daysAgo(1),
+        readAt: daysAgo(1),
+      },
+      {
+        conversationId: convLeoNoah.id,
+        senderId: minor.id,
+        content: 'Oui!! Je construis un château en ce moment 🏰',
+        status: 'read',
+        createdAt: new Date(daysAgo(1).getTime() + 1 * 60 * 60 * 1000),
+        deliveredAt: new Date(daysAgo(1).getTime() + 1 * 60 * 60 * 1000),
+        readAt: new Date(daysAgo(1).getTime() + 2 * 60 * 60 * 1000),
+      },
+      {
+        conversationId: convLeoNoah.id,
+        senderId: minor3.id,
+        content: 'Cool. Moi je fais des circuits de redstone.',
+        status: 'delivered',
+        createdAt: hoursAgo(4),
+        deliveredAt: hoursAgo(4),
+      },
+    ],
+  });
+
+  console.log('  ✓ Created 7 conversations with messages');
 
   // ─────────────────────────────────────────
   // Blocked users  (Alex has blocked Sam)
@@ -912,7 +1178,39 @@ async function main() {
       },
     ],
   });
-  console.log('  ✓ Created 4 parent alerts (3 unacknowledged, 1 acknowledged)');
+  // Alerts for Emma
+  await prisma.parentAlert.createMany({
+    data: [
+      {
+        parentAccountId: parentAccount.id,
+        memberUserId: minor2.id,
+        alertType: 'stress_indicator',
+        severity: 'info',
+        messageFr: 'Emma a eu une faible énergie sociale pendant 2 jours consécutifs.',
+        messageEn: 'Emma has had low social energy for 2 consecutive days.',
+        acknowledged: false,
+        createdAt: daysAgo(1),
+      },
+    ],
+  });
+
+  // Alerts for Noah
+  await prisma.parentAlert.createMany({
+    data: [
+      {
+        parentAccountId: parentAccount.id,
+        memberUserId: minor3.id,
+        alertType: 'inactivity',
+        severity: 'warning',
+        messageFr: "Noah n'a pas envoyé de messages depuis 5 jours.",
+        messageEn: 'Noah has not sent any messages in 5 days.',
+        acknowledged: false,
+        createdAt: daysAgo(2),
+      },
+    ],
+  });
+
+  console.log('  ✓ Created 6 parent alerts (5 unacknowledged, 1 acknowledged)');
 
   // ─────────────────────────────────────────
   // Member indicators (Léo — last 7 days)
@@ -944,6 +1242,56 @@ async function main() {
   }
   console.log('  ✓ Created 7 days of member indicators for Léo');
 
+  // Member indicators — Emma (last 5 days)
+  const emmaIndicators = [
+    { daysBack: 4, energy: 'high', calmMins: 0, sent: 10, received: 12 },
+    { daysBack: 3, energy: 'high', calmMins: 10, sent: 8, received: 7 },
+    { daysBack: 2, energy: 'medium', calmMins: 15, sent: 6, received: 9 },
+    { daysBack: 1, energy: 'low', calmMins: 30, sent: 3, received: 5 },
+    { daysBack: 0, energy: 'high', calmMins: 0, sent: 7, received: 6 },
+  ] as const;
+
+  for (const row of emmaIndicators) {
+    const d = daysAgo(row.daysBack);
+    d.setHours(0, 0, 0, 0);
+    await prisma.memberIndicator.create({
+      data: {
+        userId: minor2.id,
+        recordedAt: d,
+        socialEnergyAvg: row.energy,
+        calmModeMinutes: row.calmMins,
+        messagesSent: row.sent,
+        messagesReceived: row.received,
+      },
+    });
+  }
+  console.log('  ✓ Created 5 days of member indicators for Emma');
+
+  // Member indicators — Noah (last 5 days)
+  const noahIndicators = [
+    { daysBack: 4, energy: 'medium', calmMins: 20, sent: 4, received: 6 },
+    { daysBack: 3, energy: 'medium', calmMins: 25, sent: 3, received: 4 },
+    { daysBack: 2, energy: 'low', calmMins: 40, sent: 2, received: 3 },
+    { daysBack: 1, energy: 'medium', calmMins: 15, sent: 5, received: 5 },
+    { daysBack: 0, energy: 'medium', calmMins: 10, sent: 2, received: 3 },
+  ] as const;
+
+  for (const row of noahIndicators) {
+    const d = daysAgo(row.daysBack);
+    d.setHours(0, 0, 0, 0);
+    await prisma.memberIndicator.create({
+      data: {
+        userId: minor3.id,
+        recordedAt: d,
+        socialEnergyAvg: row.energy,
+        calmModeMinutes: row.calmMins,
+        messagesSent: row.sent,
+        messagesReceived: row.received,
+      },
+    });
+  }
+  console.log('  ✓ Created 5 days of member indicators for Noah');
+
   // ─────────────────────────────────────────
   // Done
   // ─────────────────────────────────────────
@@ -955,15 +1303,20 @@ async function main() {
   console.log('  jordan@test.com  — adult, English, fully onboarded');
   console.log('  mod@test.com     — moderator account (redirects to /moderation)');
   console.log('  admin@test.com   — super admin account (redirects to /admin)');
-  console.log('  parent@test.com  — parent account (manages Léo)');
+  console.log('  parent@test.com  — parent account (manages Léo, Emma, Noah)');
   console.log('  minor@test.com   — parent-managed minor (Léo)');
+  console.log('  minor2@test.com  — parent-managed minor (Emma)');
+  console.log('  minor3@test.com  — parent-managed minor (Noah, legal_guardian relationship)');
   console.log('\nConversations:');
   console.log('  Marie ↔ Alex   — 7 messages over 3 days');
   console.log('  Alex  ↔ Sam    — 6 messages, Alex blocked Sam after');
   console.log('  Marie ↔ Jordan — 5 warm messages');
   console.log('  Alex  ↔ Jordan — flagged message, reported by Jordan');
+  console.log('  Léo   ↔ Emma   — 5 messages (minors)');
+  console.log('  Emma  ↔ Noah   — 4 messages (minors)');
+  console.log('  Léo   ↔ Noah   — 3 messages (minors)');
   console.log('\nModeration: 4 pending, 2 reviewing, 2 resolved');
-  console.log('Parent alerts: 3 unacknowledged (1 urgent), 1 acknowledged');
+  console.log('Parent alerts: 5 unacknowledged (1 urgent), 1 acknowledged');
   console.log('\nInvite codes: BETA2024, TESTCODE\n');
 }
 

@@ -14,6 +14,7 @@ import {
   TonePreference,
   ColorIntensity,
 } from '@/lib/api';
+import { parentApi } from '@/lib/parent-api';
 import StepProfile from '@/components/onboarding/StepProfile';
 import StepCommunication from '@/components/onboarding/StepCommunication';
 import StepSensory from '@/components/onboarding/StepSensory';
@@ -54,6 +55,11 @@ export default function OnboardingPage() {
   const [soundEnabled, setSoundEnabled] = useState(false);
   const [notificationLimit, setNotificationLimit] = useState(5);
   const [notificationGrouped, setNotificationGrouped] = useState(true);
+
+  // Parent code state (for minors)
+  const [needsParentCode, setNeedsParentCode] = useState(false);
+  const [parentCode, setParentCode] = useState('');
+  const [isLinkingParent, setIsLinkingParent] = useState(false);
 
   // Conversation state
   const [goodTopics, setGoodTopics] = useState<string[]>([]);
@@ -181,6 +187,26 @@ export default function OnboardingPage() {
     }
   };
 
+  const handleLinkParent = async () => {
+    if (!parentCode.trim()) {
+      setError(t('error_parent_code_required'));
+      return;
+    }
+
+    setError('');
+    setIsLinkingParent(true);
+    try {
+      await parentApi.linkToParent(parentCode.trim());
+      setNeedsParentCode(false);
+      setParentCode('');
+      setCurrentStep('communication');
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setIsLinkingParent(false);
+    }
+  };
+
   const handleNext = async () => {
     // Validate required fields before saving
     if (currentStep === 'profile') {
@@ -208,6 +234,14 @@ export default function OnboardingPage() {
     setIsLoading(true);
     try {
       await saveCurrentStep(true);
+
+      // After saving profile, if age is 14-17, show parent code step
+      if (currentStep === 'profile' && ageGroup === 'age_14_17') {
+        setNeedsParentCode(true);
+        setIsLoading(false);
+        return;
+      }
+
       const nextIndex = currentStepIndex + 1;
       if (nextIndex < STEPS.length) {
         setCurrentStep(STEPS[nextIndex]);
@@ -393,7 +427,7 @@ export default function OnboardingPage() {
         )}
 
         <section className="rounded-lg bg-white p-4 shadow md:p-8">
-          {currentStep === 'profile' && (
+          {currentStep === 'profile' && !needsParentCode && (
             <StepProfile
               displayName={displayName}
               ageGroup={ageGroup}
@@ -402,6 +436,51 @@ export default function OnboardingPage() {
               onAgeGroupChange={setAgeGroup}
               onVisibilityChange={setProfileVisibility}
             />
+          )}
+
+          {currentStep === 'profile' && needsParentCode && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{t('parent_code_title')}</h2>
+                <p className="mt-1 text-sm text-gray-600">{t('parent_code_description')}</p>
+              </div>
+
+              <div>
+                <label htmlFor="parent-code" className="block text-sm font-medium text-gray-700">
+                  {t('parent_code_title')}
+                </label>
+                <input
+                  id="parent-code"
+                  type="text"
+                  value={parentCode}
+                  onChange={e => setParentCode(e.target.value.toUpperCase())}
+                  placeholder={t('parent_code_placeholder')}
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 font-mono text-lg tracking-wider uppercase shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+                  autoFocus
+                />
+              </div>
+
+              <p className="text-sm text-gray-500">{t('parent_code_no_code')}</p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setNeedsParentCode(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                >
+                  {t('back')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLinkParent}
+                  disabled={isLinkingParent}
+                  aria-busy={isLinkingParent}
+                  className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isLinkingParent ? t('parent_code_linking') : t('parent_code_submit')}
+                </button>
+              </div>
+            </div>
           )}
 
           {currentStep === 'communication' && (
@@ -450,60 +529,62 @@ export default function OnboardingPage() {
 
           {currentStep === 'complete' && <StepComplete />}
 
-          {/* Navigation buttons */}
-          <div className="mt-8 flex flex-col gap-4">
-            <div className="flex justify-between">
-              {currentStepIndex > 0 && currentStep !== 'complete' ? (
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  {t('back')}
-                </button>
-              ) : (
-                <div />
-              )}
+          {/* Navigation buttons — hidden when parent code sub-step is visible */}
+          {!needsParentCode && (
+            <div className="mt-8 flex flex-col gap-4">
+              <div className="flex justify-between">
+                {currentStepIndex > 0 && currentStep !== 'complete' ? (
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                  >
+                    {t('back')}
+                  </button>
+                ) : (
+                  <div />
+                )}
 
-              {currentStep === 'complete' ? (
-                <button
-                  type="button"
-                  onClick={handleFinish}
-                  className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
-                >
-                  {t('go_to_app')}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={isLoading || isSavingAndExiting}
-                  aria-busy={isLoading}
-                  className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {isLoading
-                    ? t('saving')
-                    : currentStepIndex === STEPS.length - 2
-                      ? t('finish')
-                      : t('next')}
-                </button>
+                {currentStep === 'complete' ? (
+                  <button
+                    type="button"
+                    onClick={handleFinish}
+                    className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700"
+                  >
+                    {t('go_to_app')}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    disabled={isLoading || isSavingAndExiting}
+                    aria-busy={isLoading}
+                    className="rounded-md bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {isLoading
+                      ? t('saving')
+                      : currentStepIndex === STEPS.length - 2
+                        ? t('finish')
+                        : t('next')}
+                  </button>
+                )}
+              </div>
+
+              {currentStep !== 'complete' && (
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={handleSaveAndExit}
+                    disabled={isLoading || isSavingAndExiting}
+                    aria-busy={isSavingAndExiting}
+                    className="text-sm text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
+                  >
+                    {isSavingAndExiting ? t('saving_and_exiting') : t('save_and_exit')}
+                  </button>
+                </div>
               )}
             </div>
-
-            {currentStep !== 'complete' && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleSaveAndExit}
-                  disabled={isLoading || isSavingAndExiting}
-                  aria-busy={isSavingAndExiting}
-                  className="text-sm text-gray-500 underline hover:text-gray-700 disabled:opacity-50"
-                >
-                  {isSavingAndExiting ? t('saving_and_exiting') : t('save_and_exit')}
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </section>
       </div>
     </main>

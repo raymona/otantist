@@ -25,5 +25,15 @@
   "active": "Active",
   "language_description": "Choose your preferred language for the application.",
   "language_fr": "French",
-  "language_en": "English"
+  "language_en": "English",
+
+  "section_link_minor": "Link a Minor",
+  "link_minor_description": "Generate a code to link a child's account to yours. They will enter it during their profile setup.",
+  "generate_code": "Generate linking code",
+  "generating_code": "Generating...",
+  "code_generated": "Your linking code:",
+  "code_expires": "Expires on {{date}}",
+  "code_instructions": "Give this code to your child. They will enter it during their profile setup. Each code can only be used once and expires in 7 days.",
+  "copy_code": "Copy code",
+  "code_copied": "Copied!"
 }
