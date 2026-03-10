@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AdminUserResponse, SetRoleDto } from './dto';
+import { AdminUserResponse, SetRoleDto, CreateInviteCodeDto, InviteCodeResponse } from './dto';
 
 @Injectable()
 export class AdminService {
@@ -72,5 +72,52 @@ export class AdminService {
       onboardingComplete: account.user?.onboardingComplete ?? false,
       createdAt: account.createdAt,
     };
+  }
+
+  async createInviteCode(dto: CreateInviteCodeDto): Promise<InviteCodeResponse> {
+    // Check if code already exists
+    const existing = await this.prisma.inviteCode.findUnique({
+      where: { code: dto.code.trim().toUpperCase() },
+    });
+
+    if (existing) {
+      throw new BadRequestException({
+        code: 'CODE_EXISTS',
+        message_en: 'An invite code with this value already exists',
+        message_fr: "Un code d'invitation avec cette valeur existe déjà",
+      });
+    }
+
+    const inviteCode = await this.prisma.inviteCode.create({
+      data: {
+        code: dto.code.trim().toUpperCase(),
+        maxUses: dto.maxUses ?? 1,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : null,
+      },
+    });
+
+    return {
+      id: inviteCode.id,
+      code: inviteCode.code,
+      maxUses: inviteCode.maxUses,
+      currentUses: inviteCode.currentUses,
+      expiresAt: inviteCode.expiresAt,
+      createdAt: inviteCode.createdAt,
+    };
+  }
+
+  async listInviteCodes(): Promise<InviteCodeResponse[]> {
+    const codes = await this.prisma.inviteCode.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return codes.map(code => ({
+      id: code.id,
+      code: code.code,
+      maxUses: code.maxUses,
+      currentUses: code.currentUses,
+      expiresAt: code.expiresAt,
+      createdAt: code.createdAt,
+    }));
   }
 }

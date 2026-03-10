@@ -83,6 +83,7 @@ export default function SettingsPage() {
   const [generatedCode, setGeneratedCode] = useState<GenerateCodeResponse | null>(null);
   const [linkMinorError, setLinkMinorError] = useState('');
   const [codeCopied, setCodeCopied] = useState(false);
+  const [inviteCodeCopied, setInviteCodeCopied] = useState(false);
 
   // Dirty tracking + save status
   const [dirtySections, setDirtySections] = useState<Set<SectionName>>(new Set());
@@ -360,6 +361,17 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCopyInviteCode = async () => {
+    if (!generatedCode) return;
+    try {
+      await navigator.clipboard.writeText(generatedCode.inviteCode);
+      setInviteCodeCopied(true);
+      setTimeout(() => setInviteCodeCopied(false), 2000);
+    } catch {
+      // Fallback: no-op
+    }
+  };
+
   // Determine if user is a plain adult (can generate linking codes)
   const isAdultAccount = user && !user.isModerator && !user.isSuperAdmin;
 
@@ -629,26 +641,44 @@ export default function SettingsPage() {
 
                   {generatedCode ? (
                     <div className="space-y-4">
+                      {/* Invite code (for registration) */}
+                      <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 text-center">
+                        <p className="mb-1 text-sm font-medium text-green-700">
+                          {t('invite_code_label')}
+                        </p>
+                        <p className="font-mono text-2xl font-bold tracking-wider text-green-900">
+                          {generatedCode.inviteCode}
+                        </p>
+                        <button
+                          onClick={handleCopyInviteCode}
+                          className="mt-2 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-green-700"
+                        >
+                          {inviteCodeCopied ? t('code_copied') : t('copy_code')}
+                        </button>
+                      </div>
+
+                      {/* Linking code (for profile setup) */}
                       <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 text-center">
                         <p className="mb-1 text-sm font-medium text-blue-700">
-                          {t('code_generated')}
+                          {t('linking_code_label')}
                         </p>
                         <p className="font-mono text-2xl font-bold tracking-wider text-blue-900">
                           {generatedCode.code}
                         </p>
-                        <p className="mt-2 text-xs text-blue-600">
-                          {t('code_expires', {
-                            date: new Date(generatedCode.expiresAt).toLocaleDateString(),
-                          })}
-                        </p>
-                      </div>
-                      <div className="flex gap-3">
                         <button
                           onClick={handleCopyCode}
-                          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                          className="mt-2 rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-700"
                         >
                           {codeCopied ? t('code_copied') : t('copy_code')}
                         </button>
+                      </div>
+
+                      <p className="text-center text-xs text-blue-600">
+                        {t('code_expires', {
+                          date: new Date(generatedCode.expiresAt).toLocaleDateString(),
+                        })}
+                      </p>
+                      <div className="flex gap-3">
                         <button
                           onClick={handleGenerateCode}
                           disabled={isGeneratingCode}

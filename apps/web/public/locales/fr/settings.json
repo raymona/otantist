@@ -33,7 +33,9 @@
   "generating_code": "Génération...",
   "code_generated": "Votre code de liaison :",
   "code_expires": "Expire le {{date}}",
-  "code_instructions": "Donnez ce code à votre enfant. Il l'entrera lors de la configuration de son profil. Chaque code ne peut être utilisé qu'une seule fois et expire dans 7 jours.",
+  "code_instructions": "Donnez les deux codes à votre enfant. Il utilisera le code d'invitation pour s'inscrire, puis entrera le code de liaison lors de la configuration de son profil. Chaque code ne peut être utilisé qu'une seule fois et expire dans 7 jours.",
+  "invite_code_label": "Code d'invitation (pour l'inscription) :",
+  "linking_code_label": "Code de liaison (pour le profil) :",
   "copy_code": "Copier le code",
-  "code_copied": "Copié!"
+  "code_copied": "Copié !"
 }

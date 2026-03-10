@@ -211,12 +211,14 @@ Pour lier le compte d'un enfant au vôtre :
 
 1. Connectez-vous à votre compte et allez dans **Paramètres** (cliquez sur votre nom dans la barre d'outils)
 2. Faites défiler vers le bas — trouvez la section **« Lier un mineur »**
-3. Cliquez sur **« Générer un code de liaison »** — vous obtiendrez un code comme `LINK-ABCD1234`
-4. Donnez ce code à votre enfant
-5. Votre enfant crée son propre compte, sélectionne **14-17** comme groupe d'âge lors de la configuration, et entre le code lorsqu'il y est invité
+3. Cliquez sur **« Générer un code de liaison »** — vous obtiendrez **deux codes** :
+   - Un **code d'invitation** (comme `INV-ABCDEF`) — votre enfant en a besoin pour s'inscrire
+   - Un **code de liaison** (comme `LINK-ABCD1234`) — votre enfant l'entre lors de la configuration de son profil
+4. Donnez les deux codes à votre enfant
+5. Votre enfant crée son propre compte en utilisant le **code d'invitation**, sélectionne **14-17** comme groupe d'âge lors de la configuration, et entre le **code de liaison** lorsqu'il y est invité
 6. Son compte devient géré par un parent et lié au vôtre
 
-Chaque code ne peut être utilisé qu'une seule fois et expire après 7 jours. Vous pouvez générer de nouveaux codes à tout moment.
+Chaque paire de codes ne peut être utilisée qu'une seule fois et expire après 7 jours. Vous pouvez générer de nouveaux codes à tout moment.
 
 ### Tableau de bord parent
 
@@ -267,16 +269,19 @@ Les comptes super admin ont toutes les capacités des modérateurs en plus de la
   - **Définir admin** — donne un accès admin complet (à utiliser avec précaution)
   - **Définir utilisateur** — rétablit un modérateur ou admin en utilisateur régulier
 - Les comptes de mineurs (gérés par un parent) ne peuvent pas voir leur rôle modifié
+- **Créer et gérer les codes d'invitation** — définir un code, un nombre maximum d'utilisations et une date d'expiration optionnelle
+- Voir tous les codes d'invitation existants avec leur nombre d'utilisations
 - Accéder à la file de modération (identique aux modérateurs)
 
 ### Comment ça fonctionne
 
 - Les super admins voient un lien **Admin** et un lien **Modération** dans la barre d'outils
 - La page admin comporte une barre de recherche et un tableau de tous les utilisateurs avec des boutons de changement de rôle
+- Sous le tableau des utilisateurs se trouve la section **Codes d'invitation** où vous pouvez créer de nouveaux codes et voir tous les codes existants
 - Les changements de rôle nécessitent une boîte de dialogue de confirmation
 - Les super admins ne passent pas par l'intégration, ne peuvent pas recevoir de messages et n'apparaissent pas dans le répertoire des utilisateurs
 
-**Pour tester :** Connectez-vous avec `admin@test.com`. Vous arriverez sur la page admin. Essayez de promouvoir un utilisateur en modérateur, puis de le rétablir.
+**Pour tester :** Connectez-vous avec `admin@test.com`. Vous arriverez sur la page admin. Essayez de promouvoir un utilisateur en modérateur, puis de le rétablir. Faites défiler vers le bas pour voir la section des codes d'invitation — essayez de créer un nouveau code et de le copier.
 
 ---
 

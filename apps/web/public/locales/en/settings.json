@@ -33,7 +33,9 @@
   "generating_code": "Generating...",
   "code_generated": "Your linking code:",
   "code_expires": "Expires on {{date}}",
-  "code_instructions": "Give this code to your child. They will enter it during their profile setup. Each code can only be used once and expires in 7 days.",
+  "code_instructions": "Give both codes to your child. They will use the invite code to register, then enter the linking code during their profile setup. Each code can only be used once and expires in 7 days.",
+  "invite_code_label": "Invite code (for registration):",
+  "linking_code_label": "Linking code (for profile setup):",
   "copy_code": "Copy code",
   "code_copied": "Copied!"
 }

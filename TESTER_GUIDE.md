@@ -211,12 +211,14 @@ To link a child's account to yours:
 
 1. Log in to your account and go to **Settings** (click your name in the toolbar)
 2. Scroll to the bottom — find the **"Link a Minor"** section
-3. Click **"Generate linking code"** — you'll get a code like `LINK-ABCD1234`
-4. Give this code to your child
-5. Your child registers their own account, selects **14-17** as their age group during onboarding, and enters the code when prompted
+3. Click **"Generate linking code"** — you will get **two codes**:
+   - An **invite code** (like `INV-ABCDEF`) — your child needs this to register
+   - A **linking code** (like `LINK-ABCD1234`) — your child enters this during profile setup
+4. Give both codes to your child
+5. Your child registers their own account using the **invite code**, selects **14-17** as their age group during onboarding, and enters the **linking code** when prompted
 6. Their account becomes parent-managed and linked to yours
 
-Each code can only be used once and expires after 7 days. You can generate new codes at any time.
+Each pair of codes can only be used once and expires after 7 days. You can generate new codes at any time.
 
 ### Parent dashboard
 
@@ -267,16 +269,19 @@ Super admin accounts have all moderator capabilities plus user management.
   - **Set Admin** — gives full admin access (use with care)
   - **Set User** — reverts a moderator or admin to a regular user
 - Minor (parent-managed) accounts cannot have their role changed
+- **Create and manage invite codes** — set a code value, max uses, and optional expiry date
+- View all existing invite codes with usage counts
 - Access the moderation queue (same as moderators)
 
 ### How it works
 
 - Super admins see an **Admin** link and a **Moderation** link in the toolbar
 - The admin page has a search bar and a table of all users with role change buttons
+- Below the user table is the **Invite Codes** section where you can create new codes and see all existing ones
 - Role changes require a confirmation dialog
 - Super admins bypass onboarding, cannot be messaged, and do not appear in the user directory
 
-**To test:** Log in as `admin@test.com`. You will land on the admin page. Try promoting a user to moderator, then reverting them.
+**To test:** Log in as `admin@test.com`. You will land on the admin page. Try promoting a user to moderator, then reverting them. Scroll down to see the invite codes section — try creating a new code and copying it.
 
 ---
 

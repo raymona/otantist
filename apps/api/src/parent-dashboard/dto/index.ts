@@ -13,6 +13,9 @@ export class GenerateCodeResponse {
   code!: string;
 
   @ApiProperty()
+  inviteCode!: string;
+
+  @ApiProperty()
   expiresAt!: Date;
 }
 

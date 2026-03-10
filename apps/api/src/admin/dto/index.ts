@@ -1,5 +1,5 @@
-import { IsString, IsIn } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsIn, IsInt, Min, IsDateString, IsNotEmpty, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class SetRoleDto {
   @ApiProperty({ description: 'Account ID to update' })
@@ -33,6 +33,44 @@ export class AdminUserResponse {
 
   @ApiProperty()
   onboardingComplete!: boolean;
+
+  @ApiProperty()
+  createdAt!: Date;
+}
+
+export class CreateInviteCodeDto {
+  @ApiProperty({ description: 'Invite code string (e.g. BETA2025)' })
+  @IsString()
+  @IsNotEmpty()
+  code!: string;
+
+  @ApiPropertyOptional({ description: 'Maximum number of uses (default 1)' })
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxUses?: number;
+
+  @ApiPropertyOptional({ description: 'Expiration date (ISO string, optional)' })
+  @IsOptional()
+  @IsDateString()
+  expiresAt?: string;
+}
+
+export class InviteCodeResponse {
+  @ApiProperty()
+  id!: string;
+
+  @ApiProperty()
+  code!: string;
+
+  @ApiProperty()
+  maxUses!: number;
+
+  @ApiProperty()
+  currentUses!: number;
+
+  @ApiPropertyOptional()
+  expiresAt!: Date | null;
 
   @ApiProperty()
   createdAt!: Date;

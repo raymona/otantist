@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/lib/auth-context';
 import { useAuthGuard } from '@/lib/use-auth-guard';
-import { adminApi, AdminUser } from '@/lib/admin-api';
+import { adminApi, AdminUser, InviteCode } from '@/lib/admin-api';
 
 const ROLE_OPTIONS = ['adult', 'moderator', 'super_admin'] as const;
 
@@ -28,6 +28,17 @@ export default function AdminPage() {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
 
+  // Invite code state
+  const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
+  const [inviteLoading, setInviteLoading] = useState(true);
+  const [inviteError, setInviteError] = useState('');
+  const [newCode, setNewCode] = useState('');
+  const [newMaxUses, setNewMaxUses] = useState(1);
+  const [newExpiresAt, setNewExpiresAt] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [inviteSuccess, setInviteSuccess] = useState('');
+  const [copiedCode, setCopiedCode] = useState('');
+
   const fetchUsers = useCallback(
     async (query?: string) => {
       if (!user?.isSuperAdmin) return;
@@ -45,11 +56,26 @@ export default function AdminPage() {
     [user?.isSuperAdmin, t]
   );
 
+  const fetchInviteCodes = useCallback(async () => {
+    if (!user?.isSuperAdmin) return;
+    setInviteLoading(true);
+    setInviteError('');
+    try {
+      const data = await adminApi.listInviteCodes();
+      setInviteCodes(data);
+    } catch {
+      setInviteError(t('invite_codes.error_loading'));
+    } finally {
+      setInviteLoading(false);
+    }
+  }, [user?.isSuperAdmin, t]);
+
   useEffect(() => {
     if (isReady && user?.isSuperAdmin) {
       fetchUsers();
+      fetchInviteCodes();
     }
-  }, [isReady, user?.isSuperAdmin, fetchUsers]);
+  }, [isReady, user?.isSuperAdmin, fetchUsers, fetchInviteCodes]);
 
   // Debounced search
   useEffect(() => {
@@ -75,6 +101,39 @@ export default function AdminPage() {
     } finally {
       setSaving(false);
       setConfirm(null);
+    }
+  };
+
+  const handleCreateInviteCode = async () => {
+    setCreating(true);
+    setInviteError('');
+    setInviteSuccess('');
+    try {
+      const created = await adminApi.createInviteCode(
+        newCode.trim(),
+        newMaxUses,
+        newExpiresAt || undefined
+      );
+      setInviteCodes(prev => [created, ...prev]);
+      setNewCode('');
+      setNewMaxUses(1);
+      setNewExpiresAt('');
+      setInviteSuccess(t('invite_codes.success'));
+      setTimeout(() => setInviteSuccess(''), 3000);
+    } catch {
+      setInviteError(t('invite_codes.error'));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleCopyInviteCode = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedCode(code);
+      setTimeout(() => setCopiedCode(''), 2000);
+    } catch {
+      // Fallback: no-op
     }
   };
 
@@ -294,6 +353,142 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* Invite Codes Section */}
+        <section aria-labelledby="invite-codes-title" className="mt-10">
+          <h2 id="invite-codes-title" className="mb-4 text-xl font-bold text-gray-900">
+            {t('invite_codes.title')}
+          </h2>
+
+          {/* Create form */}
+          <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+            <h3 className="mb-3 text-sm font-semibold text-gray-700">
+              {t('invite_codes.create_new')}
+            </h3>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex-1">
+                <label htmlFor="new-invite-code" className="mb-1 block text-xs text-gray-600">
+                  {t('invite_codes.code')}
+                </label>
+                <input
+                  id="new-invite-code"
+                  type="text"
+                  value={newCode}
+                  onChange={e => setNewCode(e.target.value.toUpperCase())}
+                  placeholder="BETA2025"
+                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div className="w-24">
+                <label htmlFor="new-max-uses" className="mb-1 block text-xs text-gray-600">
+                  {t('invite_codes.max_uses')}
+                </label>
+                <input
+                  id="new-max-uses"
+                  type="number"
+                  min={1}
+                  value={newMaxUses}
+                  onChange={e => setNewMaxUses(parseInt(e.target.value) || 1)}
+                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <div className="w-40">
+                <label htmlFor="new-expires" className="mb-1 block text-xs text-gray-600">
+                  {t('invite_codes.expires_at')}
+                </label>
+                <input
+                  id="new-expires"
+                  type="date"
+                  value={newExpiresAt}
+                  onChange={e => setNewExpiresAt(e.target.value)}
+                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                />
+              </div>
+              <button
+                onClick={handleCreateInviteCode}
+                disabled={creating || !newCode.trim()}
+                className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {creating ? '...' : t('invite_codes.create')}
+              </button>
+            </div>
+            {inviteSuccess && (
+              <p role="status" className="mt-2 text-sm text-green-600">
+                {inviteSuccess}
+              </p>
+            )}
+            {inviteError && (
+              <p role="alert" className="mt-2 text-sm text-red-600">
+                {inviteError}
+              </p>
+            )}
+          </div>
+
+          {/* Invite codes table */}
+          {inviteLoading ? (
+            <p role="status" className="py-4 text-center text-gray-500">
+              {t('invite_codes.loading')}
+            </p>
+          ) : inviteCodes.length === 0 ? (
+            <p className="py-4 text-center text-gray-500">{t('invite_codes.none')}</p>
+          ) : (
+            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-gray-200 bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 font-medium text-gray-700">
+                      {t('invite_codes.code')}
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-700">
+                      {t('invite_codes.uses')}
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-700">
+                      {t('invite_codes.expires_at')}
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-700">
+                      {t('invite_codes.created')}
+                    </th>
+                    <th className="px-4 py-3 font-medium text-gray-700"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {inviteCodes.map(ic => (
+                    <tr key={ic.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-mono text-gray-900">{ic.code}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={
+                            ic.currentUses >= ic.maxUses ? 'text-red-600' : 'text-gray-700'
+                          }
+                        >
+                          {ic.currentUses}/{ic.maxUses}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-700">
+                        {ic.expiresAt
+                          ? new Date(ic.expiresAt).toLocaleDateString()
+                          : t('invite_codes.no_expiry')}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {new Date(ic.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleCopyInviteCode(ic.code)}
+                          className="text-xs text-blue-600 hover:text-blue-800"
+                        >
+                          {copiedCode === ic.code
+                            ? t('invite_codes.copied')
+                            : t('invite_codes.copy')}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );

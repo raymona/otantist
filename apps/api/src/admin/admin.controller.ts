@@ -1,9 +1,9 @@
-import { Controller, Get, Patch, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/decorators';
 import { AdminService } from './admin.service';
-import { SetRoleDto, AdminUserResponse } from './dto';
+import { SetRoleDto, AdminUserResponse, CreateInviteCodeDto, InviteCodeResponse } from './dto';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -29,5 +29,22 @@ export class AdminController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   async setRole(@Body() dto: SetRoleDto): Promise<AdminUserResponse> {
     return this.adminService.setRole(dto);
+  }
+
+  @Get('invite-codes')
+  @ApiOperation({ summary: 'List all invite codes (admin)' })
+  @ApiResponse({ status: 200, type: [InviteCodeResponse] })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  async listInviteCodes(): Promise<InviteCodeResponse[]> {
+    return this.adminService.listInviteCodes();
+  }
+
+  @Post('invite-codes')
+  @ApiOperation({ summary: 'Create a new invite code (admin)' })
+  @ApiResponse({ status: 201, type: InviteCodeResponse })
+  @ApiResponse({ status: 400, description: 'Code already exists' })
+  @ApiResponse({ status: 403, description: 'Insufficient role' })
+  async createInviteCode(@Body() dto: CreateInviteCodeDto): Promise<InviteCodeResponse> {
+    return this.adminService.createInviteCode(dto);
   }
 }

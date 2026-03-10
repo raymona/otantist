@@ -11,6 +11,15 @@ export interface AdminUser {
   createdAt: string;
 }
 
+export interface InviteCode {
+  id: string;
+  code: string;
+  maxUses: number;
+  currentUses: number;
+  expiresAt: string | null;
+  createdAt: string;
+}
+
 export const adminApi = {
   listUsers: (search?: string) => {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
@@ -21,5 +30,13 @@ export const adminApi = {
     request<AdminUser>('/api/admin/users/set-role', {
       method: 'PATCH',
       body: { accountId, role },
+    }),
+
+  listInviteCodes: () => request<InviteCode[]>('/api/admin/invite-codes', { method: 'GET' }),
+
+  createInviteCode: (code: string, maxUses?: number, expiresAt?: string) =>
+    request<InviteCode>('/api/admin/invite-codes', {
+      method: 'POST',
+      body: { code, ...(maxUses !== undefined && { maxUses }), ...(expiresAt && { expiresAt }) },
     }),
 };

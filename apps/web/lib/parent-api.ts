@@ -35,6 +35,7 @@ export interface ParentAlert {
 
 export interface GenerateCodeResponse {
   code: string;
+  inviteCode: string;
   expiresAt: string;
 }
 

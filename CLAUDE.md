@@ -163,6 +163,8 @@ All API modules implemented with controllers, services, DTOs, and JWT authentica
 39. ✅ Admin module — `GET /admin/users?search=` lists all users with account type/status/email/name; `PATCH /admin/users/set-role` changes role (adult/moderator/super_admin); rejects changes to `parent_managed` accounts; `/admin` page with searchable user table and role change buttons with confirmation dialog; bilingual (EN/FR)
 40. ✅ Tester guide rewrite — comprehensive `TESTER_GUIDE.md` with test account credentials table, step-by-step instructions for all features, sections for parent/moderator/super admin accounts
 41. ✅ Parent linking code + age group lock — `ParentLinkingCode` model; `POST /parent/generate-code` generates LINK-XXXXXXXX codes (7-day expiry, adult-only); `POST /parent/link` converts caller to `parent_managed` + creates relationship (14-17 age group required); age group boundary lock in `updateProfile()` prevents switching between minor↔adult after onboarding; onboarding shows parent code input after selecting 14-17; Settings has "Link a Minor" section for adults to generate codes; bilingual (EN/FR)
+42. ✅ Admin invite code management — `GET /admin/invite-codes` lists all invite codes; `POST /admin/invite-codes` creates new codes (code string, optional maxUses, optional expiresAt); super_admin only; `/admin` page updated with Invite Codes section (create form + table with usage counts + copy button); bilingual (EN/FR)
+43. ✅ Parent linking code bundles invite code — `POST /parent/generate-code` now also auto-generates a single-use invite code (`INV-XXXXXX` format) with same 7-day expiry; response includes both `code` (linking) and `inviteCode` (registration); Settings "Link a Minor" section shows both codes with distinct styling (green for invite, blue for linking) and separate copy buttons; instructions updated to explain two-code flow
 
 ### Web App File Structure
 
@@ -251,8 +253,8 @@ apps/web/
 - **Moderator account type:** `AccountType.moderator` added to Prisma schema. `isModerator` computed from `account.accountType === 'moderator' || 'super_admin'` in `getProfile()`. Moderators bypass onboarding gates. Excluded from user directory and cannot be messaged. Test account: `mod@test.com` / `Password123!`.
 - **Super admin account type:** `AccountType.super_admin` added to Prisma schema. `isSuperAdmin` flag on `GET /users/me`. Super admins get all moderator privileges plus access to the admin module (`GET /admin/users`, `PATCH /admin/users/set-role`). Redirects to `/admin` on login. Test account: `admin@test.com` / `Password123!`.
 - **Role-based access control:** `@Roles()` decorator + `RolesGuard` (`src/auth/guards/roles.guard.ts`) checks `request.user.accountType` against required roles. Returns 403 with bilingual message. No `@Roles()` = allow any authenticated user (backward compatible). Moderation endpoints locked to `moderator` + `super_admin`. Admin endpoints locked to `super_admin`.
-- **Admin module:** `GET /admin/users?search=` lists all accounts with type/status/email/name. `PATCH /admin/users/set-role` accepts `{ accountId, role }` where role is `adult | moderator | super_admin`. Rejects changes to `parent_managed` accounts. Frontend `/admin` page has searchable table and role change buttons with confirmation dialog.
-- **Parent linking code:** `POST /parent/generate-code` generates a `LINK-XXXXXXXX` code (8 random chars, excludes ambiguous I/O/1/0). Only `adult` accounts can call it. Accepts optional `relationship` (`parent | legal_guardian | other`, defaults to `parent`). Code expires after 7 days. Returns `{ code, expiresAt }`. `POST /parent/link` accepts `{ code }`. Validates: code exists, not expired, not used, caller is `adult` accountType with `age_14_17` ageGroup. In a transaction: sets caller's accountType to `parent_managed`, creates `ParentManagedAccount`, marks code as used. Bilingual error messages for all failure cases. Frontend: onboarding shows parent code input after profile step when ageGroup is 14-17; Settings page has "Link a Minor" section (only for adult accounts) with generate code button + copy + instructions.
+- **Admin module:** `GET /admin/users?search=` lists all accounts with type/status/email/name. `PATCH /admin/users/set-role` accepts `{ accountId, role }` where role is `adult | moderator | super_admin`. Rejects changes to `parent_managed` accounts. `GET /admin/invite-codes` lists all invite codes with usage counts. `POST /admin/invite-codes` creates a new invite code with `{ code, maxUses?, expiresAt? }` — code is uppercased, duplicates rejected with bilingual error. Frontend `/admin` page has searchable user table, role change buttons, and an Invite Codes section with create form + codes table + copy buttons.
+- **Parent linking code:** `POST /parent/generate-code` generates a `LINK-XXXXXXXX` linking code (8 random chars, excludes ambiguous I/O/1/0) **plus** a bundled single-use invite code (`INV-XXXXXX`, 6 random chars) with the same 7-day expiry. Only `adult` accounts can call it. Accepts optional `relationship` (`parent | legal_guardian | other`, defaults to `parent`). Returns `{ code, inviteCode, expiresAt }`. The parent gives the minor both codes: the invite code for registration, the linking code for profile setup. `POST /parent/link` accepts `{ code }`. Validates: code exists, not expired, not used, caller is `adult` accountType with `age_14_17` ageGroup. In a transaction: sets caller's accountType to `parent_managed`, creates `ParentManagedAccount`, marks code as used. Bilingual error messages for all failure cases. Frontend: onboarding shows parent code input after profile step when ageGroup is 14-17; Settings page has "Link a Minor" section (only for adult accounts) with generate code button showing both codes with distinct styling (green for invite, blue for linking) + separate copy buttons + updated instructions.
 - **Age group boundary lock:** After onboarding is complete, users cannot switch between minor (14-17) and adult age groups. Adults can freely change between 18-25/26-40/40+, but 14-17 is removed from the dropdown. Minors see a disabled dropdown. Backend validation in `updateProfile()` throws `AGE_GROUP_LOCKED` with bilingual message.
 - **Feedback form:** `POST /api/feedback` sends email via EmailService to `FEEDBACK_EMAIL` env var (defaults to `info@otantist.com`). Add `FEEDBACK_EMAIL=info@otantist.com` to Railway env. Frontend `/feedback` page with name/category/message form; linked from StatusBar for all users.
 - **Daily mood check-in:** Shows `DailyCheckInModal` once per calendar day per user on dashboard load. Checks `STORAGE_KEYS.DAILY_CHECKIN` (`{ userId, date }` format). Submits energy + calm mode to existing state API endpoints. Never shows again that calendar day for that user.
@@ -390,10 +392,12 @@ apps/web/
 
 ### Admin Module (`/admin/`)
 
-| Endpoint          | Method | Description                         |
-| ----------------- | ------ | ----------------------------------- |
-| `/users`          | GET    | List all users (super_admin only)   |
-| `/users/set-role` | PATCH  | Change user role (super_admin only) |
+| Endpoint          | Method | Description                               |
+| ----------------- | ------ | ----------------------------------------- |
+| `/users`          | GET    | List all users (super_admin only)         |
+| `/users/set-role` | PATCH  | Change user role (super_admin only)       |
+| `/invite-codes`   | GET    | List all invite codes (super_admin only)  |
+| `/invite-codes`   | POST   | Create new invite code (super_admin only) |
 
 ---
 
@@ -904,4 +908,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 9, 2026 (Parent linking code + age group boundary lock)_
+_Last updated: March 10, 2026 (Admin invite code management + parent linking code bundles invite code)_

@@ -38,5 +38,23 @@
   "no_results": "No users found",
   "loading": "Loading users...",
   "error": "Failed to load users",
-  "total_users": "{{count}} users"
+  "total_users": "{{count}} users",
+  "invite_codes": {
+    "title": "Invite Codes",
+    "create_new": "Create New Invite Code",
+    "code": "Code",
+    "max_uses": "Max Uses",
+    "uses": "Uses",
+    "expires_at": "Expires",
+    "created": "Created",
+    "create": "Create",
+    "loading": "Loading invite codes...",
+    "none": "No invite codes yet",
+    "no_expiry": "No expiry",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "success": "Invite code created",
+    "error": "Failed to create invite code",
+    "error_loading": "Failed to load invite codes"
+  }
 }
