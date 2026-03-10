@@ -6,7 +6,7 @@ Thank you for being an early tester of Otantist. This guide covers everything th
 
 ## What is Otantist?
 
-Otantist is a private messaging app designed for autistic and neurodivergent people. It is built around comfort and safety — you control how and when you communicate.
+Otantist is a private messaging app designed for neurodivergent people. It is built around comfort and safety — you control how and when you communicate.
 
 This is an early beta. Some things may not be finished, and your feedback helps shape what gets built next.
 

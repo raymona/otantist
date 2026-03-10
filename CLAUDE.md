@@ -2,10 +2,10 @@
 
 ## Project Overview
 
-**Otantist** is an emotionally safe, sensory-adapted social platform designed specifically for autistic and neurodivergent individuals. This is an invite-only MVP focused on 1:1 messaging with communication adaptation, sensory controls, and emotional safety systems.
+**Otantist** is an emotionally safe, sensory-adapted social platform designed specifically for neurodivergent individuals. This is an invite-only MVP focused on 1:1 messaging with communication adaptation, sensory controls, and emotional safety systems.
 
 **Platform Type:** Native Mobile App (iOS + Android) + Web Application
-**Primary Users:** Autistic individuals (14+), Parents/Guardians
+**Primary Users:** Neurodivergent individuals (14+), Parents/Guardians
 **Languages:** Fully bilingual (French & English) from MVP
 **Launch Strategy:** Invite-only beta
 
@@ -269,7 +269,7 @@ apps/web/
   - **Error message tone** — All errors follow `"Échec du/de..."` pattern (e.g. "Échec du chargement des conversations"). Technically correct but cold. Consider softer phrasing like `"Impossible de charger les conversations"` throughout. Files affected: `dashboard.json`, `parent.json`, `moderation.json`.
   - **`"Plateforme sociale sécuritaire"`** (`common.json` tagline) — "Sécuritaire" is a Quebec French calque from English "secure." Some prefer "sécurisée." Native speaker should decide.
   - **`"Tuteur"`** (`parent.json` `member_list.relationship_guardian`) — Masculine only. If female guardians are expected, consider `"Tuteur/Tutrice"` or `"Tuteur·rice"`.
-  - **Overall warmth** — Translations are accurate but lean formal in places. Reviewer should read through with an eye for whether the tone feels approachable and safe for autistic users, not just grammatically correct.
+  - **Overall warmth** — Translations are accurate but lean formal in places. Reviewer should read through with an eye for whether the tone feels approachable and safe for neurodivergent users, not just grammatically correct.
 
 ### Login → Onboarding Flow (how it should work)
 

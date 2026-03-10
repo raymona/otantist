@@ -1,8 +1,8 @@
 # Otantist
 
-**The First Emotionally Safe Social Platform for Autistic Individuals**
+**The First Emotionally Safe Social Platform for Neurodivergent Individuals**
 
-Otantist is a bilingual (French/English) social platform designed specifically for autistic individuals, featuring adaptive communication preferences, sensory controls, and comprehensive safety features.
+Otantist is a bilingual (French/English) social platform designed specifically for neurodivergent individuals, featuring adaptive communication preferences, sensory controls, and comprehensive safety features.
 
 ---
 
@@ -75,15 +75,15 @@ otantist/
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Mobile | React Native + Expo |
-| Web | Next.js 14 |
-| API | NestJS |
-| Database | PostgreSQL |
-| Cache | Redis |
-| Real-time | Socket.io |
-| AI | Claude API (background moderation) |
+| Layer     | Technology                         |
+| --------- | ---------------------------------- |
+| Mobile    | React Native + Expo                |
+| Web       | Next.js 14                         |
+| API       | NestJS                             |
+| Database  | PostgreSQL                         |
+| Cache     | Redis                              |
+| Real-time | Socket.io                          |
+| AI        | Claude API (background moderation) |
 
 ---
 
@@ -108,6 +108,7 @@ otantist/
 ## 🌐 Languages
 
 Otantist is fully bilingual from day one:
+
 - 🇫🇷 French (default)
 - 🇬🇧 English
 
@@ -125,4 +126,4 @@ This is currently a private project. Contact the team for contribution guideline
 
 ---
 
-*Built with ❤️ for the autism community*
+_Built with ❤️ for the neurodivergent community_

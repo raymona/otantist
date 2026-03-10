@@ -6,7 +6,7 @@ import { SensoryProvider } from '@/lib/sensory-context';
 
 export const metadata: Metadata = {
   title: 'Otantist',
-  description: 'Emotionally safe social platform for autistic and neurodivergent individuals',
+  description: 'Emotionally safe social platform for neurodivergent individuals',
 };
 
 export default function RootLayout({

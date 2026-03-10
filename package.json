@@ -2,7 +2,7 @@
   "name": "otantist",
   "version": "0.1.0",
   "private": true,
-  "description": "Otantist - Emotionally safe social platform for autistic individuals",
+  "description": "Otantist - Emotionally safe social platform for neurodivergent individuals",
   "workspaces": [
     "apps/*",
     "packages/*"
