@@ -185,6 +185,31 @@ export default function DashboardPage() {
 
       // Update conversation list
       setConversations(prev => {
+        const exists = prev.some(c => c.id === conversationId);
+
+        if (!exists) {
+          // New conversation from another user — fetch full conversation object
+          messagingApi
+            .getConversation(conversationId)
+            .then(conv => {
+              setConversations(p => {
+                // Guard against duplicates from race conditions
+                if (p.some(c => c.id === conversationId)) return p;
+                return [
+                  {
+                    ...conv,
+                    unreadCount: selectedConvRef.current?.id !== conversationId ? 1 : 0,
+                  },
+                  ...p,
+                ];
+              });
+            })
+            .catch(() => {
+              // Silently ignore — user can refresh manually
+            });
+          return prev;
+        }
+
         const updated = prev.map(c => {
           if (c.id !== conversationId) return c;
           return {

@@ -68,6 +68,8 @@ export class AuthService {
           accountType: 'adult',
           preferredLanguage: data.language,
           inviteCodeUsed: data.inviteCode,
+          emailVerified: true, // Auto-verify for beta testing (skip email verification step)
+          status: 'active',
         },
       });
 

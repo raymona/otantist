@@ -10,6 +10,7 @@ import { Server, Socket } from 'socket.io';
 import { WsAuthMiddleware } from './ws-auth.middleware';
 import { MessagingService } from '../messaging/messaging.service';
 import { StateService } from '../state/state.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
   cors: {
@@ -50,7 +51,8 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private wsAuth: WsAuthMiddleware,
     private messagingService: MessagingService,
-    private stateService: StateService
+    private stateService: StateService,
+    private prisma: PrismaService
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -263,6 +265,16 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async handleTyping(socket: Socket, payload: { conversationId: string }) {
     const meta = this.socketMeta.get(socket.id);
     if (!meta) return;
+
+    // Check if recipient is in calm mode — suppress typing indicators if so
+    const recipientUserId = await this.getRecipientUserId(meta.accountId, payload.conversationId);
+    if (recipientUserId) {
+      const recipientState = await this.prisma.userState.findUnique({
+        where: { userId: recipientUserId },
+        select: { calmModeActive: true },
+      });
+      if (recipientState?.calmModeActive) return;
+    }
 
     // Get display name from account
     const displayName = socket.data.account?.user?.displayName || 'User';
