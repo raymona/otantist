@@ -43,12 +43,14 @@ When a user is in calm mode, they still see "X is typing..." indicators from oth
 
 ---
 
-## 4. Queued message status doesn't update for sender
+## 4. Queued message status doesn't update for sender (FIXED)
 
-**Status:** Open
+**Status:** Fixed
 **Severity:** Medium
 
 When a message is queued (calm mode or time boundaries) and later delivered, the sender's message bubble still shows "queued" status. It should update to sent/delivered/read as those events occur.
+
+**Fix:** Gateway `deliverQueuedMessages` now emits `message:status_update` to the sender's user room when queued messages are delivered. Frontend listens for this event and updates the message bubble status.
 
 ---
 

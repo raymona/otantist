@@ -279,6 +279,22 @@ export default function DashboardPage() {
     []
   );
 
+  const onStatusUpdate = useCallback(
+    (data: { conversationId: string; messageId: string; status: string }) => {
+      setMessagesMap(prev => {
+        const existing = prev[data.conversationId];
+        if (!existing) return prev;
+        return {
+          ...prev,
+          [data.conversationId]: existing.map(m =>
+            m.id === data.messageId ? { ...m, status: data.status as Message['status'] } : m
+          ),
+        };
+      });
+    },
+    []
+  );
+
   const onTyping = useCallback(
     (data: { conversationId: string; userId: string; displayName: string }) => {
       setTypingMap(prev => ({ ...prev, [data.conversationId]: data.displayName }));
@@ -382,6 +398,7 @@ export default function DashboardPage() {
     onNewMessage,
     onReadReceipt,
     onDelivered,
+    onStatusUpdate,
     onTyping,
     onUserOnline,
     onUserOffline,

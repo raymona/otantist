@@ -317,10 +317,20 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
   deliverQueuedMessages(messagesPerRecipient: Map<string, any[]>) {
     for (const [recipientUserId, messages] of messagesPerRecipient) {
       for (const message of messages) {
+        // Notify recipient of new message
         this.server.to(`user:${recipientUserId}`).emit('message:new', {
           conversationId: message.conversationId,
           message,
         });
+
+        // Notify sender that message status changed from queued → sent
+        if (message.senderId) {
+          this.server.to(`user:${message.senderId}`).emit('message:status_update', {
+            conversationId: message.conversationId,
+            messageId: message.id,
+            status: 'sent',
+          });
+        }
       }
 
       // Ensure recipient joins conversation rooms for any new conversations

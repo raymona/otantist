@@ -19,6 +19,7 @@ export interface SocketEventHandlers {
     socialEnergy?: string | null;
     calmModeActive?: boolean;
   }) => void;
+  onStatusUpdate?: (data: { conversationId: string; messageId: string; status: string }) => void;
   onConversationUnhidden?: (data: { conversationId: string }) => void;
   onModerationNewItem?: (data: { itemType: string; priority: string }) => void;
 }
@@ -120,6 +121,10 @@ export function useSocket(handlers: SocketEventHandlers) {
 
     socket.on('user:state_changed', data => {
       handlersRef.current.onStateChanged?.(data);
+    });
+
+    socket.on('message:status_update', data => {
+      handlersRef.current.onStatusUpdate?.(data);
     });
 
     socket.on('conversation:unhidden', data => {
