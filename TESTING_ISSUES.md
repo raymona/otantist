@@ -54,24 +54,22 @@ When a message is queued (calm mode or time boundaries) and later delivered, the
 
 ---
 
-## 5. Session timer issues
+## 5. Session timer issues (FIXED)
 
-**Status:** Open
+**Status:** Fixed
 **Severity:** Low–Medium
 
-Three sub-items:
+### 5a. Timer didn't start reliably — FIXED
 
-### 5a. Timer didn't start reliably
+Root cause: timer was triggered by message:send event which could miss. Now starts immediately when user picks a duration.
 
-Timer didn't start for one user on conversation start, but then did on another message send. May be a race condition or event listener issue. Needs investigation.
+### 5b. Timer should start when user selects a duration — FIXED
 
-### 5b. Timer should start when user selects a duration, not on message send
+Timer now starts immediately when user clicks a duration preset button (15/20/25/30 min). No longer tied to message send.
 
-Current behavior: timer auto-starts on first `message:send` socket emit. Desired behavior: timer starts immediately when the user picks a duration (15/20/25/30 min). Simpler and more predictable.
+### 5c. Timer UI needs to be more visible — FIXED
 
-### 5c. Timer UI needs to be more visible
-
-The timer bar is too small and easy to miss. Needs a bigger, more prominent design. Investigate different layout/styling options.
+Replaced tiny dropdown with prominent preset buttons. Bigger text, clearer color states. Timer visible on all pages (moved to root layout).
 
 ---
 
@@ -114,34 +112,23 @@ The StatusBar / toolbar area is too compact. We have plenty of horizontal space 
 
 ---
 
-## 8. Session timer resets/stops unexpectedly
+## 8. Session timer resets/stops unexpectedly (FIXED)
 
-**Status:** Open
+**Status:** Fixed
 **Severity:** High
 
-One user's timer stopped running while the other user's kept going. Suspected cause: navigating to settings or other pages resets the timer. The timer is currently frontend-only (localStorage + React state), so any component unmount or page navigation could kill it.
+**Root cause:** Timer lived only in dashboard page — navigating away unmounted the component and killed the interval.
 
-**Needs:**
-
-- Investigate what causes the timer to reset (page navigation, settings visit, component remount, etc.)
-- Timer should persist visually and functionally regardless of what the user is doing — navigating pages, opening modals, visiting settings, etc.
-- Consider moving timer state to the backend so it truly survives any frontend disruption
+**Fix:** Timer moved to root layout via `SessionTimerProvider` context + `GlobalSessionTimer` component. Timer is now visible and running on every page. `startedAt` timestamp stored in localStorage — on remount/page navigation, remaining time is computed from the stored timestamp, so the countdown resumes seamlessly. If timer expires while on another page, break screen shows on return.
 
 ---
 
-## 9. Timer behavior after break screen — UX unclear
+## 9. Timer behavior after break screen — UX unclear (FIXED)
 
-**Status:** Open
+**Status:** Fixed
 **Severity:** Medium
 
-When the timer hits zero and the user clicks "I'm ready to continue", what should happen next? Current behavior restarts with the same duration, but the UX isn't clear. Options to consider:
-
-- **Reset to "Off"** — user has to consciously pick a new duration each session
-- **Restart same duration automatically** — seamless but the user might not realize a new timer started
-- **Show a choice** — "Start another 20 min?" / "Turn off timer" / pick a new duration
-- **Rethink the timer UI entirely** — maybe a simple on/off toggle with a visible duration selector, rather than the current bar approach. Something that makes the current state (running, paused, off) immediately obvious
-
-Should be considered alongside issues #5b (when timer starts), #5c (timer visibility), and #8 (timer persistence).
+**Decision:** After dismissing break screen, timer resets to Off. User sees the duration preset buttons again and consciously picks a new session. No auto-restart confusion.
 
 ---
 

@@ -19,16 +19,13 @@
     "more_options": "More options"
   },
   "timer": {
-    "off": "Timer off",
+    "set_timer": "Session timer",
     "session": "session timer",
     "winding_down": "winding down",
     "almost_done": "almost done!",
     "expired": "Time's up",
     "take_a_break": "Time to take a break",
-    "reset": "reset",
-    "start_new": "Start new session",
-    "duration_label": "Session duration",
-    "duration_off": "Off",
+    "stop": "Stop",
     "duration_min": "{{count}} min",
     "aria_label": "Session timer: {{time}} remaining",
     "break_title": "Good work — take a breath",

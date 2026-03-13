@@ -3,6 +3,8 @@ import './globals.css';
 import I18nProvider from '@/components/I18nProvider';
 import { AuthProvider } from '@/lib/auth-context';
 import { SensoryProvider } from '@/lib/sensory-context';
+import { SessionTimerProvider } from '@/lib/session-timer-context';
+import GlobalSessionTimer from '@/components/GlobalSessionTimer';
 
 export const metadata: Metadata = {
   title: 'Otantist',
@@ -19,7 +21,12 @@ export default function RootLayout({
       <body className="antialiased">
         <I18nProvider>
           <AuthProvider>
-            <SensoryProvider>{children}</SensoryProvider>
+            <SensoryProvider>
+              <SessionTimerProvider>
+                <GlobalSessionTimer />
+                {children}
+              </SessionTimerProvider>
+            </SensoryProvider>
           </AuthProvider>
         </I18nProvider>
       </body>

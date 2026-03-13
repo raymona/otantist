@@ -10,7 +10,6 @@ import { safetyApi } from '@/lib/safety-api';
 import { stateApi } from '@/lib/state-api';
 import { useSocket } from '@/lib/use-socket';
 import { STORAGE_KEYS } from '@/lib/constants';
-import { useSessionTimer } from '@/lib/use-session-timer';
 import type { Conversation, Message, SocialEnergyLevel } from '@/lib/types';
 import StatusBar from '@/components/dashboard/StatusBar';
 import CalmModeBanner from '@/components/dashboard/CalmModeBanner';
@@ -21,8 +20,6 @@ import BlockConfirmModal from '@/components/dashboard/BlockConfirmModal';
 import ReportModal from '@/components/dashboard/ReportModal';
 import BlockedUsersModal from '@/components/dashboard/BlockedUsersModal';
 import DailyCheckInModal from '@/components/dashboard/DailyCheckInModal';
-import SessionTimerBar from '@/components/dashboard/SessionTimerBar';
-import SessionBreakScreen from '@/components/dashboard/SessionBreakScreen';
 
 export default function DashboardPage() {
   const { t } = useTranslation('dashboard');
@@ -59,13 +56,6 @@ export default function DashboardPage() {
     messageId?: string;
   } | null>(null);
   const [showBlockedUsers, setShowBlockedUsers] = useState(false);
-
-  // Session timer
-  const [showBreakScreen, setShowBreakScreen] = useState(false);
-  const { duration, setDuration, status, secondsLeft, startTimer, resetTimer } = useSessionTimer({
-    userId: user?.id,
-    onExpired: () => setShowBreakScreen(true),
-  });
 
   // Daily check-in modal — shown once per calendar day per user
   const [showCheckIn, setShowCheckIn] = useState(false);
@@ -453,10 +443,8 @@ export default function DashboardPage() {
   const handleSendViaSocket = useCallback(
     (conversationId: string, content: string, tempId: string) => {
       emit('message:send', { conversationId, content, tempId });
-      // Auto-start session timer on first message sent
-      startTimer();
     },
-    [emit, startTimer]
+    [emit]
   );
 
   const handleEmitTyping = useCallback(
@@ -613,15 +601,6 @@ export default function DashboardPage() {
       {/* Calm mode banner */}
       {calmModeActive && <CalmModeBanner onDeactivate={handleCalmModeToggle} />}
 
-      {/* Session timer bar */}
-      <SessionTimerBar
-        duration={duration}
-        status={status}
-        secondsLeft={secondsLeft}
-        onChangeDuration={setDuration}
-        onReset={resetTimer}
-      />
-
       {/* Success toast */}
       {toast && (
         <div
@@ -732,15 +711,6 @@ export default function DashboardPage() {
       />
 
       {showCheckIn && <DailyCheckInModal onClose={handleCheckInClose} />}
-
-      {showBreakScreen && (
-        <SessionBreakScreen
-          onDismiss={() => {
-            setShowBreakScreen(false);
-            resetTimer();
-          }}
-        />
-      )}
     </div>
   );
 }
