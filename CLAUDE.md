@@ -277,7 +277,7 @@ apps/web/
 - **Help page:** `/help` route uses `useAuthGuard('onboarded')`. Parent section (`sections.parent`) only renders when `user?.isParent`. Uses `help` i18n namespace. Linked from StatusBar with a ? icon button.
 - **Email verification bypassed for beta:** Registration auto-sets `emailVerified: true` and `status: 'active'` so testers skip email verification entirely. **Must revert post-beta** once `otantist.com` domain is verified in Resend. See `TESTING_ISSUES.md` issue #1.
 - **TESTING_ISSUES.md:** Tracks all issues found during live testing sessions. 7 fixed, 3 open (settings UX ✅ now fixed, message actions ✅ now fixed, remaining open items documented).
-- **UI/UX baseline:** `globals.css` sets `font-size: 16px` on body, `font-size: inherit` on interactive elements, `min-height: 2rem` on buttons/links. StatusBar uses explicit gear icon for settings (display name is no longer a link). ChatView has a prominent blue "How to talk to" button with text label. MessageBubble uses a "..." dropdown menu for delete/report actions instead of inline hover links.
+- **UI/UX baseline:** `globals.css` sets `font-size: 15px` on body, `font-size: inherit` on interactive elements, `min-height: 2rem` on buttons/links. StatusBar uses explicit gear icon for settings (display name is no longer a link); `flex-wrap` on header to prevent overlap; nav button padding tightened (`px-2.5 py-1`); energy dots sized `h-6 w-6`. Conversation sidebar width `md:w-[360px]`. ChatView has a prominent blue "How to talk to" button with text label. MessageBubble uses a "..." dropdown menu for delete/report actions instead of inline hover links.
 - **Socket events:** `message:status_update` event emitted by gateway to sender when queued messages are delivered (conversationId, messageId, status). Frontend `useSocket` hook listens and updates message status in conversation state. Typing indicators are suppressed when recipient has calm mode active (gateway checks `userState.calmModeActive`).
 - **French translations — pending human review:** A first-pass review was done and clear-cut issues were fixed (Feb 22). The following items need a native Quebec French speaker to review before public beta:
   - **Error message tone** — All errors follow `"Échec du/de..."` pattern (e.g. "Échec du chargement des conversations"). Technically correct but cold. Consider softer phrasing like `"Impossible de charger les conversations"` throughout. Files affected: `dashboard.json`, `parent.json`, `moderation.json`.
@@ -920,4 +920,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 14, 2026 (Beta testing fixes, session timer redesign, UI/UX overhaul, settings accordion, tester guide rewrite)_
+_Last updated: March 14, 2026 (StatusBar layout fix, sidebar widened, font size 15px, energy dots reduced)_
