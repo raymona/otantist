@@ -57,8 +57,8 @@ export default function SettingsPage() {
 
   const [isLoadingData, setIsLoadingData] = useState(true);
 
-  // Accordion open/close state — all open by default
-  const [openSections, setOpenSections] = useState<Set<string>>(new Set(SECTION_IDS));
+  // Accordion open/close state — only profile expanded by default
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(['profile']));
 
   // Unsaved changes modal
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
