@@ -17,7 +17,11 @@ export class SafetyService {
     });
 
     if (!account?.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     return account.user.id;
@@ -49,7 +53,11 @@ export class SafetyService {
     const userId = await this.getUserId(accountId);
 
     if (userId === targetUserId) {
-      throw new BadRequestException('Cannot block yourself');
+      throw new BadRequestException({
+        code: 'CANNOT_BLOCK_SELF',
+        message_en: 'Cannot block yourself',
+        message_fr: 'Impossible de vous bloquer vous-même',
+      });
     }
 
     // Check target exists
@@ -58,7 +66,11 @@ export class SafetyService {
     });
 
     if (!targetUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     // Check if already blocked
@@ -72,7 +84,11 @@ export class SafetyService {
     });
 
     if (existing) {
-      throw new BadRequestException('User is already blocked');
+      throw new BadRequestException({
+        code: 'USER_ALREADY_BLOCKED',
+        message_en: 'User is already blocked',
+        message_fr: "L'utilisateur est déjà bloqué",
+      });
     }
 
     // Create block and update any active conversations
@@ -117,7 +133,11 @@ export class SafetyService {
     });
 
     if (!block) {
-      throw new NotFoundException('User is not blocked');
+      throw new NotFoundException({
+        code: 'USER_NOT_BLOCKED',
+        message_en: 'User is not blocked',
+        message_fr: "L'utilisateur n'est pas bloqué",
+      });
     }
 
     await this.prisma.$transaction(async tx => {
@@ -158,7 +178,11 @@ export class SafetyService {
     const userId = await this.getUserId(accountId);
 
     if (!dto.reportedUserId && !dto.reportedMessageId) {
-      throw new BadRequestException('Must provide either reportedUserId or reportedMessageId');
+      throw new BadRequestException({
+        code: 'REPORT_TARGET_REQUIRED',
+        message_en: 'Must provide either reportedUserId or reportedMessageId',
+        message_fr: "Vous devez fournir un identifiant d'utilisateur ou de message à signaler",
+      });
     }
 
     // Validate reported user exists
@@ -167,10 +191,18 @@ export class SafetyService {
         where: { id: dto.reportedUserId },
       });
       if (!targetUser) {
-        throw new NotFoundException('Reported user not found');
+        throw new NotFoundException({
+          code: 'REPORTED_USER_NOT_FOUND',
+          message_en: 'Reported user not found',
+          message_fr: 'Utilisateur signalé introuvable',
+        });
       }
       if (dto.reportedUserId === userId) {
-        throw new BadRequestException('Cannot report yourself');
+        throw new BadRequestException({
+          code: 'CANNOT_REPORT_SELF',
+          message_en: 'Cannot report yourself',
+          message_fr: 'Impossible de vous signaler vous-même',
+        });
       }
     }
 
@@ -181,7 +213,11 @@ export class SafetyService {
         include: { conversation: true },
       });
       if (!message) {
-        throw new NotFoundException('Reported message not found');
+        throw new NotFoundException({
+          code: 'REPORTED_MESSAGE_NOT_FOUND',
+          message_en: 'Reported message not found',
+          message_fr: 'Message signalé introuvable',
+        });
       }
 
       // Flag the message

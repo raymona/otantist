@@ -29,7 +29,11 @@ export class MessagingService {
     });
 
     if (!account?.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     return account.user.id;
@@ -44,7 +48,11 @@ export class MessagingService {
     });
 
     if (!account?.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     return { userId: account.user.id, accountType: account.accountType };
@@ -134,7 +142,11 @@ export class MessagingService {
     const { userId, accountType: senderType } = await this.getAccountWithUser(accountId);
 
     if (userId === otherUserId) {
-      throw new BadRequestException('Cannot start conversation with yourself');
+      throw new BadRequestException({
+        code: 'CANNOT_MESSAGE_SELF',
+        message_en: 'Cannot start conversation with yourself',
+        message_fr: 'Impossible de démarrer une conversation avec vous-même',
+      });
     }
 
     // Check if other user exists
@@ -144,7 +156,11 @@ export class MessagingService {
     });
 
     if (!otherUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     // Block messaging to/from moderator and super_admin accounts
@@ -183,7 +199,11 @@ export class MessagingService {
     // Check if blocked
     const isBlocked = await this.isBlocked(userId, otherUserId);
     if (isBlocked) {
-      throw new ForbiddenException('Cannot message this user');
+      throw new ForbiddenException({
+        code: 'CANNOT_MESSAGE_USER',
+        message_en: 'Cannot message this user',
+        message_fr: "Impossible d'envoyer un message à cet utilisateur",
+      });
     }
 
     // Check if conversation already exists
@@ -241,12 +261,20 @@ export class MessagingService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException({
+        code: 'CONVERSATION_NOT_FOUND',
+        message_en: 'Conversation not found',
+        message_fr: 'Conversation introuvable',
+      });
     }
 
     // Check user is part of conversation
     if (conversation.userAId !== userId && conversation.userBId !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException({
+        code: 'ACCESS_DENIED',
+        message_en: 'Access denied',
+        message_fr: 'Accès refusé',
+      });
     }
 
     const otherUser = conversation.userAId === userId ? conversation.userB : conversation.userA;
@@ -305,11 +333,19 @@ export class MessagingService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException({
+        code: 'CONVERSATION_NOT_FOUND',
+        message_en: 'Conversation not found',
+        message_fr: 'Conversation introuvable',
+      });
     }
 
     if (conversation.userAId !== userId && conversation.userBId !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException({
+        code: 'ACCESS_DENIED',
+        message_en: 'Access denied',
+        message_fr: 'Accès refusé',
+      });
     }
 
     // Build query
@@ -382,15 +418,27 @@ export class MessagingService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException({
+        code: 'CONVERSATION_NOT_FOUND',
+        message_en: 'Conversation not found',
+        message_fr: 'Conversation introuvable',
+      });
     }
 
     if (conversation.userAId !== userId && conversation.userBId !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException({
+        code: 'ACCESS_DENIED',
+        message_en: 'Access denied',
+        message_fr: 'Accès refusé',
+      });
     }
 
     if (conversation.status === 'blocked') {
-      throw new ForbiddenException('Conversation is blocked');
+      throw new ForbiddenException({
+        code: 'CONVERSATION_BLOCKED',
+        message_en: 'Conversation is blocked',
+        message_fr: 'La conversation est bloquée',
+      });
     }
 
     const sender = conversation.userAId === userId ? conversation.userA : conversation.userB;
@@ -410,7 +458,11 @@ export class MessagingService {
     // Check if blocked
     const isBlocked = await this.isBlocked(userId, recipient.id);
     if (isBlocked) {
-      throw new ForbiddenException('Cannot message this user');
+      throw new ForbiddenException({
+        code: 'CANNOT_MESSAGE_USER',
+        message_en: 'Cannot message this user',
+        message_fr: "Impossible d'envoyer un message à cet utilisateur",
+      });
     }
 
     // Check delivery conditions
@@ -493,13 +545,21 @@ export class MessagingService {
     });
 
     if (!message) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException({
+        code: 'MESSAGE_NOT_FOUND',
+        message_en: 'Message not found',
+        message_fr: 'Message introuvable',
+      });
     }
 
     // Any participant in the conversation can "delete for me"
     const conv = message.conversation;
     if (conv.userAId !== userId && conv.userBId !== userId) {
-      throw new ForbiddenException('Cannot delete this message');
+      throw new ForbiddenException({
+        code: 'CANNOT_DELETE_MESSAGE',
+        message_en: 'Cannot delete this message',
+        message_fr: 'Impossible de supprimer ce message',
+      });
     }
 
     // Create a per-user deletion record (idempotent via upsert)
@@ -524,11 +584,19 @@ export class MessagingService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException({
+        code: 'CONVERSATION_NOT_FOUND',
+        message_en: 'Conversation not found',
+        message_fr: 'Conversation introuvable',
+      });
     }
 
     if (conversation.userAId !== userId && conversation.userBId !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException({
+        code: 'ACCESS_DENIED',
+        message_en: 'Access denied',
+        message_fr: 'Accès refusé',
+      });
     }
 
     await this.prisma.conversationHidden.upsert({
@@ -557,11 +625,19 @@ export class MessagingService {
     });
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException({
+        code: 'CONVERSATION_NOT_FOUND',
+        message_en: 'Conversation not found',
+        message_fr: 'Conversation introuvable',
+      });
     }
 
     if (conversation.userAId !== userId && conversation.userBId !== userId) {
-      throw new ForbiddenException('Access denied');
+      throw new ForbiddenException({
+        code: 'ACCESS_DENIED',
+        message_en: 'Access denied',
+        message_fr: 'Accès refusé',
+      });
     }
 
     // Mark all messages up to and including messageId as read
@@ -570,7 +646,11 @@ export class MessagingService {
     });
 
     if (!targetMessage || targetMessage.conversationId !== conversationId) {
-      throw new NotFoundException('Message not found');
+      throw new NotFoundException({
+        code: 'MESSAGE_NOT_FOUND',
+        message_en: 'Message not found',
+        message_fr: 'Message introuvable',
+      });
     }
 
     await this.prisma.message.updateMany({

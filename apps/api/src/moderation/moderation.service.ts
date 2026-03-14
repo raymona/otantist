@@ -46,7 +46,11 @@ export class ModerationService {
     });
 
     if (!item) {
-      throw new NotFoundException('Queue item not found');
+      throw new NotFoundException({
+        code: 'QUEUE_ITEM_NOT_FOUND',
+        message_en: 'Queue item not found',
+        message_fr: 'Élément de file introuvable',
+      });
     }
 
     const relatedContent = await this.getRelatedContent(item.itemType, item.itemId);
@@ -78,7 +82,11 @@ export class ModerationService {
     });
 
     if (!item) {
-      throw new NotFoundException('Queue item not found');
+      throw new NotFoundException({
+        code: 'QUEUE_ITEM_NOT_FOUND',
+        message_en: 'Queue item not found',
+        message_fr: 'Élément de file introuvable',
+      });
     }
 
     // Apply action

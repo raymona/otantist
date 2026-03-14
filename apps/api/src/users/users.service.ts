@@ -27,7 +27,11 @@ export class UsersService {
     });
 
     if (!account || !account.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     return {
@@ -56,7 +60,11 @@ export class UsersService {
     });
 
     if (!account || !account.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     // Age group boundary lock: after onboarding, cannot switch between minor and adult groups
@@ -115,7 +123,11 @@ export class UsersService {
     });
 
     if (!account || !account.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     const user = account.user;
@@ -150,7 +162,11 @@ export class UsersService {
     });
 
     if (!targetUser) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     // Check if requesting user is blocked by target
@@ -170,7 +186,11 @@ export class UsersService {
       });
 
       if (isBlocked) {
-        throw new ForbiddenException('Cannot view this profile');
+        throw new ForbiddenException({
+          code: 'PROFILE_ACCESS_DENIED',
+          message_en: 'Cannot view this profile',
+          message_fr: 'Impossible de voir ce profil',
+        });
       }
     }
 
@@ -182,7 +202,11 @@ export class UsersService {
         targetUser.id
       );
       if (!hasConversation) {
-        throw new ForbiddenException('This profile is hidden');
+        throw new ForbiddenException({
+          code: 'PROFILE_HIDDEN',
+          message_en: 'This profile is hidden',
+          message_fr: 'Ce profil est masqué',
+        });
       }
     }
 
@@ -207,7 +231,11 @@ export class UsersService {
     });
 
     if (!requestingAccount?.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     const requestingUserId = requestingAccount.user.id;

@@ -17,7 +17,11 @@ export class StateService {
     });
 
     if (!account?.user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException({
+        code: 'USER_NOT_FOUND',
+        message_en: 'User not found',
+        message_fr: 'Utilisateur introuvable',
+      });
     }
 
     return account.user.id;

@@ -106,11 +106,19 @@ export class ParentDashboardService {
     });
 
     if (!alert) {
-      throw new NotFoundException('Alert not found');
+      throw new NotFoundException({
+        code: 'ALERT_NOT_FOUND',
+        message_en: 'Alert not found',
+        message_fr: 'Alerte introuvable',
+      });
     }
 
     if (alert.parentAccountId !== parentAccountId) {
-      throw new ForbiddenException('Not authorized to access this alert');
+      throw new ForbiddenException({
+        code: 'ALERT_ACCESS_DENIED',
+        message_en: 'Not authorized to access this alert',
+        message_fr: 'Non autorisé à accéder à cette alerte',
+      });
     }
 
     const updated = await this.prisma.parentAlert.update({
@@ -142,7 +150,11 @@ export class ParentDashboardService {
     });
 
     if (!account) {
-      throw new NotFoundException('Account not found');
+      throw new NotFoundException({
+        code: 'ACCOUNT_NOT_FOUND',
+        message_en: 'Account not found',
+        message_fr: 'Compte introuvable',
+      });
     }
 
     // Only adult accounts can generate linking codes
@@ -207,7 +219,11 @@ export class ParentDashboardService {
     });
 
     if (!account || !account.user) {
-      throw new NotFoundException('Account not found');
+      throw new NotFoundException({
+        code: 'ACCOUNT_NOT_FOUND',
+        message_en: 'Account not found',
+        message_fr: 'Compte introuvable',
+      });
     }
 
     // Caller must be an adult account type (not already parent_managed)
@@ -305,7 +321,11 @@ export class ParentDashboardService {
     });
 
     if (!memberUser) {
-      throw new NotFoundException('Member not found');
+      throw new NotFoundException({
+        code: 'MEMBER_NOT_FOUND',
+        message_en: 'Member not found',
+        message_fr: 'Membre introuvable',
+      });
     }
 
     const relation = await this.prisma.parentManagedAccount.findUnique({
@@ -318,7 +338,11 @@ export class ParentDashboardService {
     });
 
     if (!relation || relation.status !== 'active') {
-      throw new ForbiddenException('Not authorized to access this member');
+      throw new ForbiddenException({
+        code: 'MEMBER_ACCESS_DENIED',
+        message_en: 'Not authorized to access this member',
+        message_fr: 'Non autorisé à accéder à ce membre',
+      });
     }
   }
 }

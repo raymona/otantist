@@ -27,7 +27,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Reject tokens issued before a password change
     if (account.passwordChangedAt && payload.iat) {
       if (payload.iat * 1000 < account.passwordChangedAt.getTime()) {
-        throw new UnauthorizedException('Token invalidated by password change');
+        throw new UnauthorizedException({
+          code: 'TOKEN_INVALIDATED',
+          message_en: 'Token invalidated by password change',
+          message_fr: 'Jeton invalidé par un changement de mot de passe',
+        });
       }
     }
 

@@ -35,15 +35,27 @@ export class AuthService {
     });
 
     if (!invite) {
-      throw new BadRequestException('Invalid invite code');
+      throw new BadRequestException({
+        code: 'INVALID_INVITE_CODE',
+        message_en: 'Invalid invite code',
+        message_fr: "Code d'invitation invalide",
+      });
     }
 
     if (invite.expiresAt && invite.expiresAt < new Date()) {
-      throw new BadRequestException('Invite code has expired');
+      throw new BadRequestException({
+        code: 'INVITE_CODE_EXPIRED',
+        message_en: 'Invite code has expired',
+        message_fr: "Le code d'invitation a expiré",
+      });
     }
 
     if (invite.currentUses >= invite.maxUses) {
-      throw new BadRequestException('Invite code has been fully used');
+      throw new BadRequestException({
+        code: 'INVITE_CODE_USED',
+        message_en: 'Invite code has been fully used',
+        message_fr: "Le code d'invitation a atteint sa limite d'utilisation",
+      });
     }
 
     // Check if email exists
@@ -52,7 +64,11 @@ export class AuthService {
     });
 
     if (existingAccount) {
-      throw new BadRequestException('Email already registered');
+      throw new BadRequestException({
+        code: 'EMAIL_ALREADY_REGISTERED',
+        message_en: 'Email already registered',
+        message_fr: 'Cette adresse courriel est déjà enregistrée',
+      });
     }
 
     // Hash password
@@ -150,19 +166,35 @@ export class AuthService {
     });
 
     if (!authToken) {
-      throw new BadRequestException('Invalid verification token');
+      throw new BadRequestException({
+        code: 'INVALID_VERIFICATION_TOKEN',
+        message_en: 'Invalid verification token',
+        message_fr: 'Jeton de vérification invalide',
+      });
     }
 
     if (authToken.type !== 'email_verification') {
-      throw new BadRequestException('Invalid token type');
+      throw new BadRequestException({
+        code: 'INVALID_TOKEN_TYPE',
+        message_en: 'Invalid token type',
+        message_fr: 'Type de jeton invalide',
+      });
     }
 
     if (authToken.expiresAt < new Date()) {
-      throw new BadRequestException('Verification token has expired');
+      throw new BadRequestException({
+        code: 'VERIFICATION_TOKEN_EXPIRED',
+        message_en: 'Verification token has expired',
+        message_fr: 'Le jeton de vérification a expiré',
+      });
     }
 
     if (authToken.usedAt) {
-      throw new BadRequestException('Token has already been used');
+      throw new BadRequestException({
+        code: 'TOKEN_ALREADY_USED',
+        message_en: 'Token has already been used',
+        message_fr: 'Ce jeton a déjà été utilisé',
+      });
     }
 
     // Mark email as verified and token as used
@@ -276,19 +308,35 @@ export class AuthService {
     });
 
     if (!authToken) {
-      throw new BadRequestException('Invalid reset token');
+      throw new BadRequestException({
+        code: 'INVALID_RESET_TOKEN',
+        message_en: 'Invalid reset token',
+        message_fr: 'Jeton de réinitialisation invalide',
+      });
     }
 
     if (authToken.type !== 'password_reset') {
-      throw new BadRequestException('Invalid token type');
+      throw new BadRequestException({
+        code: 'INVALID_TOKEN_TYPE',
+        message_en: 'Invalid token type',
+        message_fr: 'Type de jeton invalide',
+      });
     }
 
     if (authToken.expiresAt < new Date()) {
-      throw new BadRequestException('Reset token has expired');
+      throw new BadRequestException({
+        code: 'RESET_TOKEN_EXPIRED',
+        message_en: 'Reset token has expired',
+        message_fr: 'Le jeton de réinitialisation a expiré',
+      });
     }
 
     if (authToken.usedAt) {
-      throw new BadRequestException('Token has already been used');
+      throw new BadRequestException({
+        code: 'TOKEN_ALREADY_USED',
+        message_en: 'Token has already been used',
+        message_fr: 'Ce jeton a déjà été utilisé',
+      });
     }
 
     // Hash new password and update
@@ -314,11 +362,19 @@ export class AuthService {
     });
 
     if (!account) {
-      throw new BadRequestException('Account not found');
+      throw new BadRequestException({
+        code: 'ACCOUNT_NOT_FOUND',
+        message_en: 'Account not found',
+        message_fr: 'Compte introuvable',
+      });
     }
 
     if (account.legalAcceptedAt) {
-      throw new BadRequestException('Terms already accepted');
+      throw new BadRequestException({
+        code: 'TERMS_ALREADY_ACCEPTED',
+        message_en: 'Terms already accepted',
+        message_fr: 'Les conditions ont déjà été acceptées',
+      });
     }
 
     await this.prisma.account.update({
@@ -336,17 +392,29 @@ export class AuthService {
     });
 
     if (!account) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException({
+        code: 'INVALID_CREDENTIALS',
+        message_en: 'Invalid credentials',
+        message_fr: 'Identifiants invalides',
+      });
     }
 
     const isPasswordValid = await bcrypt.compare(password, account.passwordHash);
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException({
+        code: 'INVALID_CREDENTIALS',
+        message_en: 'Invalid credentials',
+        message_fr: 'Identifiants invalides',
+      });
     }
 
     if (account.status === 'suspended') {
-      throw new UnauthorizedException('Account is suspended');
+      throw new UnauthorizedException({
+        code: 'ACCOUNT_SUSPENDED',
+        message_en: 'Account is suspended',
+        message_fr: 'Le compte est suspendu',
+      });
     }
 
     // Update last login
@@ -408,7 +476,11 @@ export class AuthService {
       // Reject refresh tokens issued before a password change
       if (account.passwordChangedAt && payload.iat) {
         if (payload.iat * 1000 < account.passwordChangedAt.getTime()) {
-          throw new UnauthorizedException('Token invalidated by password change');
+          throw new UnauthorizedException({
+            code: 'TOKEN_INVALIDATED',
+            message_en: 'Token invalidated by password change',
+            message_fr: 'Jeton invalidé par un changement de mot de passe',
+          });
         }
       }
 
@@ -422,7 +494,11 @@ export class AuthService {
         }),
       };
     } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException({
+        code: 'INVALID_REFRESH_TOKEN',
+        message_en: 'Invalid refresh token',
+        message_fr: 'Jeton de rafraîchissement invalide',
+      });
     }
   }
 }
