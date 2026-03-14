@@ -6,6 +6,15 @@ body {
   line-height: 1.5;
 }
 
+/* Clickable elements should show pointer cursor */
+button, a {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
 /* Sensory preferences — applied via body classes by SensoryProvider */
 
 /* Disable all animations and transitions */
