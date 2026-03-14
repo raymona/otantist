@@ -37,5 +37,15 @@
   "invite_code_label": "Invite code (for registration):",
   "linking_code_label": "Linking code (for profile setup):",
   "copy_code": "Copy code",
-  "code_copied": "Copied!"
+  "code_copied": "Copied!",
+
+  "save_all": "Save all changes",
+  "save_all_saving": "Saving all...",
+  "dirty_count_one": "{{count}} unsaved section",
+  "dirty_count_other": "{{count}} unsaved sections",
+  "unsaved_modal_title": "You have unsaved changes",
+  "unsaved_modal_body": "Would you like to save your changes before leaving?",
+  "unsaved_modal_save": "Save & leave",
+  "unsaved_modal_discard": "Discard & leave",
+  "unsaved_modal_cancel": "Stay on this page"
 }

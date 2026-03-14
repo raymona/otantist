@@ -38,6 +38,15 @@ type SectionName =
   | 'timeBoundaries'
   | 'language';
 
+const SECTION_IDS: SectionName[] = [
+  'profile',
+  'communication',
+  'sensory',
+  'conversation',
+  'timeBoundaries',
+  'language',
+];
+
 export default function SettingsPage() {
   const { t, i18n, ready: i18nReady } = useTranslation('settings');
   const router = useRouter();
@@ -47,6 +56,13 @@ export default function SettingsPage() {
   const { getErrorMessage } = useApiError();
 
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Accordion open/close state — all open by default
+  const [openSections, setOpenSections] = useState<Set<string>>(new Set(SECTION_IDS));
+
+  // Unsaved changes modal
+  const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const pendingNavigationRef = useRef<string | null>(null);
 
   // Profile state
   const [displayName, setDisplayName] = useState('');
@@ -88,6 +104,7 @@ export default function SettingsPage() {
   // Dirty tracking + save status
   const [dirtySections, setDirtySections] = useState<Set<SectionName>>(new Set());
   const [savingSection, setSavingSection] = useState<SectionName | null>(null);
+  const [isSavingAll, setIsSavingAll] = useState(false);
   const [sectionStatus, setSectionStatus] = useState<
     Record<string, { type: 'success' | 'error'; message: string }>
   >({});
@@ -99,6 +116,29 @@ export default function SettingsPage() {
       delete next[section];
       return next;
     });
+  };
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const scrollToSection = (section: string) => {
+    // Ensure section is open
+    setOpenSections(prev => new Set(prev).add(section));
+    // Delay scroll to allow accordion to expand
+    setTimeout(() => {
+      document
+        .getElementById(`settings-${section}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   };
 
   // Load all data on mount
@@ -182,23 +222,22 @@ export default function SettingsPage() {
 
   // Guard browser back button
   useEffect(() => {
-    // Push a duplicate history entry so back button triggers popstate
-    // instead of immediately leaving
     history.pushState(null, '', window.location.href);
 
     const handlePopState = () => {
-      if (dirtySectionsRef.current.size > 0 && !window.confirm(t('unsaved_warning'))) {
-        // User cancelled — stay on settings, re-push the guard entry
+      if (dirtySectionsRef.current.size > 0) {
+        // Show custom modal instead of confirm()
+        pendingNavigationRef.current = '/dashboard';
+        setShowUnsavedModal(true);
         history.pushState(null, '', window.location.href);
       } else {
-        // User confirmed or nothing dirty — actually go back
         history.back();
       }
     };
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [t]);
+  }, []);
 
   // Auto-clear success status after 3s
   useEffect(() => {
@@ -238,17 +277,15 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSaveProfile = () =>
-    saveSection('profile', async () => {
+  const saveFunctions: Record<SectionName, () => Promise<void>> = {
+    profile: async () => {
       await usersApi.updateProfile({
         displayName: displayName || undefined,
         ageGroup: ageGroup || undefined,
         profileVisibility,
       });
-    });
-
-  const handleSaveCommunication = () =>
-    saveSection('communication', async () => {
+    },
+    communication: async () => {
       await preferencesApi.updateCommunication({
         preferredTone: preferredTone || undefined,
         commModes,
@@ -256,10 +293,8 @@ export default function SettingsPage() {
         oneMessageAtTime,
         readWithoutReply,
       });
-    });
-
-  const handleSaveSensory = () =>
-    saveSection('sensory', async () => {
+    },
+    sensory: async () => {
       await preferencesApi.updateSensory({
         enableAnimations,
         colorIntensity,
@@ -268,27 +303,63 @@ export default function SettingsPage() {
         notificationGrouped,
       });
       await refreshSensory();
-    });
-
-  const handleSaveConversation = () =>
-    saveSection('conversation', async () => {
+    },
+    conversation: async () => {
       await preferencesApi.updateConversationStarters({
         goodTopics,
         avoidTopics,
         interactionTips,
       });
-    });
-
-  const handleSaveTimeBoundaries = () =>
-    saveSection('timeBoundaries', async () => {
+    },
+    timeBoundaries: async () => {
       await preferencesApi.updateTimeBoundaries(boundaries);
-    });
-
-  const handleSaveLanguage = () =>
-    saveSection('language', async () => {
+    },
+    language: async () => {
       await usersApi.updateLanguage(language);
       await i18n.changeLanguage(language);
-    });
+    },
+  };
+
+  const handleSaveSection = (section: SectionName) => saveSection(section, saveFunctions[section]);
+
+  const handleSaveAll = async () => {
+    setIsSavingAll(true);
+    const sectionsToSave = Array.from(dirtySections);
+    for (const section of sectionsToSave) {
+      await saveSection(section, saveFunctions[section]);
+    }
+    setIsSavingAll(false);
+  };
+
+  const handleNavigateAway = (destination: string) => {
+    if (dirtySections.size > 0) {
+      pendingNavigationRef.current = destination;
+      setShowUnsavedModal(true);
+    } else {
+      router.push(destination);
+    }
+  };
+
+  const handleUnsavedSaveAndLeave = async () => {
+    await handleSaveAll();
+    setShowUnsavedModal(false);
+    if (pendingNavigationRef.current) {
+      router.push(pendingNavigationRef.current);
+    }
+  };
+
+  const handleUnsavedDiscard = () => {
+    setDirtySections(new Set());
+    setShowUnsavedModal(false);
+    if (pendingNavigationRef.current) {
+      router.push(pendingNavigationRef.current);
+    }
+  };
+
+  const handleUnsavedCancel = () => {
+    setShowUnsavedModal(false);
+    pendingNavigationRef.current = null;
+  };
 
   // --- Comm mode toggle ---
 
@@ -388,17 +459,26 @@ export default function SettingsPage() {
     return null;
   }
 
+  const sectionLabels: Record<string, string> = {
+    profile: t('section_profile'),
+    communication: t('section_communication'),
+    sensory: t('section_sensory'),
+    conversation: t('section_conversation'),
+    timeBoundaries: t('section_time_boundaries'),
+    language: t('section_language'),
+  };
+
   const renderSectionFooter = (section: SectionName, onSave: () => void) => {
     const status = sectionStatus[section];
     const isSaving = savingSection === section;
     const isDirty = dirtySections.has(section);
 
     return (
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-5 flex items-center gap-3">
         <button
           onClick={onSave}
           disabled={isSaving || !isDirty}
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isSaving ? t('saving') : t('save')}
         </button>
@@ -414,296 +494,493 @@ export default function SettingsPage() {
     );
   };
 
+  const renderAccordionHeader = (section: string, label: string) => {
+    const isOpen = openSections.has(section);
+    const isDirty = dirtySections.has(section as SectionName);
+
+    return (
+      <button
+        type="button"
+        onClick={() => toggleSection(section)}
+        aria-expanded={isOpen}
+        aria-controls={`section-content-${section}`}
+        className="flex w-full items-center justify-between rounded-t-lg bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50"
+      >
+        <span className="flex items-center gap-3">
+          <h2 id={`settings-${section}`} className="text-lg font-semibold text-gray-900">
+            {label}
+          </h2>
+          {isDirty && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+              {t('save')}
+            </span>
+          )}
+        </span>
+        <svg
+          className={`h-5 w-5 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3">
-        <div className="mx-auto flex max-w-3xl items-center gap-4">
-          <button
-            onClick={() => {
-              if (dirtySections.size > 0 && !window.confirm(t('unsaved_warning'))) {
-                return;
-              }
-              router.push('/dashboard');
-            }}
-            className="text-sm text-blue-600 transition-colors hover:text-blue-800"
-          >
-            &larr; {t('back_to_dashboard')}
-          </button>
-          <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
+      {/* Header */}
+      <header className="sticky top-0 z-30 border-b border-gray-200 bg-white px-4 py-3 shadow-sm">
+        <div className="mx-auto flex max-w-5xl items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => handleNavigateAway('/dashboard')}
+              className="flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-800"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              {t('back_to_dashboard')}
+            </button>
+            <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
+          </div>
+
+          {/* Save All button — visible when there are dirty sections */}
+          {dirtySections.size > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="hidden text-sm text-amber-600 sm:inline">
+                {t('dirty_count', { count: dirtySections.size })}
+              </span>
+              <button
+                onClick={handleSaveAll}
+                disabled={isSavingAll}
+                className="rounded-lg bg-green-600 px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+              >
+                {isSavingAll ? t('save_all_saving') : t('save_all')}
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-8">
-        {isLoadingData ? (
-          <div role="status" className="flex justify-center py-12">
-            <p className="text-gray-600">{t('common:loading')}</p>
-          </div>
-        ) : (
-          <div className="space-y-10">
-            {/* Profile Section */}
-            <section aria-labelledby="settings-profile">
-              <h2 id="settings-profile" className="mb-4 text-lg font-semibold text-gray-900">
-                {t('section_profile')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <StepProfile
-                  displayName={displayName}
-                  ageGroup={ageGroup}
-                  profileVisibility={profileVisibility}
-                  onDisplayNameChange={v => {
-                    setDisplayName(v);
-                    markDirty('profile');
-                  }}
-                  onAgeGroupChange={v => {
-                    setAgeGroup(v);
-                    markDirty('profile');
-                  }}
-                  onVisibilityChange={v => {
-                    setProfileVisibility(v);
-                    markDirty('profile');
-                  }}
-                  ageGroupLocked
-                />
-                {renderSectionFooter('profile', handleSaveProfile)}
-              </div>
-            </section>
+      <div className="mx-auto flex max-w-5xl gap-6 px-4 py-6">
+        {/* Sidebar navigation — desktop only */}
+        <nav
+          aria-label={t('title')}
+          className="sticky top-20 hidden h-fit w-52 flex-shrink-0 rounded-lg border border-gray-200 bg-white py-2 lg:block"
+        >
+          {SECTION_IDS.map(section => (
+            <button
+              key={section}
+              onClick={() => scrollToSection(section)}
+              className={`flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-gray-50 ${
+                dirtySections.has(section) ? 'font-medium text-amber-700' : 'text-gray-700'
+              }`}
+            >
+              {sectionLabels[section]}
+              {dirtySections.has(section) && (
+                <span className="ml-auto h-2 w-2 rounded-full bg-amber-400" aria-hidden="true" />
+              )}
+            </button>
+          ))}
+          {isAdultAccount && (
+            <button
+              onClick={() => scrollToSection('link-minor')}
+              className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              {t('section_link_minor')}
+            </button>
+          )}
+        </nav>
 
-            {/* Communication Section */}
-            <section aria-labelledby="settings-communication">
-              <h2 id="settings-communication" className="mb-4 text-lg font-semibold text-gray-900">
-                {t('section_communication')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <StepCommunication
-                  preferredTone={preferredTone}
-                  commModes={commModes}
-                  slowRepliesOk={slowRepliesOk}
-                  oneMessageAtTime={oneMessageAtTime}
-                  readWithoutReply={readWithoutReply}
-                  onToneChange={v => {
-                    setPreferredTone(v);
-                    markDirty('communication');
-                  }}
-                  onToggleCommMode={handleToggleCommMode}
-                  onSlowRepliesChange={v => {
-                    setSlowRepliesOk(v);
-                    markDirty('communication');
-                  }}
-                  onOneMessageChange={v => {
-                    setOneMessageAtTime(v);
-                    markDirty('communication');
-                  }}
-                  onReadWithoutReplyChange={v => {
-                    setReadWithoutReply(v);
-                    markDirty('communication');
-                  }}
-                />
-                {renderSectionFooter('communication', handleSaveCommunication)}
-              </div>
-            </section>
-
-            {/* Sensory Section */}
-            <section aria-labelledby="settings-sensory">
-              <h2 id="settings-sensory" className="mb-4 text-lg font-semibold text-gray-900">
-                {t('section_sensory')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <StepSensory
-                  enableAnimations={enableAnimations}
-                  colorIntensity={colorIntensity}
-                  soundEnabled={soundEnabled}
-                  notificationLimit={notificationLimit}
-                  notificationGrouped={notificationGrouped}
-                  onAnimationsChange={v => {
-                    setEnableAnimations(v);
-                    markDirty('sensory');
-                  }}
-                  onColorIntensityChange={v => {
-                    setColorIntensity(v);
-                    markDirty('sensory');
-                  }}
-                  onSoundChange={v => {
-                    setSoundEnabled(v);
-                    markDirty('sensory');
-                  }}
-                  onNotificationLimitChange={v => {
-                    setNotificationLimit(v);
-                    markDirty('sensory');
-                  }}
-                  onNotificationGroupedChange={v => {
-                    setNotificationGrouped(v);
-                    markDirty('sensory');
-                  }}
-                />
-                {renderSectionFooter('sensory', handleSaveSensory)}
-              </div>
-            </section>
-
-            {/* Conversation Starters Section */}
-            <section aria-labelledby="settings-conversation">
-              <h2 id="settings-conversation" className="mb-4 text-lg font-semibold text-gray-900">
-                {t('section_conversation')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <StepConversation
-                  goodTopics={goodTopics}
-                  avoidTopics={avoidTopics}
-                  interactionTips={interactionTips}
-                  onAddGoodTopic={handleAddGoodTopic}
-                  onRemoveGoodTopic={handleRemoveGoodTopic}
-                  onAddAvoidTopic={handleAddAvoidTopic}
-                  onRemoveAvoidTopic={handleRemoveAvoidTopic}
-                  onAddTip={handleAddTip}
-                  onRemoveTip={handleRemoveTip}
-                />
-                {renderSectionFooter('conversation', handleSaveConversation)}
-              </div>
-            </section>
-
-            {/* Time Boundaries Section */}
-            <section aria-labelledby="settings-time-boundaries">
-              <h2
-                id="settings-time-boundaries"
-                className="mb-4 text-lg font-semibold text-gray-900"
+        {/* Main content */}
+        <main className="min-w-0 flex-1">
+          {isLoadingData ? (
+            <div role="status" className="flex justify-center py-12">
+              <p className="text-gray-600">{t('common:loading')}</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Profile Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-profile"
               >
-                {t('section_time_boundaries')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <TimeBoundariesEditor
-                  boundaries={boundaries}
-                  onBoundaryChange={handleBoundaryChange}
-                />
-                {renderSectionFooter('timeBoundaries', handleSaveTimeBoundaries)}
-              </div>
-            </section>
-
-            {/* Language Section */}
-            <section aria-labelledby="settings-language">
-              <h2 id="settings-language" className="mb-4 text-lg font-semibold text-gray-900">
-                {t('section_language')}
-              </h2>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                <p className="mb-3 text-sm text-gray-600">{t('language_description')}</p>
-                <fieldset>
-                  <legend className="sr-only">{t('section_language')}</legend>
-                  <div className="space-y-2">
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="radio"
-                        name="language"
-                        value="fr"
-                        checked={language === 'fr'}
-                        onChange={() => {
-                          setLanguage('fr');
-                          markDirty('language');
-                        }}
-                        className="h-4 w-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-900">{t('language_fr')}</span>
-                    </label>
-                    <label className="flex cursor-pointer items-center gap-3">
-                      <input
-                        type="radio"
-                        name="language"
-                        value="en"
-                        checked={language === 'en'}
-                        onChange={() => {
-                          setLanguage('en');
-                          markDirty('language');
-                        }}
-                        className="h-4 w-4 text-blue-600"
-                      />
-                      <span className="text-sm text-gray-900">{t('language_en')}</span>
-                    </label>
+                {renderAccordionHeader('profile', sectionLabels.profile)}
+                {openSections.has('profile') && (
+                  <div
+                    id="section-content-profile"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <StepProfile
+                      displayName={displayName}
+                      ageGroup={ageGroup}
+                      profileVisibility={profileVisibility}
+                      onDisplayNameChange={v => {
+                        setDisplayName(v);
+                        markDirty('profile');
+                      }}
+                      onAgeGroupChange={v => {
+                        setAgeGroup(v);
+                        markDirty('profile');
+                      }}
+                      onVisibilityChange={v => {
+                        setProfileVisibility(v);
+                        markDirty('profile');
+                      }}
+                      ageGroupLocked
+                    />
+                    {renderSectionFooter('profile', () => handleSaveSection('profile'))}
                   </div>
-                </fieldset>
-                {renderSectionFooter('language', handleSaveLanguage)}
-              </div>
-            </section>
+                )}
+              </section>
 
-            {/* Link a Minor Section — only for adult accounts */}
-            {isAdultAccount && (
-              <section aria-labelledby="settings-link-minor">
-                <h2 id="settings-link-minor" className="mb-4 text-lg font-semibold text-gray-900">
-                  {t('section_link_minor')}
-                </h2>
-                <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
-                  <p className="mb-4 text-sm text-gray-600">{t('link_minor_description')}</p>
+              {/* Communication Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-communication"
+              >
+                {renderAccordionHeader('communication', sectionLabels.communication)}
+                {openSections.has('communication') && (
+                  <div
+                    id="section-content-communication"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <StepCommunication
+                      preferredTone={preferredTone}
+                      commModes={commModes}
+                      slowRepliesOk={slowRepliesOk}
+                      oneMessageAtTime={oneMessageAtTime}
+                      readWithoutReply={readWithoutReply}
+                      onToneChange={v => {
+                        setPreferredTone(v);
+                        markDirty('communication');
+                      }}
+                      onToggleCommMode={handleToggleCommMode}
+                      onSlowRepliesChange={v => {
+                        setSlowRepliesOk(v);
+                        markDirty('communication');
+                      }}
+                      onOneMessageChange={v => {
+                        setOneMessageAtTime(v);
+                        markDirty('communication');
+                      }}
+                      onReadWithoutReplyChange={v => {
+                        setReadWithoutReply(v);
+                        markDirty('communication');
+                      }}
+                    />
+                    {renderSectionFooter('communication', () => handleSaveSection('communication'))}
+                  </div>
+                )}
+              </section>
 
-                  {linkMinorError && (
-                    <p
-                      role="alert"
-                      className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+              {/* Sensory Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-sensory"
+              >
+                {renderAccordionHeader('sensory', sectionLabels.sensory)}
+                {openSections.has('sensory') && (
+                  <div
+                    id="section-content-sensory"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <StepSensory
+                      enableAnimations={enableAnimations}
+                      colorIntensity={colorIntensity}
+                      soundEnabled={soundEnabled}
+                      notificationLimit={notificationLimit}
+                      notificationGrouped={notificationGrouped}
+                      onAnimationsChange={v => {
+                        setEnableAnimations(v);
+                        markDirty('sensory');
+                      }}
+                      onColorIntensityChange={v => {
+                        setColorIntensity(v);
+                        markDirty('sensory');
+                      }}
+                      onSoundChange={v => {
+                        setSoundEnabled(v);
+                        markDirty('sensory');
+                      }}
+                      onNotificationLimitChange={v => {
+                        setNotificationLimit(v);
+                        markDirty('sensory');
+                      }}
+                      onNotificationGroupedChange={v => {
+                        setNotificationGrouped(v);
+                        markDirty('sensory');
+                      }}
+                    />
+                    {renderSectionFooter('sensory', () => handleSaveSection('sensory'))}
+                  </div>
+                )}
+              </section>
+
+              {/* Conversation Starters Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-conversation"
+              >
+                {renderAccordionHeader('conversation', sectionLabels.conversation)}
+                {openSections.has('conversation') && (
+                  <div
+                    id="section-content-conversation"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <StepConversation
+                      goodTopics={goodTopics}
+                      avoidTopics={avoidTopics}
+                      interactionTips={interactionTips}
+                      onAddGoodTopic={handleAddGoodTopic}
+                      onRemoveGoodTopic={handleRemoveGoodTopic}
+                      onAddAvoidTopic={handleAddAvoidTopic}
+                      onRemoveAvoidTopic={handleRemoveAvoidTopic}
+                      onAddTip={handleAddTip}
+                      onRemoveTip={handleRemoveTip}
+                    />
+                    {renderSectionFooter('conversation', () => handleSaveSection('conversation'))}
+                  </div>
+                )}
+              </section>
+
+              {/* Time Boundaries Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-timeBoundaries"
+              >
+                {renderAccordionHeader('timeBoundaries', sectionLabels.timeBoundaries)}
+                {openSections.has('timeBoundaries') && (
+                  <div
+                    id="section-content-timeBoundaries"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <TimeBoundariesEditor
+                      boundaries={boundaries}
+                      onBoundaryChange={handleBoundaryChange}
+                    />
+                    {renderSectionFooter('timeBoundaries', () =>
+                      handleSaveSection('timeBoundaries')
+                    )}
+                  </div>
+                )}
+              </section>
+
+              {/* Language Section */}
+              <section
+                className="overflow-hidden rounded-lg border border-gray-200"
+                aria-labelledby="settings-language"
+              >
+                {renderAccordionHeader('language', sectionLabels.language)}
+                {openSections.has('language') && (
+                  <div
+                    id="section-content-language"
+                    className="border-t border-gray-100 bg-white px-5 py-5"
+                  >
+                    <p className="mb-3 text-sm text-gray-600">{t('language_description')}</p>
+                    <fieldset>
+                      <legend className="sr-only">{t('section_language')}</legend>
+                      <div className="space-y-2">
+                        <label className="flex cursor-pointer items-center gap-3">
+                          <input
+                            type="radio"
+                            name="language"
+                            value="fr"
+                            checked={language === 'fr'}
+                            onChange={() => {
+                              setLanguage('fr');
+                              markDirty('language');
+                            }}
+                            className="h-4 w-4 text-blue-600"
+                          />
+                          <span className="text-sm text-gray-900">{t('language_fr')}</span>
+                        </label>
+                        <label className="flex cursor-pointer items-center gap-3">
+                          <input
+                            type="radio"
+                            name="language"
+                            value="en"
+                            checked={language === 'en'}
+                            onChange={() => {
+                              setLanguage('en');
+                              markDirty('language');
+                            }}
+                            className="h-4 w-4 text-blue-600"
+                          />
+                          <span className="text-sm text-gray-900">{t('language_en')}</span>
+                        </label>
+                      </div>
+                    </fieldset>
+                    {renderSectionFooter('language', () => handleSaveSection('language'))}
+                  </div>
+                )}
+              </section>
+
+              {/* Link a Minor Section — only for adult accounts */}
+              {isAdultAccount && (
+                <section
+                  className="overflow-hidden rounded-lg border border-gray-200"
+                  aria-labelledby="settings-link-minor"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleSection('link-minor')}
+                    aria-expanded={openSections.has('link-minor')}
+                    aria-controls="section-content-link-minor"
+                    className="flex w-full items-center justify-between rounded-t-lg bg-white px-5 py-4 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <h2 id="settings-link-minor" className="text-lg font-semibold text-gray-900">
+                      {t('section_link_minor')}
+                    </h2>
+                    <svg
+                      className={`h-5 w-5 text-gray-400 transition-transform ${openSections.has('link-minor') ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
                     >
-                      {linkMinorError}
-                    </p>
-                  )}
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </button>
+                  {openSections.has('link-minor') && (
+                    <div
+                      id="section-content-link-minor"
+                      className="border-t border-gray-100 bg-white px-5 py-5"
+                    >
+                      <p className="mb-4 text-sm text-gray-600">{t('link_minor_description')}</p>
 
-                  {generatedCode ? (
-                    <div className="space-y-4">
-                      {/* Invite code (for registration) */}
-                      <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 text-center">
-                        <p className="mb-1 text-sm font-medium text-green-700">
-                          {t('invite_code_label')}
-                        </p>
-                        <p className="font-mono text-2xl font-bold tracking-wider text-green-900">
-                          {generatedCode.inviteCode}
-                        </p>
-                        <button
-                          onClick={handleCopyInviteCode}
-                          className="mt-2 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-green-700"
+                      {linkMinorError && (
+                        <p
+                          role="alert"
+                          className="mb-4 rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
                         >
-                          {inviteCodeCopied ? t('code_copied') : t('copy_code')}
-                        </button>
-                      </div>
-
-                      {/* Linking code (for profile setup) */}
-                      <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 text-center">
-                        <p className="mb-1 text-sm font-medium text-blue-700">
-                          {t('linking_code_label')}
+                          {linkMinorError}
                         </p>
-                        <p className="font-mono text-2xl font-bold tracking-wider text-blue-900">
-                          {generatedCode.code}
-                        </p>
-                        <button
-                          onClick={handleCopyCode}
-                          className="mt-2 rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-700"
-                        >
-                          {codeCopied ? t('code_copied') : t('copy_code')}
-                        </button>
-                      </div>
+                      )}
 
-                      <p className="text-center text-xs text-blue-600">
-                        {t('code_expires', {
-                          date: new Date(generatedCode.expiresAt).toLocaleDateString(),
-                        })}
-                      </p>
-                      <div className="flex gap-3">
+                      {generatedCode ? (
+                        <div className="space-y-4">
+                          {/* Invite code (for registration) */}
+                          <div className="rounded-lg border-2 border-green-200 bg-green-50 p-4 text-center">
+                            <p className="mb-1 text-sm font-medium text-green-700">
+                              {t('invite_code_label')}
+                            </p>
+                            <p className="font-mono text-2xl font-bold tracking-wider text-green-900">
+                              {generatedCode.inviteCode}
+                            </p>
+                            <button
+                              onClick={handleCopyInviteCode}
+                              className="mt-2 rounded-md bg-green-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-green-700"
+                            >
+                              {inviteCodeCopied ? t('code_copied') : t('copy_code')}
+                            </button>
+                          </div>
+
+                          {/* Linking code (for profile setup) */}
+                          <div className="rounded-lg border-2 border-blue-200 bg-blue-50 p-4 text-center">
+                            <p className="mb-1 text-sm font-medium text-blue-700">
+                              {t('linking_code_label')}
+                            </p>
+                            <p className="font-mono text-2xl font-bold tracking-wider text-blue-900">
+                              {generatedCode.code}
+                            </p>
+                            <button
+                              onClick={handleCopyCode}
+                              className="mt-2 rounded-md bg-blue-600 px-3 py-1 text-xs font-medium text-white transition-colors hover:bg-blue-700"
+                            >
+                              {codeCopied ? t('code_copied') : t('copy_code')}
+                            </button>
+                          </div>
+
+                          <p className="text-center text-xs text-blue-600">
+                            {t('code_expires', {
+                              date: new Date(generatedCode.expiresAt).toLocaleDateString(),
+                            })}
+                          </p>
+                          <div className="flex gap-3">
+                            <button
+                              onClick={handleGenerateCode}
+                              disabled={isGeneratingCode}
+                              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                            >
+                              {t('generate_code')}
+                            </button>
+                          </div>
+                          <p className="text-sm text-gray-500">{t('code_instructions')}</p>
+                        </div>
+                      ) : (
                         <button
                           onClick={handleGenerateCode}
                           disabled={isGeneratingCode}
-                          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                         >
-                          {t('generate_code')}
+                          {isGeneratingCode ? t('generating_code') : t('generate_code')}
                         </button>
-                      </div>
-                      <p className="text-sm text-gray-500">{t('code_instructions')}</p>
+                      )}
                     </div>
-                  ) : (
-                    <button
-                      onClick={handleGenerateCode}
-                      disabled={isGeneratingCode}
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {isGeneratingCode ? t('generating_code') : t('generate_code')}
-                    </button>
                   )}
-                </div>
-              </section>
-            )}
+                </section>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
+
+      {/* Unsaved changes modal */}
+      {showUnsavedModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="unsaved-modal-title"
+            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl"
+          >
+            <h2 id="unsaved-modal-title" className="text-lg font-semibold text-gray-900">
+              {t('unsaved_modal_title')}
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">{t('unsaved_modal_body')}</p>
+            <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:justify-end sm:gap-3">
+              <button
+                onClick={handleUnsavedCancel}
+                className="rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                {t('unsaved_modal_cancel')}
+              </button>
+              <button
+                onClick={handleUnsavedDiscard}
+                className="rounded-lg border border-red-300 px-4 py-2.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+              >
+                {t('unsaved_modal_discard')}
+              </button>
+              <button
+                onClick={handleUnsavedSaveAndLeave}
+                className="rounded-lg bg-green-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-green-700"
+              >
+                {t('unsaved_modal_save')}
+              </button>
+            </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 }
