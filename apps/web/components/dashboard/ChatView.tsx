@@ -167,16 +167,16 @@ export default function ChatView({
   return (
     <section className="flex h-full flex-col" aria-label={displayName}>
       {/* Chat header */}
-      <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3">
+      <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 md:px-5 md:py-4">
         {/* Back button (visible on mobile) */}
         <button
           onClick={onBack}
           aria-label={t('chat.back_to_list')}
           title={t('chat.back_to_list')}
-          className="p-1 text-gray-500 hover:text-gray-700 md:hidden"
+          className="p-1.5 text-gray-500 hover:text-gray-700 md:hidden"
         >
           <svg
-            className="h-5 w-5"
+            className="h-6 w-6"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -191,25 +191,26 @@ export default function ChatView({
           </svg>
         </button>
 
-        <div className="flex min-w-0 flex-1 items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
           <span
             aria-label={otherUser.isOnline ? t('conversations.online') : t('conversations.offline')}
             title={otherUser.isOnline ? t('conversations.online') : t('conversations.offline')}
-            className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${
+            className={`h-3 w-3 flex-shrink-0 rounded-full ${
               otherUser.isOnline ? 'bg-green-500' : 'bg-gray-300'
             }`}
           />
-          <span className="truncate font-medium text-gray-900">{displayName}</span>
+          <span className="truncate text-lg font-semibold text-gray-900">{displayName}</span>
 
+          {/* "How to talk to me" button — prominent with label */}
           <button
             ref={guideButtonRef}
             onClick={() => setShowGuide(true)}
             aria-label={t('chat.view_guide', { name: displayName })}
             title={t('chat.view_guide', { name: displayName })}
-            className="flex-shrink-0 rounded-full p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-blue-600"
+            className="flex flex-shrink-0 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition-colors hover:bg-blue-100"
           >
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -222,16 +223,17 @@ export default function ChatView({
                 d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
+            <span className="hidden sm:inline">{t('chat.view_guide', { name: displayName })}</span>
           </button>
 
           {otherUser.calmModeActive && (
-            <span className="rounded-full bg-purple-100 px-2 py-0.5 text-xs text-purple-700">
+            <span className="rounded-full bg-purple-100 px-2.5 py-1 text-sm text-purple-700">
               {t('chat.calm_mode_active')}
             </span>
           )}
 
           {energyText && (
-            <span className="text-xs text-gray-500">
+            <span className="text-sm text-gray-500">
               {t('chat.energy_label', { level: energyText })}
             </span>
           )}
@@ -243,10 +245,10 @@ export default function ChatView({
             onClick={() => onHideConversation(conversation.id)}
             aria-label={t('chat.hide_conversation')}
             title={t('chat.hide_conversation')}
-            className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="rounded-lg p-2.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
           >
             <svg
-              className="h-4 w-4"
+              className="h-5 w-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -267,10 +269,10 @@ export default function ChatView({
           onClick={() => onReportUser?.(otherUser.id, displayName)}
           aria-label={t('chat.report_user')}
           title={t('chat.report_user')}
-          className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-yellow-600"
+          className="rounded-lg p-2.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-yellow-600"
         >
           <svg
-            className="h-4 w-4"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -290,10 +292,10 @@ export default function ChatView({
           onClick={() => onBlockUser?.(otherUser.id, displayName)}
           aria-label={t('chat.block_user')}
           title={t('chat.block_user')}
-          className="rounded-md p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-600"
+          className="rounded-lg p-2.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-600"
         >
           <svg
-            className="h-4 w-4"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -316,10 +318,10 @@ export default function ChatView({
           disabled={isLoading}
           aria-label={t('chat.refresh_messages')}
           title={t('chat.refresh_messages')}
-          className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
+          className="rounded-lg p-2.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 disabled:opacity-50"
         >
           <svg
-            className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`}
+            className={`h-5 w-5 ${isLoading ? 'animate-spin' : ''}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -365,7 +367,7 @@ export default function ChatView({
 
         {messages.length === 0 && !isLoading ? (
           <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-gray-500">{t('chat.no_messages')}</p>
+            <p className="text-base text-gray-500">{t('chat.no_messages')}</p>
           </div>
         ) : (
           messages.map(msg => (
@@ -384,7 +386,7 @@ export default function ChatView({
 
         {/* Typing indicator */}
         {typingUser && (
-          <div className="mt-2 text-xs text-gray-500" role="status" aria-live="polite">
+          <div className="mt-2 text-sm text-gray-500" role="status" aria-live="polite">
             {t('chat.typing', { name: typingUser.displayName })}
           </div>
         )}
@@ -393,13 +395,13 @@ export default function ChatView({
       </div>
 
       {/* Input area */}
-      <footer className="border-t border-gray-200 bg-white px-3 py-2 md:px-4 md:py-3">
+      <footer className="border-t border-gray-200 bg-white px-4 py-3 md:px-5 md:py-4">
         <form
           onSubmit={e => {
             e.preventDefault();
             handleSend();
           }}
-          className="flex items-end gap-2"
+          className="flex items-end gap-3"
         >
           <label htmlFor="message-input" className="sr-only">
             {t('chat.message_input_label')}
@@ -411,13 +413,13 @@ export default function ChatView({
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder')}
             rows={1}
-            className="max-h-32 flex-1 resize-none rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
-            style={{ minHeight: '38px' }}
+            className="max-h-32 flex-1 resize-none rounded-lg border border-gray-300 px-4 py-2.5 text-base shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+            style={{ minHeight: '44px' }}
           />
           <button
             type="submit"
             disabled={isSending || !inputText.trim()}
-            className="flex-shrink-0 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex-shrink-0 rounded-lg bg-blue-600 px-5 py-2.5 text-base font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t('chat.send')}
           </button>

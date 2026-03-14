@@ -16,6 +16,7 @@
   "language": "Language",
   "french": "French",
   "english": "English",
+  "settings": "Settings",
   "logout": "Logout",
   "welcome": "Welcome",
   "locale_code": "en-CA",

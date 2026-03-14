@@ -2,6 +2,19 @@
 
 body {
   font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Bigger base sizing for readability (neurodivergent-friendly) */
+button, a, select, input, textarea {
+  font-size: inherit;
+}
+
+/* Ensure minimum touch/click target size (44px WCAG) */
+button:not([class*="sr-only"]),
+a:not([class*="sr-only"]) {
+  min-height: 2rem;
 }
 
 /* Sensory preferences — applied via body classes by SensoryProvider */
