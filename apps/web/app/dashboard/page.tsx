@@ -615,7 +615,7 @@ export default function DashboardPage() {
       <div id="main-content" className="flex flex-1 overflow-hidden">
         {/* Sidebar — hidden on mobile when a conversation is selected */}
         <aside
-          className={`relative w-full border-r border-gray-200 bg-white md:w-80 md:flex-shrink-0 ${
+          className={`relative w-full border-r border-gray-200 bg-white md:w-[360px] md:flex-shrink-0 ${
             selectedConversation ? 'hidden md:block' : 'block'
           }`}
         >

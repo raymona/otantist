@@ -95,9 +95,9 @@ export default function StatusBar({
   }, [moreMenuOpen]);
 
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 md:gap-6 md:px-6">
+    <header className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 bg-white px-4 py-2 md:gap-4 md:px-6">
       {/* Left: user info + energy */}
-      <div className="flex min-w-0 items-center gap-3 md:gap-5">
+      <div className="flex min-w-0 items-center gap-2 md:gap-3">
         {/* Display name (not a settings link anymore) */}
         <span className="flex max-w-[180px] items-center gap-2 text-base font-semibold text-gray-800 md:max-w-[240px]">
           <span className="truncate">{user?.displayName || user?.email}</span>
@@ -118,7 +118,7 @@ export default function StatusBar({
           href="/settings"
           aria-label={t('common:settings')}
           title={t('common:settings')}
-          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-800"
+          className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200 hover:text-gray-800"
         >
           <svg
             className="h-5 w-5"
@@ -161,7 +161,7 @@ export default function StatusBar({
                 aria-label={t(`status_bar.energy_${level}`)}
                 title={t(`status_bar.energy_${level}`)}
                 onClick={() => onEnergyChange(level)}
-                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-white transition-all ${
+                className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white transition-all ${
                   energyColors[level]
                 } ${socialEnergy === level ? 'scale-110 ring-2 ring-gray-400 ring-offset-1' : 'opacity-40 hover:opacity-70'}`}
               >
@@ -176,12 +176,12 @@ export default function StatusBar({
       </div>
 
       {/* Right: calm mode + (desktop: full nav) + (mobile: more button) */}
-      <nav aria-label={t('common:app_name')} className="flex items-center gap-2 md:gap-4">
+      <nav aria-label={t('common:app_name')} className="flex items-center gap-1.5 md:gap-3">
         {/* Calm mode toggle — always visible */}
         <button
           onClick={onCalmModeToggle}
           aria-pressed={calmModeActive}
-          className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+          className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium transition-colors ${
             calmModeActive
               ? 'border border-purple-300 bg-purple-100 text-purple-700'
               : 'border border-gray-200 bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -208,11 +208,11 @@ export default function StatusBar({
         </button>
 
         {/* Desktop nav items — hidden on mobile */}
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-1.5 md:flex">
           {/* Blocked users button */}
           <button
             onClick={onOpenBlockedUsers}
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             <svg
               className="h-4 w-4"
@@ -235,7 +235,7 @@ export default function StatusBar({
           {user?.isParent && (
             <Link
               href="/parent"
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
             >
               <svg
                 className="h-4 w-4"
@@ -259,7 +259,7 @@ export default function StatusBar({
           {user?.isSuperAdmin && (
             <Link
               href="/admin"
-              className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+              className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
             >
               <svg
                 className="h-4 w-4"
@@ -289,7 +289,7 @@ export default function StatusBar({
           {(user?.isModerator || user?.isSuperAdmin) && (
             <Link
               href="/moderation"
-              className="relative flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+              className="relative flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
             >
               <svg
                 className="h-4 w-4"
@@ -320,7 +320,7 @@ export default function StatusBar({
           {/* Help link */}
           <Link
             href="/help"
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             <svg
               className="h-4 w-4"
@@ -342,7 +342,7 @@ export default function StatusBar({
           {/* Feedback link */}
           <Link
             href="/feedback"
-            className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
+            className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-200"
           >
             <svg
               className="h-4 w-4"
@@ -380,7 +380,7 @@ export default function StatusBar({
 
           <button
             onClick={handleLogout}
-            className="rounded-lg border border-red-300 px-4 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+            className="rounded-lg border border-red-300 px-3 py-1 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
           >
             {t('common:logout')}
           </button>
