@@ -161,7 +161,7 @@ export default function StatusBar({
                 aria-label={t(`status_bar.energy_${level}`)}
                 title={t(`status_bar.energy_${level}`)}
                 onClick={() => onEnergyChange(level)}
-                className={`flex aspect-square h-6 w-6 items-center justify-center rounded-full text-[10px] leading-none font-bold text-white transition-all ${
+                className={`flex aspect-square h-6 min-h-0 w-6 items-center justify-center rounded-full text-[10px] leading-none font-bold text-white transition-all ${
                   energyColors[level]
                 } ${socialEnergy === level ? 'scale-110 ring-2 ring-gray-400 ring-offset-1' : 'opacity-40 hover:opacity-70'}`}
               >
