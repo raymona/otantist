@@ -1,6 +1,6 @@
 # Otantist — Tester Guide
 
-Thank you for being an early tester of Otantist. This guide covers everything the app can do and how to test it. Please read it before your first login.
+Welcome to Otantist. This guide walks you through everything you need to get started and use the app. Please read it before your first login.
 
 ---
 
@@ -12,85 +12,108 @@ This is an early beta. Some things may not be finished, and your feedback helps 
 
 ---
 
-## Test Accounts
-
-All test accounts use the same password: **`Password123!`**
-
-| Email             | Role        | Notes                                                  |
-| ----------------- | ----------- | ------------------------------------------------------ |
-| `marie@test.com`  | User        | French, fully onboarded                                |
-| `alex@test.com`   | User        | English, fully onboarded, has blocked Sam              |
-| `sam@test.com`    | User        | English, partial onboarding (stopped at sensory step)  |
-| `jordan@test.com` | User        | English, fully onboarded                               |
-| `mod@test.com`    | Moderator   | Redirects to /moderation on login                      |
-| `admin@test.com`  | Super Admin | Redirects to /admin on login                           |
-| `parent@test.com` | Parent      | Manages Léo, Emma, Noah; redirects to /parent on login |
-| `minor@test.com`  | Minor       | Léo — parent-managed account                           |
-| `minor2@test.com` | Minor       | Emma — parent-managed account                          |
-| `minor3@test.com` | Minor       | Noah — parent-managed (legal guardian relationship)    |
-
-**Invite codes:** `BETA2024`, `TESTCODE`
-
----
-
 ## What you will need
 
-- An **invite code** (see above, or one provided by the person who invited you)
-- An **email address** you can access (for verification)
+- An **invite code** (provided by the person who invited you)
+- An **email address** you can access
 - A modern web browser (Chrome, Firefox, Safari, Edge)
 
-The app is available at: **https://otantist-web.vercel.app**
+The app is at: **https://otantist-web.vercel.app**
 
 ---
 
-## Creating your account
+## Step 1: Creating your account
 
 1. Go to the app and click **Register**
-2. Enter your email address, choose a password, and enter your invite code
-3. Check your email for a verification link and click it
-4. Read and accept the terms of use
-5. Complete your profile setup (5 short steps — you can save and come back if needed)
+2. Enter your **email address**, choose a **password** (at least 8 characters, with a number and uppercase letter), and type your **invite code**
+3. Choose your preferred **language** (French or English) — you can change this later
+4. Click **Register**
 
-Once that is done, you will land on your main dashboard.
+Your account is created and you will be taken to the next step.
 
 ---
 
-## Setting up your profile (onboarding)
+## Step 2: Accept the terms of use
 
-The setup has 5 steps. You can update everything later in Settings.
+After registering, you will see the terms of use. Read them and click **Accept** to continue. You only need to do this once.
 
-| Step          | What you do                                                     |
-| ------------- | --------------------------------------------------------------- |
-| Profile       | Choose a display name and age group                             |
-| Communication | Set your preferred tone and messaging style                     |
-| Sensory       | Adjust animations and colour intensity                          |
-| Availability  | Set the hours when you are available to receive messages        |
-| Topics        | Add conversation starters, topics to avoid, and tips for others |
+---
 
-**Required fields:** Display name + age group (Profile step), preferred tone + at least one communication mode (Communication step). Everything else is optional.
+## Step 3: Set up your profile (onboarding)
+
+The setup has 5 short steps. Take your time — there is no rush. You can update everything later in Settings.
+
+### Step 3a: Profile
+
+- **Display name** (required) — the name other people will see. It does not need to be your real name.
+- **Age group** (required) — select the range that fits you. If you select 14-17, you will be asked for a parent linking code (see the Parents section below).
+- **Profile visibility** — choose who can see your profile.
+
+### Step 3b: Communication preferences
+
+- **Preferred tone** (required) — how you like people to talk to you (casual, gentle, direct, etc.)
+- **Communication modes** (required, pick at least one) — text, voice notes, images, etc.
+- **Rhythm preferences** — whether slow replies are okay, one message at a time, and if it is fine to read without replying.
+
+### Step 3c: Sensory preferences
+
+- **Animations** — turn them off if movement on screen is distracting
+- **Colour intensity** — reduce the brightness of colours if they feel overwhelming
+- **Sound** — toggle notification sounds
+- **Notification limit** — control how many notifications you receive at once
+
+All sensory settings have comfortable defaults. You can skip this step entirely if you are not sure.
+
+### Step 3d: Conversation starters
+
+- **Good topics** — things you enjoy talking about
+- **Topics to avoid** — things you would rather not discuss
+- **Tips for others** — anything that helps people communicate with you
+
+These are all optional but very helpful for the people you chat with.
+
+### Step 3e: Done
+
+That is it. Click **Go to Dashboard** and you are ready to use the app.
 
 ---
 
 ## Your main dashboard
 
-After setup, you land on the **messaging dashboard**. It has two parts:
+After setup, you land on the **messaging dashboard**. It has two main areas:
 
 - **Left sidebar** — your list of conversations
-- **Right panel** — the open conversation
+- **Right panel** — the currently open conversation
 
-At the top is the toolbar with your name, energy level, and quick links.
+At the top is a **toolbar** with your name, energy level, settings, and navigation links.
+
+---
+
+## The toolbar (top of every page)
+
+Here is what you will find in the toolbar, from left to right:
+
+- **Your display name** — shown as plain text so you always know which account you are logged into
+- **Settings** (gear icon) — click this to open your settings page
+- **Energy level** (coloured circles) — set your social energy (see below)
+- **Calm mode** (moon icon) — toggle calm mode on or off
+- **Navigation links** (desktop) — Blocked users, Help, Feedback, and role-specific links
+- **Language toggle** (FR / EN) — switch between French and English
+- **Logout** — sign out of your account
+
+On mobile, the navigation links are hidden behind a **menu button** (three dots) on the right.
 
 ---
 
 ## Social energy
 
-Social energy shows others how available you are right now. You set it yourself using the coloured circles in the toolbar:
+Social energy shows others how available you are right now. Set it using the coloured circles in the toolbar:
 
 - **High** (green) — happy to chat
 - **Medium** (yellow) — available but not fully
 - **Low** (red) — prefer not to be contacted right now
 
-This is optional. You can change it at any time or leave it as-is. Other users can see your current energy level.
+This is optional. You can change it at any time. Other users can see your current energy level when they open a conversation with you.
 
 ---
 
@@ -100,7 +123,8 @@ Calm mode pauses all incoming messages so you are not interrupted. Messages sent
 
 - Turn it on or off with the **moon button** in the toolbar
 - A **purple banner** appears at the top of the screen when calm mode is active
-- Your conversation list will appear dimmed while calm mode is on
+- Your conversation list will appear dimmed
+- Other users will not see typing indicators from you
 
 ---
 
@@ -108,10 +132,10 @@ Calm mode pauses all incoming messages so you are not interrupted. Messages sent
 
 When you open the dashboard each day, a short check-in prompt appears. It asks two things:
 
-- How is your **social energy** right now? (high, medium, or low)
+- How is your **social energy** right now?
 - Would you like to start with **calm mode on**?
 
-This takes about 5 seconds. You can skip it if you prefer. The check-in only appears once per day.
+This takes about 5 seconds. You can skip it if you prefer. It only appears once per day.
 
 ---
 
@@ -130,53 +154,62 @@ You can only message people who have finished setting up their profile.
 
 ### How to talk to someone
 
-Click the **info button** next to the person's name at the top of the chat. This shows their communication preferences — their preferred tone, topics they enjoy, things to avoid, and tips they have shared.
+At the top of the chat, next to the other person's name, there is a blue **"How to talk to..."** button. Click it to see their communication preferences — their preferred tone, topics they enjoy, things to avoid, and tips they have shared. This helps you communicate in a way that works for them.
 
 ### Message status
 
-Each message shows a small indicator:
+Each message you send shows a small indicator:
 
-- **Queued** — waiting to be delivered (recipient has calm mode on or is outside their availability hours)
-- **Sent** — successfully sent
+- **Queued** — waiting to be delivered (the other person has calm mode on or is outside their availability hours)
+- **Sent** — delivered to the server
 - **Delivered** — received by their device
-- **Read** — they have read it
+- **Read** — they have opened and read it
 
-### Deleting a message
+When a queued message is finally delivered, the status updates automatically.
 
-Click **Delete** on any message to remove it from your view. The other person can still see it. This is intentional — it preserves the conversation for the other person.
+### Message actions
+
+Hover over any message (or tap on mobile) to see a **"..."** button. Click it for options:
+
+- **Delete for me** — removes the message from your view only. The other person can still see it.
+- **Report message** (on messages from others) — sends a report to the moderation team.
 
 ### Hiding a conversation
 
-Click **Hide conversation** to remove it from your sidebar. To see your hidden conversations, click the **eye icon** in the sidebar header. From the hidden view, you can click **Unhide** next to any conversation to restore it. Hidden conversations also come back automatically if the other person sends you a new message.
+Click the **eye icon** in the chat header to hide a conversation from your sidebar. To see hidden conversations, click the **eye icon** in the sidebar header to switch to the hidden view. Click **Unhide** on any conversation to bring it back. Hidden conversations also reappear automatically if the other person sends you a new message.
 
 ---
 
 ## Session timer
 
-The session timer is a gentle reminder to take breaks. It does not lock you out.
+The session timer is a gentle reminder to take breaks. It never locks you out.
 
-- Set a duration from the timer bar at the top: **Off**, 15, 20, 25, or 30 minutes
-- The timer starts automatically when you send your first message
-- When time is running low, the bar turns **amber** (5 minutes left) then **red** (1 minute left)
-- When the session ends, a soft screen appears with a reminder to take a breath
-- Click **I am ready to continue** when you are ready
+- Choose a duration from the timer bar below the toolbar: **15**, **20**, **25**, or **30** minutes
+- The timer starts immediately when you select a duration
+- As time runs low, the bar changes colour: **blue** (normal), **amber** (5 minutes left), **red** (1 minute left)
+- When the session ends, a soft screen appears suggesting you take a break
+- Click **I am ready to continue** to dismiss it — the timer resets to Off and you can pick a new duration
 
-The timer resets when you close the screen. Your chosen duration is saved.
+The timer stays running even if you navigate to other pages (settings, help, etc.).
 
 ---
 
 ## Settings
 
-Click your **name** in the toolbar to open Settings. You can update any part of your profile:
+Click the **gear icon** next to your name in the toolbar to open Settings. The page has collapsible sections — click any section header to expand or collapse it.
 
 - **Profile** — display name, age group, visibility
-- **Communication** — tone, messaging modes, rhythm
-- **Sensory** — animations, colour intensity
-- **Availability** — your hours for each day of the week
-- **Conversation starters** — good topics, topics to avoid, tips for others
+- **Communication** — tone, messaging modes, rhythm preferences
+- **Sensory** — animations, colour intensity, sound, notifications
+- **Conversation starters** — good topics, topics to avoid, tips
+- **Time boundaries** — set the hours you are available each day of the week. Messages sent outside these hours are held and delivered when you become available.
 - **Language** — French or English
 
-Each section saves on its own.
+Each section has its own **Save** button. If you have changes in multiple sections, use the green **Save all changes** button at the top of the page.
+
+If you try to leave with unsaved changes, a dialog will ask you to **Save & leave**, **Discard & leave**, or **Stay on this page**.
+
+On desktop, a **sidebar** on the left lets you jump directly to any section.
 
 ---
 
@@ -190,16 +223,16 @@ The app is fully available in **French** and **English**. Use the language toggl
 
 ### Blocking
 
-If someone makes you uncomfortable, you can block them. Open your conversation with them and click **Block user**. This will:
+If someone makes you uncomfortable, you can block them. In your conversation with them, click the **block icon** (circle with a line through it) in the chat header. A confirmation dialog will explain what happens:
 
-- Prevent them from sending you messages
-- Archive your conversation with them
+- They cannot send you messages
+- Your conversation is archived
 
-You can unblock someone at any time from the **blocked users list** in the toolbar.
+You can unblock someone at any time from the **Blocked users** button in the toolbar.
 
 ### Reporting
 
-To report a user or a specific message, click the **Report** button in the conversation. You can choose a reason (harassment, inappropriate content, spam, safety concern, or other) and add details. Reports go to the moderation team for review.
+To report a user, click the **warning triangle** icon in the chat header. To report a specific message, use the **"..."** menu on that message and choose **Report message**. You can pick a reason (harassment, inappropriate content, spam, safety concern, or other) and add details. Reports go to the moderation team.
 
 ---
 
@@ -207,100 +240,47 @@ To report a user or a specific message, click the **Report** button in the conve
 
 ### Linking a child's account
 
-To link a child's account to yours:
+If you are a parent and want to link your child's account to yours:
 
-1. Log in to your account and go to **Settings** (click your name in the toolbar)
-2. Scroll to the bottom — find the **"Link a Minor"** section
+1. Log in and click the **gear icon** to open **Settings**
+2. Open the **"Link a Minor"** section at the bottom
 3. Click **"Generate linking code"** — you will get **two codes**:
-   - An **invite code** (like `INV-ABCDEF`) — your child needs this to register
-   - A **linking code** (like `LINK-ABCD1234`) — your child enters this during profile setup
+   - An **invite code** (like `INV-ABCDEF`) — your child needs this to create their account
+   - A **linking code** (like `LINK-ABCD1234`) — your child enters this during their profile setup
 4. Give both codes to your child
-5. Your child registers their own account using the **invite code**, selects **14-17** as their age group during onboarding, and enters the **linking code** when prompted
+5. Your child registers using the **invite code**, selects **14-17** as their age group, and enters the **linking code** when prompted
 6. Their account becomes parent-managed and linked to yours
 
-Each pair of codes can only be used once and expires after 7 days. You can generate new codes at any time.
+Each pair of codes can only be used once and expires after 7 days.
 
 ### Parent dashboard
 
-If your account is linked to a managed member (minor), you will see a **Parent** button in the toolbar. This takes you to the parent dashboard where you can:
+Once linked, you will see a **Parent** button in the toolbar. The parent dashboard shows:
 
-- See your managed member(s) with their relationship and status
-- View activity indicators for the last 30 days (energy levels, calm mode usage, message counts)
-- View and acknowledge alerts (severity: info, warning, urgent)
+- Your managed member(s) with their relationship and account status
+- Activity indicators for the last 30 days (energy levels, calm mode usage, message counts)
+- Alerts with severity badges (info, warning, urgent) and an acknowledge button
 
-**Privacy:** Your member's actual message content is private. Indicators show patterns only (for example, how long calm mode was active), not individual messages. Minor accounts cannot message adult accounts and do not appear in the user directory for adults.
-
-**To test:** Log in as `parent@test.com`. You will see Léo as a managed member with pre-populated indicators and alerts.
-
----
-
-## For moderators
-
-Moderator accounts are used by the Otantist team to review reports and flagged content.
-
-### What moderators can do
-
-- View the **moderation queue** — items reported by users or flagged by the system
-- Filter by status (pending, reviewing, resolved) and priority (low, medium, high, urgent)
-- Review item details and related content
-- Resolve items with an action (dismissed, warned, removed, suspended) and optional notes
-- See moderation stats (pending, reviewing, resolved counts, priority breakdown)
-
-### How it works
-
-- A **badge** in the toolbar shows the count of pending items
-- The badge updates every 60 seconds and in real-time when new reports arrive
-- Moderators cannot be messaged and do not appear in the user directory
-- Moderators bypass the normal onboarding flow
-
-**To test:** Log in as `mod@test.com`. You will land on the moderation page with pre-populated queue items.
-
----
-
-## For super admins
-
-Super admin accounts have all moderator capabilities plus user management.
-
-### What super admins can do
-
-- View all users in a searchable table (email, name, role, status)
-- Change a user's role:
-  - **Set Moderator** — gives access to the moderation queue
-  - **Set Admin** — gives full admin access (use with care)
-  - **Set User** — reverts a moderator or admin to a regular user
-- Minor (parent-managed) accounts cannot have their role changed
-- **Create and manage invite codes** — set a code value, max uses, and optional expiry date
-- View all existing invite codes with usage counts
-- Access the moderation queue (same as moderators)
-
-### How it works
-
-- Super admins see an **Admin** link and a **Moderation** link in the toolbar
-- The admin page has a search bar and a table of all users with role change buttons
-- Below the user table is the **Invite Codes** section where you can create new codes and see all existing ones
-- Role changes require a confirmation dialog
-- Super admins bypass onboarding, cannot be messaged, and do not appear in the user directory
-
-**To test:** Log in as `admin@test.com`. You will land on the admin page. Try promoting a user to moderator, then reverting them. Scroll down to see the invite codes section — try creating a new code and copying it.
+**Privacy:** You can see activity patterns but not individual message content. Minor accounts cannot message adult accounts and do not appear in the adult user directory.
 
 ---
 
 ## Giving feedback
 
-Your feedback is the most useful thing you can give at this stage. Click the **pencil icon** in the toolbar to open the feedback form. You can choose a category (general, bug report, feature request, or sensory/comfort issue) and write your message.
+Your feedback is the most valuable thing you can offer at this stage. Click **Feedback** in the toolbar to open the feedback form. Choose a category and write your message.
 
-Things that are especially helpful to hear:
+Things that are especially helpful:
 
 - Anything that felt confusing or unclear
 - Anything that felt uncomfortable or overwhelming
 - Features you wished existed
-- Things that worked well and felt right
+- Things that worked well
 
 ---
 
 ## Help
 
-Click the **?** button in the toolbar to open the in-app help page. It covers all features with jump navigation and is available in both French and English.
+Click **Help** in the toolbar to open the in-app help page. It covers all features with jump navigation, in both French and English.
 
 ---
 
@@ -310,6 +290,54 @@ Click the **?** button in the toolbar to open the in-app help page. It covers al
 - Your profile is only visible to other registered users
 - You control your visibility in Settings
 - The Otantist team may review flagged content for moderation purposes only
+
+---
+
+## Test accounts (for internal testing)
+
+If you are part of the internal testing team, these pre-made accounts are available. All use the password: **`Password123!`**
+
+| Email             | Role        | Notes                                                  |
+| ----------------- | ----------- | ------------------------------------------------------ |
+| `marie@test.com`  | User        | French, fully onboarded                                |
+| `alex@test.com`   | User        | English, fully onboarded, has blocked Sam              |
+| `sam@test.com`    | User        | English, partial onboarding (stopped at sensory step)  |
+| `jordan@test.com` | User        | English, fully onboarded                               |
+| `mod@test.com`    | Moderator   | Redirects to /moderation on login                      |
+| `admin@test.com`  | Super Admin | Redirects to /admin on login                           |
+| `parent@test.com` | Parent      | Manages Leo, Emma, Noah; redirects to /parent on login |
+| `minor@test.com`  | Minor       | Leo — parent-managed account                           |
+| `minor2@test.com` | Minor       | Emma — parent-managed account                          |
+| `minor3@test.com` | Minor       | Noah — parent-managed (legal guardian relationship)    |
+
+**Invite codes:** `BETA2024`, `TESTCODE`
+
+---
+
+## For moderators (internal)
+
+Moderator accounts are used by the Otantist team to review reports.
+
+- View the **moderation queue** — items reported by users or flagged by the system
+- Filter by status (pending, reviewing, resolved) and priority (low, medium, high, urgent)
+- Review details and resolve with an action (dismissed, warned, removed, suspended) and optional notes
+- A **badge** in the toolbar shows pending item count, updated every 60 seconds and in real-time
+- Moderators cannot be messaged and do not appear in the user directory
+
+**To test:** Log in as `mod@test.com`.
+
+---
+
+## For super admins (internal)
+
+Super admin accounts have all moderator capabilities plus user management.
+
+- View all users in a searchable table
+- Change user roles (set moderator, set admin, set user)
+- Create and manage invite codes (set a code, max uses, expiry date)
+- Access the moderation queue
+
+**To test:** Log in as `admin@test.com`.
 
 ---
 
