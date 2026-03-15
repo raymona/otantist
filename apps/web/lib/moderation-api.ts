@@ -11,6 +11,7 @@ export interface ModerationQueueItem {
   priority: string; // 'low' | 'medium' | 'high' | 'urgent'
   actionTaken?: string | null;
   resolutionNotes?: string | null;
+  originalContent?: string | null;
   createdAt: string;
   resolvedAt?: string | null;
   relatedContent?: Record<string, unknown> | null;

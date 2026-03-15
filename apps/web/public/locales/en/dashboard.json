@@ -91,7 +91,12 @@
     "report_message": "Report message",
     "typing": "{{name}} is typing...",
     "typing_short": "typing...",
-    "view_guide": "How to talk to {{name}}"
+    "view_guide": "How to talk to {{name}}",
+    "system_messages": {
+      "moderation_message_removed": "A message in this conversation was reviewed and removed by our safety team. If you have questions, you can share your thoughts through the feedback form.",
+      "moderation_user_warned": "Our safety team reviewed a concern in this conversation. We're here to keep this a comfortable space for everyone — please take a moment to review our community guidelines.",
+      "moderation_user_suspended": "This user's account has been temporarily suspended by our safety team."
+    }
   },
   "how_to_talk": {
     "title": "How to talk to {{name}}",

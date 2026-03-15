@@ -55,7 +55,8 @@
     "sender": "Expéditeur",
     "user_info": "Informations utilisateur",
     "action_taken": "Action prise",
-    "resolution_notes": "Notes de résolution"
+    "resolution_notes": "Notes de résolution",
+    "original_content": "Contenu original"
   },
   "resolve": {
     "title": "Résoudre l'élément",

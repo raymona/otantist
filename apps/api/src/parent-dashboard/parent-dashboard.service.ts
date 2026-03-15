@@ -313,6 +313,42 @@ export class ParentDashboardService {
     return { success: true };
   }
 
+  /**
+   * Create a parent alert if the given account is managed by a parent.
+   * Called from moderation and safety services when a minor is involved.
+   * Returns true if an alert was created, false if the account is not managed.
+   */
+  async createAlertForManagedMember(
+    memberAccountId: string,
+    memberUserId: string,
+    alertType: 'flagged_message' | 'moderation_action' | 'stress_indicator',
+    severity: 'info' | 'warning' | 'urgent',
+    messageFr: string,
+    messageEn: string
+  ): Promise<boolean> {
+    const managedRelation = await this.prisma.parentManagedAccount.findFirst({
+      where: {
+        memberAccountId,
+        status: 'active',
+      },
+    });
+
+    if (!managedRelation) return false;
+
+    await this.prisma.parentAlert.create({
+      data: {
+        parentAccountId: managedRelation.parentAccountId,
+        memberUserId,
+        alertType,
+        severity,
+        messageFr,
+        messageEn,
+      },
+    });
+
+    return true;
+  }
+
   private async verifyParentAccess(parentAccountId: string, memberUserId: string): Promise<void> {
     // Look up the member's account ID from their user ID
     const memberUser = await this.prisma.user.findUnique({

@@ -3,6 +3,7 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SafetyService } from './safety.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ParentDashboardService } from '../parent-dashboard/parent-dashboard.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
 
 describe('SafetyService', () => {
@@ -22,6 +23,10 @@ describe('SafetyService', () => {
         SafetyService,
         { provide: PrismaService, useValue: prisma },
         { provide: EventEmitter2, useValue: { emit: jest.fn() } },
+        {
+          provide: ParentDashboardService,
+          useValue: { createAlertForManagedMember: jest.fn().mockResolvedValue(false) },
+        },
       ],
     }).compile();
 

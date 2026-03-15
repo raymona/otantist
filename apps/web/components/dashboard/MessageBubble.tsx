@@ -19,6 +19,22 @@ export default function MessageBubble({ message, onDelete, onReport }: MessageBu
   const menuRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
+  // System messages render as centered notices, not chat bubbles
+  if (message.messageType === 'system') {
+    return (
+      <div className="my-4 flex justify-center" role="status">
+        <div className="max-w-[85%] rounded-lg bg-amber-50 px-4 py-2.5 text-center">
+          <p className="text-sm text-amber-800">
+            {t(`chat.system_messages.${message.content}`, message.content)}
+          </p>
+          <time className="mt-1 block text-xs text-amber-500" dateTime={message.createdAt}>
+            {formatRelativeTime(message.createdAt, t)}
+          </time>
+        </div>
+      </div>
+    );
+  }
+
   // Close menu on click outside or Escape
   useEffect(() => {
     if (!menuOpen) return;

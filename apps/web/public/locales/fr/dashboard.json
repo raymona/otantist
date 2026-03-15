@@ -91,7 +91,12 @@
     "report_message": "Signaler le message",
     "typing": "{{name}} écrit...",
     "typing_short": "écrit...",
-    "view_guide": "Comment parler à {{name}}"
+    "view_guide": "Comment parler à {{name}}",
+    "system_messages": {
+      "moderation_message_removed": "Un message dans cette conversation a été examiné et retiré par notre équipe de sécurité. Si vous avez des questions, vous pouvez partager vos pensées via le formulaire de commentaires.",
+      "moderation_user_warned": "Notre équipe de sécurité a examiné une préoccupation dans cette conversation. Nous sommes là pour que cet espace reste confortable pour tout le monde — prenez un moment pour consulter nos règles de communauté.",
+      "moderation_user_suspended": "Le compte de cet utilisateur a été temporairement suspendu par notre équipe de sécurité."
+    }
   },
   "how_to_talk": {
     "title": "Comment parler à {{name}}",

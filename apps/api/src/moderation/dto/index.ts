@@ -51,6 +51,11 @@ export class ModerationQueueItemResponse {
   @ApiPropertyOptional()
   resolutionNotes?: string | null;
 
+  @ApiPropertyOptional({
+    description: 'Original message content preserved when action is "removed"',
+  })
+  originalContent?: string | null;
+
   @ApiProperty()
   createdAt!: Date;
 

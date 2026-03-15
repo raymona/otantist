@@ -304,6 +304,15 @@ export class AppGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to('room:moderators').emit('moderation:new_item', payload);
   }
 
+  @OnEvent('moderation.system_message')
+  handleModerationSystemMessage(payload: { conversationId: string; message: any }) {
+    // Broadcast to both users in the conversation
+    this.server.to(`conversation:${payload.conversationId}`).emit('message:new', {
+      conversationId: payload.conversationId,
+      message: payload.message,
+    });
+  }
+
   @OnEvent('conversation.unhidden')
   handleConversationUnhidden(payload: { conversationId: string; userId: string }) {
     // Notify the user whose conversation was unhidden (e.g. new message arrived)

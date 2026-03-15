@@ -153,6 +153,12 @@ export default function QueueItemDetail({ item, onResolved }: QueueItemDetailPro
               </span>
             </div>
           )}
+          {item.originalContent && (
+            <div className="mt-1 text-xs">
+              <span className="font-medium text-gray-500">{t('detail.original_content')}:</span>{' '}
+              <span className="text-gray-700 italic">&ldquo;{item.originalContent}&rdquo;</span>
+            </div>
+          )}
           {item.resolutionNotes && (
             <div className="mt-1 text-xs">
               <span className="font-medium text-gray-500">{t('detail.resolution_notes')}:</span>{' '}

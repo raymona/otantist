@@ -55,7 +55,8 @@
     "sender": "Sender",
     "user_info": "User information",
     "action_taken": "Action taken",
-    "resolution_notes": "Resolution notes"
+    "resolution_notes": "Resolution notes",
+    "original_content": "Original content"
   },
   "resolve": {
     "title": "Resolve item",

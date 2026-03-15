@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ModerationService } from './moderation.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ParentDashboardService } from '../parent-dashboard/parent-dashboard.service';
 import { createMockPrismaService, MockPrismaService } from '../../test/prisma-mock';
 
 describe('ModerationService', () => {
@@ -19,6 +21,7 @@ describe('ModerationService', () => {
     priority: 'medium',
     actionTaken: null,
     resolutionNotes: null,
+    originalContent: null,
     createdAt: new Date(),
     resolvedAt: null,
   };
@@ -27,7 +30,15 @@ describe('ModerationService', () => {
     prisma = createMockPrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [ModerationService, { provide: PrismaService, useValue: prisma }],
+      providers: [
+        ModerationService,
+        { provide: PrismaService, useValue: prisma },
+        { provide: EventEmitter2, useValue: { emit: jest.fn() } },
+        {
+          provide: ParentDashboardService,
+          useValue: { createAlertForManagedMember: jest.fn().mockResolvedValue(false) },
+        },
+      ],
     }).compile();
 
     service = module.get<ModerationService>(ModerationService);
@@ -108,17 +119,32 @@ describe('ModerationService', () => {
       );
     });
 
-    it('should remove message content when action is removed', async () => {
+    it('should remove message content and preserve original when action is removed', async () => {
       prisma.moderationQueue.findUnique.mockResolvedValueOnce(mockQueueItem).mockResolvedValueOnce({
         ...mockQueueItem,
         status: 'resolved',
         actionTaken: 'removed',
+        originalContent: 'Bad message',
       });
       prisma.message.update.mockResolvedValue({});
+      prisma.user.update.mockResolvedValue({});
       prisma.moderationQueue.update.mockResolvedValue({});
+      prisma.message.create.mockResolvedValue({
+        id: 'sys-msg-id',
+        conversationId: 'c',
+        senderId: 's',
+        messageType: 'system',
+        content: 'moderation_message_removed',
+        status: 'sent',
+        createdAt: new Date(),
+      });
+      prisma.parentManagedAccount.findFirst.mockResolvedValue(null);
       prisma.message.findUnique.mockResolvedValue({
-        content: '[Removed by moderator]',
-        sender: { id: 's', displayName: 'S' },
+        id: 'msg-id',
+        content: 'Bad message',
+        senderId: 's',
+        conversationId: 'c',
+        sender: { id: 's', displayName: 'S', accountId: 'acct-s', account: { id: 'acct-s' } },
         conversation: { id: 'c', userAId: 'a', userBId: 'b' },
         createdAt: new Date(),
       });
@@ -130,7 +156,24 @@ describe('ModerationService', () => {
       expect(prisma.message.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: 'msg-id' },
-          data: { content: '[Removed by moderator]', messageType: 'system' },
+          data: { content: '[moderation_message_removed]', messageType: 'system' },
+        })
+      );
+
+      // Should preserve original content on the queue item
+      expect(prisma.moderationQueue.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            originalContent: 'Bad message',
+          }),
+        })
+      );
+
+      // Should increment warning count
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 's' },
+          data: { warningCount: { increment: 1 } },
         })
       );
     });

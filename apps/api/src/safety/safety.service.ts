@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
+import { ParentDashboardService } from '../parent-dashboard/parent-dashboard.service';
 import { SubmitReportDto, BlockedUserResponse, ReportResponse } from './dto';
 
 @Injectable()
 export class SafetyService {
+  private readonly logger = new Logger(SafetyService.name);
+
   constructor(
     private prisma: PrismaService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
+    private parentDashboard: ParentDashboardService
   ) {}
 
   private async getUserId(accountId: string): Promise<string> {
@@ -259,11 +263,55 @@ export class SafetyService {
       priority: dto.reason === 'safety_concern' ? 'high' : 'medium',
     });
 
+    // Create parent alert if the reported user is a managed minor
+    await this.createReportParentAlert(dto);
+
     return {
       id: report.id,
       reason: report.reason,
       description: report.description,
       createdAt: report.createdAt,
     };
+  }
+
+  /**
+   * If the reported user is a managed minor, notify their parent.
+   */
+  private async createReportParentAlert(dto: SubmitReportDto): Promise<void> {
+    try {
+      // Determine the reported user
+      let reportedUserId = dto.reportedUserId;
+
+      if (!reportedUserId && dto.reportedMessageId) {
+        const message = await this.prisma.message.findUnique({
+          where: { id: dto.reportedMessageId },
+          select: { senderId: true },
+        });
+        reportedUserId = message?.senderId ?? undefined;
+      }
+
+      if (!reportedUserId) return;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: reportedUserId },
+        include: { account: true },
+      });
+
+      if (!user) return;
+
+      const name = user.displayName || 'votre enfant';
+      const nameEn = user.displayName || 'your child';
+
+      await this.parentDashboard.createAlertForManagedMember(
+        user.accountId,
+        user.id,
+        'flagged_message',
+        'warning',
+        `Un message de ${name} a été signalé et est en cours d'examen par notre équipe de sécurité.`,
+        `A message from ${nameEn} has been reported and is being reviewed by our safety team.`
+      );
+    } catch (error) {
+      this.logger.error(`Failed to create report parent alert: ${(error as Error).message}`);
+    }
   }
 }

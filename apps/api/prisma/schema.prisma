@@ -126,6 +126,7 @@ enum AlertType {
   stress_indicator
   prolonged_calm_mode
   inactivity
+  moderation_action
 }
 
 enum AlertSeverity {
@@ -190,6 +191,7 @@ model User {
   profileVisibility  ProfileVisibility @default(visible) @map("profile_visibility")
   onboardingComplete Boolean           @default(false) @map("onboarding_complete")
   onboardingStep     String?           @map("onboarding_step") @db.VarChar(50)
+  warningCount       Int               @default(0) @map("warning_count")
   createdAt          DateTime          @default(now()) @map("created_at")
   updatedAt          DateTime          @updatedAt @map("updated_at")
 
@@ -481,6 +483,7 @@ model ModerationQueue {
   reviewedById    String?            @map("reviewed_by")
   actionTaken     ModerationAction?  @map("action_taken")
   resolutionNotes String?            @map("resolution_notes")
+  originalContent String?            @map("original_content")
   createdAt       DateTime           @default(now()) @map("created_at")
   resolvedAt      DateTime?          @map("resolved_at")
 

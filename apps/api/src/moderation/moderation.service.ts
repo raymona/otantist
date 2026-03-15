@@ -1,10 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
+import { ParentDashboardService } from '../parent-dashboard/parent-dashboard.service';
 import { ResolveQueueItemDto, ModerationQueueItemResponse, ModerationStatsResponse } from './dto';
 
 @Injectable()
 export class ModerationService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(ModerationService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+    private parentDashboard: ParentDashboardService
+  ) {}
 
   async getQueue(status?: string, priority?: string): Promise<ModerationQueueItemResponse[]> {
     const where: any = {};
@@ -32,6 +40,7 @@ export class ModerationService {
           priority: item.priority,
           actionTaken: item.actionTaken,
           resolutionNotes: item.resolutionNotes,
+          originalContent: item.originalContent,
           createdAt: item.createdAt,
           resolvedAt: item.resolvedAt,
           relatedContent,
@@ -89,32 +98,106 @@ export class ModerationService {
       });
     }
 
-    // Apply action
+    let originalContent: string | null = null;
+
+    // ── REMOVED: preserve original content, replace message, auto-warn ──
     if (dto.action === 'removed' && item.itemType === 'message') {
-      await this.prisma.message.update({
+      const message = await this.prisma.message.findUnique({
         where: { id: item.itemId },
-        data: {
-          content: '[Removed by moderator]',
-          messageType: 'system',
+        include: {
+          sender: { include: { account: true } },
+          conversation: true,
         },
       });
+
+      if (message) {
+        originalContent = message.content;
+
+        await this.prisma.message.update({
+          where: { id: item.itemId },
+          data: {
+            content: '[moderation_message_removed]',
+            messageType: 'system',
+          },
+        });
+
+        // Increment warning count on sender (removed = automatic warning)
+        await this.prisma.user.update({
+          where: { id: message.senderId },
+          data: { warningCount: { increment: 1 } },
+        });
+
+        // Send system message into the conversation
+        await this.insertSystemMessage(
+          message.conversationId,
+          message.senderId,
+          'moderation_message_removed'
+        );
+
+        // Parent alert if sender is a managed minor
+        await this.createModerationParentAlert(
+          message.sender.accountId,
+          message.senderId,
+          'removed',
+          message.sender.displayName
+        );
+      }
     }
 
-    if (dto.action === 'suspended' && item.itemType === 'user') {
-      const targetUser = await this.prisma.user.findUnique({
-        where: { id: item.itemId },
-      });
-      if (!targetUser?.accountId) {
-        throw new NotFoundException({
-          code: 'USER_NOT_FOUND',
-          message_en: 'User not found',
-          message_fr: 'Utilisateur introuvable',
+    // ── WARNED: increment warning count, send system message ──
+    if (dto.action === 'warned') {
+      const targetInfo = await this.getTargetUserInfo(item.itemType, item.itemId);
+      if (targetInfo) {
+        await this.prisma.user.update({
+          where: { id: targetInfo.userId },
+          data: { warningCount: { increment: 1 } },
         });
+
+        if (targetInfo.conversationId) {
+          await this.insertSystemMessage(
+            targetInfo.conversationId,
+            targetInfo.userId,
+            'moderation_user_warned'
+          );
+        }
+
+        await this.createModerationParentAlert(
+          targetInfo.accountId,
+          targetInfo.userId,
+          'warned',
+          targetInfo.displayName
+        );
       }
-      await this.prisma.account.update({
-        where: { id: targetUser.accountId },
-        data: { status: 'suspended' },
-      });
+    }
+
+    // ── SUSPENDED: disable account, send system messages ──
+    if (dto.action === 'suspended') {
+      const targetInfo = await this.getTargetUserInfo(item.itemType, item.itemId);
+      if (targetInfo) {
+        await this.prisma.account.update({
+          where: { id: targetInfo.accountId },
+          data: { status: 'suspended' },
+        });
+
+        // Send system message to all active conversations
+        const conversations = await this.prisma.conversation.findMany({
+          where: {
+            OR: [{ userAId: targetInfo.userId }, { userBId: targetInfo.userId }],
+            status: 'active',
+          },
+        });
+
+        for (const conv of conversations) {
+          await this.insertSystemMessage(conv.id, targetInfo.userId, 'moderation_user_suspended');
+        }
+
+        await this.createModerationParentAlert(
+          targetInfo.accountId,
+          targetInfo.userId,
+          'suspended',
+          targetInfo.displayName
+        );
+      }
     }
 
     // Update queue item
@@ -124,12 +207,138 @@ export class ModerationService {
         status: 'resolved',
         actionTaken: dto.action,
         resolutionNotes: dto.notes,
+        originalContent,
         reviewedById: reviewerAccountId,
         resolvedAt: new Date(),
       },
     });
 
     return this.getQueueItem(id);
+  }
+
+  /**
+   * Get the target user info from either a message or user item.
+   */
+  private async getTargetUserInfo(
+    itemType: string,
+    itemId: string
+  ): Promise<{
+    userId: string;
+    accountId: string;
+    displayName: string | null;
+    conversationId: string | null;
+  } | null> {
+    if (itemType === 'message') {
+      const message = await this.prisma.message.findUnique({
+        where: { id: itemId },
+        include: { sender: { include: { account: true } } },
+      });
+      if (!message) return null;
+      return {
+        userId: message.senderId,
+        accountId: message.sender.accountId,
+        displayName: message.sender.displayName,
+        conversationId: message.conversationId,
+      };
+    }
+
+    if (itemType === 'user') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: itemId },
+        include: { account: true },
+      });
+      if (!user) return null;
+      return {
+        userId: user.id,
+        accountId: user.accountId,
+        displayName: user.displayName,
+        conversationId: null,
+      };
+    }
+
+    return null;
+  }
+
+  /**
+   * Insert a system message into a conversation and emit via Socket.io.
+   */
+  private async insertSystemMessage(
+    conversationId: string,
+    senderId: string,
+    contentKey: string
+  ): Promise<void> {
+    try {
+      const message = await this.prisma.message.create({
+        data: {
+          conversationId,
+          senderId,
+          messageType: 'system',
+          content: contentKey,
+          status: 'sent',
+        },
+      });
+
+      this.eventEmitter.emit('moderation.system_message', {
+        conversationId,
+        message: {
+          id: message.id,
+          conversationId: message.conversationId,
+          senderId: message.senderId,
+          messageType: message.messageType,
+          content: message.content,
+          status: message.status,
+          createdAt: message.createdAt,
+        },
+      });
+    } catch (error) {
+      this.logger.error(`Failed to insert system message: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Create a parent alert if the target user is a managed minor.
+   */
+  private async createModerationParentAlert(
+    accountId: string,
+    userId: string,
+    action: string,
+    displayName: string | null
+  ): Promise<void> {
+    const name = displayName || 'votre enfant';
+    const nameEn = displayName || 'your child';
+
+    const messages: Record<string, { fr: string; en: string }> = {
+      warned: {
+        fr: `Un message de ${name} a été examiné par notre équipe de sécurité. Un avertissement a été émis.`,
+        en: `A message from ${nameEn} was reviewed by our safety team. A warning was issued.`,
+      },
+      removed: {
+        fr: `Un message de ${name} a été examiné et retiré par notre équipe de sécurité.`,
+        en: `A message from ${nameEn} was reviewed and removed by our safety team.`,
+      },
+      suspended: {
+        fr: `Le compte de ${name} a été suspendu par notre équipe de sécurité.`,
+        en: `The account of ${nameEn} has been suspended by our safety team.`,
+      },
+    };
+
+    const msg = messages[action];
+    if (!msg) return;
+
+    const severity = action === 'suspended' ? 'urgent' : 'warning';
+
+    try {
+      await this.parentDashboard.createAlertForManagedMember(
+        accountId,
+        userId,
+        'moderation_action',
+        severity,
+        msg.fr,
+        msg.en
+      );
+    } catch (error) {
+      this.logger.error(`Failed to create parent alert: ${(error as Error).message}`);
+    }
   }
 
   async getStats(): Promise<ModerationStatsResponse> {
