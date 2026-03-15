@@ -771,6 +771,8 @@ See `onboarding/page.tsx`.
 
 ## Testing
 
+### Unit / Integration Tests
+
 ```bash
 # All tests
 npm test
@@ -782,10 +784,44 @@ npm test -w @otantist/api
 npm test -- --watch
 ```
 
+### E2E Tests (Playwright)
+
+Requires local dev servers running (`npm run docker:up`, `npm run dev:api`, `npm run dev:web`).
+
+```bash
+# Run all E2E tests (Chromium, headless)
+npm run test:e2e
+
+# Run a single spec file
+cd apps/web && npx playwright test e2e/login.spec.ts
+
+# Run headed (visible browser)
+cd apps/web && npx playwright test --headed
+```
+
+**14 tests across 5 flows:** login (3), registration (3), dashboard (4), messaging (3), onboarding (1).
+
+- Tests use API-based login (`loginViaApi` helper) to avoid rate-limit issues — calls the login API directly and injects tokens via `addInitScript` before React mounts.
+- Redis throttle keys are cleared automatically before each auth API call (`clearThrottle` helper).
+- Onboarding test creates a fresh account each run using the `E2ETEST` invite code (unlimited uses, added in seed).
+- Daily check-in modal is dismissed automatically via `dismissCheckInModal` helper.
+- All selectors handle bilingual UI (FR/EN) with combined selectors like `button:has-text("Suivant"), button:has-text("Next")`.
+
+**Test files:** `apps/web/e2e/` — `helpers.ts`, `login.spec.ts`, `register.spec.ts`, `dashboard.spec.ts`, `messaging.spec.ts`, `onboarding.spec.ts`.
+
+### Local Verification (Pre-push)
+
+```bash
+# Run full local validation pipeline (same as pre-push hook)
+npm run verify
+```
+
+Runs in order: Prisma validate → Prettier check → API build (tsc) → Web build (next build) → API tests. Fails fast on first error.
+
 ### Git Hooks (Husky)
 
 - **Pre-commit:** Runs `lint-staged` (prettier + eslint on staged files)
-- **Pre-push:** Runs full test suite (`npm test`)
+- **Pre-push:** Runs `npm run verify` (full build pipeline validation)
 
 ---
 
@@ -806,6 +842,12 @@ cd apps/api && npx prisma migrate dev --name <name>
 
 # View database
 cd apps/api && npx prisma studio
+
+# Local verification (pre-push)
+npm run verify
+
+# E2E tests (requires running dev servers)
+npm run test:e2e
 ```
 
 ---
@@ -920,4 +962,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 14, 2026 (CSS cleanup, Cog6Tooth icons, cursor:pointer, settings profile-only expanded)_
+_Last updated: March 15, 2026 (verify script, Playwright E2E tests, pre-push hook update)_

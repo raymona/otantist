@@ -24,18 +24,18 @@
 
 ### Required Software
 
-| Software | Version | Notes |
-|----------|---------|-------|
-| Node.js | 20.x LTS | Use nvm for version management |
-| npm | 10.x | Comes with Node.js |
-| Docker Desktop | Latest | Required for PostgreSQL, Redis, Mailhog |
-| Git | Latest | Version control |
-| VS Code | Latest | Recommended editor |
+| Software       | Version  | Notes                                   |
+| -------------- | -------- | --------------------------------------- |
+| Node.js        | 20.x LTS | Use nvm for version management          |
+| npm            | 10.x     | Comes with Node.js                      |
+| Docker Desktop | Latest   | Required for PostgreSQL, Redis, Mailhog |
+| Git            | Latest   | Version control                         |
+| VS Code        | Latest   | Recommended editor                      |
 
 ### Windows-Specific Requirements
 
 > ⚠️ **Important for Windows Users**
-> 
+>
 > - Install WSL 2 (Windows Subsystem for Linux) for best Docker performance
 > - Docker Desktop must be configured to use WSL 2 backend
 > - Some Docker caching issues may occur on Windows (see Troubleshooting)
@@ -88,6 +88,7 @@ docker ps
 ```
 
 You should see these containers:
+
 - `otantist-postgres` on port 5432
 - `otantist-redis` on port 6379
 - `otantist-mailhog` on ports 1025 (SMTP) and 8025 (Web UI)
@@ -123,12 +124,14 @@ This opens a database GUI at http://localhost:5555
 You need **two terminal windows**:
 
 **Terminal 1 — API Server:**
+
 ```bash
 # From root directory
 npm run dev:api
 ```
 
 **Terminal 2 — Web Application:**
+
 ```bash
 # From root directory
 npm run dev:web
@@ -136,13 +139,13 @@ npm run dev:web
 
 ### Step 8: Verify Everything Works
 
-| Service | URL | What to Check |
-|---------|-----|---------------|
-| API | http://localhost:3001 | Should return JSON |
-| Swagger Docs | http://localhost:3001/api/docs | API documentation |
-| Web App | http://localhost:3000 | Next.js application |
-| Mailhog | http://localhost:8025 | Email testing UI |
-| Prisma Studio | http://localhost:5555 | Database GUI |
+| Service       | URL                            | What to Check       |
+| ------------- | ------------------------------ | ------------------- |
+| API           | http://localhost:3001          | Should return JSON  |
+| Swagger Docs  | http://localhost:3001/api/docs | API documentation   |
+| Web App       | http://localhost:3000          | Next.js application |
+| Mailhog       | http://localhost:8025          | Email testing UI    |
+| Prisma Studio | http://localhost:5555          | Database GUI        |
 
 ---
 
@@ -265,11 +268,13 @@ npx prisma studio
 ### Connecting to Database Directly
 
 **Via psql:**
+
 ```bash
 psql postgresql://otantist:otantist_dev@localhost:5432/otantist_dev
 ```
 
 **Via Prisma Studio (Recommended):**
+
 ```bash
 cd apps/api
 npx prisma studio
@@ -302,7 +307,6 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 @ApiTags('messaging')
 @Controller('messages')
 export class MessagesController {
-  
   @ApiOperation({ summary: 'Send a message' })
   @ApiResponse({ status: 201, description: 'Message sent successfully' })
   @ApiResponse({ status: 400, description: 'Invalid input' })
@@ -411,15 +415,15 @@ describe('AuthService', () => {
 
 ### Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files | kebab-case | `user-preferences.service.ts` |
-| Classes | PascalCase | `UserPreferencesService` |
-| Functions | camelCase | `getUserPreferences()` |
-| Variables | camelCase | `userPreferences` |
-| Constants | UPPER_SNAKE | `MAX_MESSAGE_LENGTH` |
-| Interfaces | PascalCase | `UserPreferences` |
-| Enums | PascalCase | `AccountStatus` |
+| Type       | Convention  | Example                       |
+| ---------- | ----------- | ----------------------------- |
+| Files      | kebab-case  | `user-preferences.service.ts` |
+| Classes    | PascalCase  | `UserPreferencesService`      |
+| Functions  | camelCase   | `getUserPreferences()`        |
+| Variables  | camelCase   | `userPreferences`             |
+| Constants  | UPPER_SNAKE | `MAX_MESSAGE_LENGTH`          |
+| Interfaces | PascalCase  | `UserPreferences`             |
+| Enums      | PascalCase  | `AccountStatus`               |
 
 ### Bilingual Content
 
@@ -444,6 +448,7 @@ throw new BadRequestException({
 ### Docker Issues
 
 **Containers won't start:**
+
 ```bash
 # Check logs
 docker-compose logs postgres
@@ -455,6 +460,7 @@ npm run docker:up
 ```
 
 **Port already in use:**
+
 ```bash
 # Windows - find process using port 5432
 netstat -ano | findstr :5432
@@ -465,6 +471,7 @@ netstat -ano | findstr :5432
 ### Database Issues
 
 **Migration fails:**
+
 ```bash
 # Reset database (development only!)
 cd apps/api
@@ -475,6 +482,7 @@ npx prisma migrate resolve --rolled-back migration_name
 ```
 
 **Prisma client out of sync:**
+
 ```bash
 npx prisma generate
 ```
@@ -484,6 +492,7 @@ npx prisma generate
 **Unused variables in seed.ts:**
 
 If you see warnings about unused variables in `seed.ts`, this is expected. The seed script creates data that may not be immediately used. You can either:
+
 - Prefix unused variables with underscore: `const _unused = ...`
 - Add `// @ts-ignore` comment
 - Use the variables in console.log for verification
@@ -493,6 +502,7 @@ If you see warnings about unused variables in `seed.ts`, this is expected. The s
 > 💡 **Recommendation:** Skip pgAdmin and use Prisma Studio instead.
 
 If pgAdmin won't connect or has issues:
+
 1. Don't waste time troubleshooting it
 2. Use `npx prisma studio` instead (runs on http://localhost:5555)
 3. Prisma Studio is simpler and already configured
@@ -515,6 +525,7 @@ npm run docker:up
 ### Node/npm Issues
 
 **Dependency conflicts:**
+
 ```bash
 # Clear everything and reinstall
 npm run clean
@@ -523,6 +534,7 @@ npm install
 ```
 
 **Wrong Node version:**
+
 ```bash
 # Use nvm to switch
 nvm use 20
@@ -553,9 +565,22 @@ npm run db:seed      # Seed test data
 ### Testing Commands
 
 ```bash
-npm test             # Run all tests
+npm test             # Run all unit/integration tests
 npm run lint         # Lint all code
+npm run verify       # Full local validation pipeline (Prisma → Prettier → builds → tests)
+npm run test:e2e     # Playwright E2E tests (requires running dev servers)
 ```
+
+### E2E Tests (Playwright)
+
+Requires local dev servers running first:
+
+1. `npm run docker:up` (PostgreSQL, Redis, Mailhog)
+2. `npm run dev:api` (API on port 3001)
+3. `npm run dev:web` (Web on port 3000)
+4. `npm run test:e2e` (runs 14 tests across login, registration, dashboard, messaging, onboarding)
+
+Tests automatically clear Redis rate-limit keys and handle the daily check-in modal. The onboarding test creates a fresh account each run using the `E2ETEST` invite code.
 
 ### Docker Commands
 
@@ -574,15 +599,15 @@ npm run build:api    # Build API only
 
 ### Environment URLs
 
-| Service | URL |
-|---------|-----|
-| API Server | http://localhost:3001 |
-| Swagger Docs | http://localhost:3001/api/docs |
-| Web App | http://localhost:3000 |
-| Prisma Studio | http://localhost:5555 |
-| Mailhog | http://localhost:8025 |
-| PostgreSQL | localhost:5432 |
-| Redis | localhost:6379 |
+| Service       | URL                            |
+| ------------- | ------------------------------ |
+| API Server    | http://localhost:3001          |
+| Swagger Docs  | http://localhost:3001/api/docs |
+| Web App       | http://localhost:3000          |
+| Prisma Studio | http://localhost:5555          |
+| Mailhog       | http://localhost:8025          |
+| PostgreSQL    | localhost:5432                 |
+| Redis         | localhost:6379                 |
 
 ---
 
@@ -595,6 +620,6 @@ npm run build:api    # Build API only
 
 ---
 
-*Document Version: 2.0*  
-*Updated: February 2026*  
-*Happy coding! 🚀*
+_Document Version: 2.0_  
+_Updated: February 2026_  
+_Happy coding! 🚀_
