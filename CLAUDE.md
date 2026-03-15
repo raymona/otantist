@@ -42,8 +42,8 @@ otantist/
 │   │       ├── preferences/ # ✅ Communication, sensory, time boundaries, conversation starters
 │   │       ├── state/       # ✅ Social energy, calm mode
 │   │       ├── messaging/   # ✅ 1:1 messaging, time boundary queuing, delivery scheduler
-│   │       ├── safety/      # ✅ Blocking, reporting
-│   │       ├── moderation/  # ✅ AI flagging queue, human review (role-guarded)
+│   │       ├── safety/      # ✅ Blocking, reporting, parent alerts on reports
+│   │       ├── moderation/  # ✅ AI flagging queue, human review (role-guarded), system messages, parent alerts
 │   │       ├── admin/       # ✅ Super admin user management (list users, set roles)
 │   │       ├── parent-dashboard/ # ✅ Indicators, alerts, managed members
 │   │       ├── gateway/     # ✅ WebSocket gateway (auth, real-time messaging, presence)
@@ -258,6 +258,7 @@ apps/web/
 - **Language sync:** Auth context syncs `user.language` → `i18n.changeLanguage()` after login/user fetch (covers new browser/device). LanguageSwitcher persists to API via `usersApi.updateLanguage()` in addition to localStorage. Settings page language save also updates both API and i18n.
 - **Sensory preferences applied via CSS body classes:** `SensoryProvider` (wraps app in layout) fetches sensory prefs once authenticated, applies `sensory-no-animations` (disables all transitions/animations), `sensory-reduced` (`saturate(0.6)`), or `sensory-minimal` (`saturate(0.25)`) as CSS classes on `<body>`. Cached in localStorage (`STORAGE_KEYS.SENSORY_PREFS`) for instant re-apply on page load. `useSensory()` hook exposes state + `refreshSensory()`. Settings page calls `refreshSensory()` after saving sensory section for immediate effect. `soundEnabled` is stored in context for future audio features (no UI effect yet). `notificationLimit` / `notificationGrouped` are backend concerns — not applied in UI.
 - **Moderation UI:** `/moderation` route restricted to `moderator` account type (isModerator flag). Stats summary at top (4 cards + priority breakdown), then two-panel layout: filterable queue list (status + priority dropdowns) on left, selected item detail + resolution form on right. Resolution actions: dismissed, warned, removed, suspended + optional notes (max 1000 chars). After resolving, stats refresh automatically. Moderators see a pending badge count in StatusBar (60s polling + live Socket.io `moderation:new_item` event when a report is submitted).
+- **Moderation resolution actions (backend behavior):** "Dismissed" = false positive, no user impact. "Warned" = increments `User.warningCount`, sends system message to conversation, creates parent alert if minor. "Removed" = preserves original content in `ModerationQueue.originalContent`, replaces message with `[moderation_message_removed]`, auto-triggers warning (increments warningCount), sends system message, creates parent alert if minor. "Suspended" = disables account (`status: 'suspended'`), sends system message to ALL active conversations, creates parent alert if minor. System messages use translation keys stored in `message.content` (e.g. `moderation_message_removed`), rendered as centered amber notices in `MessageBubble`. Parent alerts created via `ParentDashboardService.createAlertForManagedMember()` — also triggered when a report is filed against a managed minor (`flagged_message` alert type). Gateway broadcasts system messages in real-time via `moderation.system_message` event. Pending policy decisions documented in `docs/PROJECT_OWNER_QUESTIONS.md`.
 - **Moderator account type:** `AccountType.moderator` added to Prisma schema. `isModerator` computed from `account.accountType === 'moderator' || 'super_admin'` in `getProfile()`. Moderators bypass onboarding gates. Excluded from user directory and cannot be messaged. Test account: `mod@test.com` / `Password123!`.
 - **Super admin account type:** `AccountType.super_admin` added to Prisma schema. `isSuperAdmin` flag on `GET /users/me`. Super admins get all moderator privileges plus access to the admin module (`GET /admin/users`, `PATCH /admin/users/set-role`). Redirects to `/admin` on login. Test account: `admin@test.com` / `Password123!`.
 - **Role-based access control:** `@Roles()` decorator + `RolesGuard` (`src/auth/guards/roles.guard.ts`) checks `request.user.accountType` against required roles. Returns 403 with bilingual message. No `@Roles()` = allow any authenticated user (backward compatible). Moderation endpoints locked to `moderator` + `super_admin`. Admin endpoints locked to `super_admin`.
@@ -962,4 +963,4 @@ These issues were hit during the first Railway/Vercel deployment (Feb 26, 2026) 
 
 ---
 
-_Last updated: March 15, 2026 (verify script, Playwright E2E tests, pre-push hook update)_
+_Last updated: March 15, 2026 (moderation resolution actions, system messages, parent alerts, PROJECT_OWNER_QUESTIONS.md)_
