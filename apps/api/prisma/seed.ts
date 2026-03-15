@@ -36,9 +36,10 @@ async function main() {
     data: [
       { code: 'BETA2024', maxUses: 100, currentUses: 0 },
       { code: 'TESTCODE', maxUses: 10, currentUses: 0 },
+      { code: 'E2ETEST', maxUses: 999999, currentUses: 0 },
     ],
   });
-  console.log('  ✓ Created 2 invite codes');
+  console.log('  ✓ Created 3 invite codes');
 
   // ─────────────────────────────────────────
   // Accounts & users
@@ -1317,7 +1318,7 @@ async function main() {
   console.log('  Léo   ↔ Noah   — 3 messages (minors)');
   console.log('\nModeration: 4 pending, 2 reviewing, 2 resolved');
   console.log('Parent alerts: 5 unacknowledged (1 urgent), 1 acknowledged');
-  console.log('\nInvite codes: BETA2024, TESTCODE\n');
+  console.log('\nInvite codes: BETA2024, TESTCODE, E2ETEST (unlimited)\n');
 }
 
 main()

@@ -21,10 +21,11 @@
     "db:seed": "npm run db:seed -w @otantist/api",
     "db:studio": "npm run db:studio -w @otantist/api",
     "db:check-drift": "sh scripts/check-migration-drift.sh",
+    "test:e2e": "npm run test:e2e -w @otantist/web",
     "db:validate": "cd apps/api && npx prisma validate",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "verify": "cd apps/api && npx prisma validate && cd ../.. && npx prettier --check \"**/*.{ts,tsx,json}\" && cd apps/api && npx tsc -p tsconfig.json && cd ../.. && npm run build -w @otantist/web && npm test",
+    "verify": "node scripts/verify.js",
     "docker:logs": "docker compose logs -f",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
     "prepare": "husky install || true"
