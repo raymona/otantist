@@ -1,142 +1,155 @@
-# Testing Round Issues
+# Testing Issues Tracker
 
-Tracking issues found during live testing. To be addressed after the testing session.
+Live document tracking issues found during testing. Organized by area.
+
+**Legend:** ✅ Fixed | ⏳ Workaround in place | ❌ Open
 
 ---
 
-## 1. Email verification blocked by Resend shared domain
+## Email & Verification
 
-**Status:** Bypassed for beta testing
+### 1. Email verification blocked by Resend shared domain ⏳
+
+**Found:** Testing round 1
 **Severity:** Blocker for new testers
+**Status:** Bypassed for beta — must revert post-beta
 
-Resend's shared domain (`onboarding@resend.dev`) only allows sending to the account owner's email. To send to any recipient, a custom domain must be verified at resend.com/domains.
+Resend's shared domain (`onboarding@resend.dev`) only allows sending to the account owner's email (`raydickman@gmail.com`). Custom domain required to send to any recipient.
 
-**Temporary fix:** Auto-set `emailVerified: true` and `status: 'active'` during registration. Users skip the email verification step entirely. Revert this once domain is verified in Resend.
+**Current workaround:** Registration auto-sets `emailVerified: true` + `status: 'active'` and returns JWT tokens (auto-login). No verification email is sent. Users go straight to accept-terms → onboarding.
 
-**Post-beta:**
+**Post-beta TODO:**
 
 - Verify `otantist.com` domain in Resend (requires DNS access)
-- Remove `emailVerified: true` + `status: 'active'` from registration create
-- Consider also adding admin manual-verify endpoint as a fallback
+- Revert `emailVerified: true` + `status: 'active'` in `auth.service.ts` registration
+- Revert token generation in registration (return `{ accountId, verificationSent }` instead)
+- Frontend `register/page.tsx` will correctly redirect to `/verify-email-sent` when `emailVerified` is false
+- Consider adding admin manual-verify endpoint as a fallback
 
 ---
 
-## 2. New conversations don't appear in real-time (FIXED)
+## Real-time & Messaging
 
-**Status:** Fixed
-**Severity:** Medium
+### 2. New conversations don't appear in real-time ✅
 
-When another user starts a new conversation with you, it didn't appear in the conversation list until manual refresh. The `message:new` socket handler only updated existing conversations via `map()` — it never added new ones.
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-**Fix:** When `message:new` arrives for an unknown conversationId, fetch the full conversation via `GET /conversations/:id` and prepend it to the list.
+When another user starts a conversation, it didn't appear until manual refresh. `message:new` socket handler only updated existing conversations.
 
----
+**Fix:** When `message:new` arrives for an unknown conversationId, fetches full conversation via API and prepends to list.
 
-## 3. Typing indicators not suppressed during calm mode (FIXED)
+### 3. Typing indicators not suppressed during calm mode ✅
 
-**Status:** Fixed
-**Severity:** Medium
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-When a user is in calm mode, they still see "X is typing..." indicators from other users. Calm mode should suppress all incoming notifications including typing.
+Users in calm mode still saw typing indicators.
 
-**Fix:** Added calm mode check in `handleTyping` gateway handler. If the recipient's `userState.calmModeActive` is true, the typing event is silently dropped.
+**Fix:** Gateway `handleTyping` checks `userState.calmModeActive` — silently drops typing events for calm mode recipients.
 
----
+### 4. Queued message status doesn't update for sender ✅
 
-## 4. Queued message status doesn't update for sender (FIXED)
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-**Status:** Fixed
-**Severity:** Medium
+Queued messages (calm mode / time boundaries) stayed as "queued" after delivery.
 
-When a message is queued (calm mode or time boundaries) and later delivered, the sender's message bubble still shows "queued" status. It should update to sent/delivered/read as those events occur.
-
-**Fix:** Gateway `deliverQueuedMessages` now emits `message:status_update` to the sender's user room when queued messages are delivered. Frontend listens for this event and updates the message bubble status.
+**Fix:** Gateway emits `message:status_update` to sender when queued messages are delivered. Frontend updates bubble status.
 
 ---
 
-## 5. Session timer issues (FIXED)
+## Session Timer
 
-**Status:** Fixed
-**Severity:** Low–Medium
+### 5. Timer didn't start reliably / tied to message send ✅
 
-### 5a. Timer didn't start reliably — FIXED
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-Root cause: timer was triggered by message:send event which could miss. Now starts immediately when user picks a duration.
+Timer was triggered by message send event which could miss.
 
-### 5b. Timer should start when user selects a duration — FIXED
+**Fix:** Timer starts immediately when user picks a duration preset (15/20/25/30 min). No longer tied to message send.
 
-Timer now starts immediately when user clicks a duration preset button (15/20/25/30 min). No longer tied to message send.
+### 6. Timer resets on page navigation ✅
 
-### 5c. Timer UI needs to be more visible — FIXED
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-Replaced tiny dropdown with prominent preset buttons. Bigger text, clearer color states. Timer visible on all pages (moved to root layout).
+Timer lived only in dashboard page — navigating away killed it.
 
----
+**Fix:** Moved to root layout via `SessionTimerProvider` + `GlobalSessionTimer`. `startedAt` timestamp in localStorage — countdown resumes on any page.
 
-## 6. Settings page UX overhaul
+### 7. Timer behavior after break screen unclear ✅
 
-**Status:** Open
-**Severity:** Medium
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-The settings page is difficult to navigate — long scrolling page with individual save buttons per section. Needs a UX rethink. Ideas to investigate:
+**Decision:** After dismissing break screen, timer resets to Off. User sees preset buttons and consciously picks a new session.
 
-- **Accordion layout** — collapse/expand sections so the page isn't overwhelming
-- **Sidebar navigation** — jump links to each section (Profile, Communication, Sensory, etc.)
-- **"Save All" button** — single action to save all dirty sections at once, in addition to per-section saves
-- **Smarter unsaved changes warning** — instead of just a browser `beforeunload` alert, show a custom modal with three options: "Save All & Leave", "Discard & Leave", "Cancel"
+### 8. Timer UI too subtle ✅
 
----
+**Found:** Testing round 1 | **Fixed:** Feb 2026
 
-## 7. General UI readability and discoverability
-
-**Status:** Open
-**Severity:** Medium–High
-
-Overall feedback: UI elements are too small and not intuitive enough for the target audience (neurodivergent users who benefit from clear, obvious affordances).
-
-### 7a. Bigger fonts and buttons across the app
-
-Text and buttons are too small throughout. Need to increase base font sizes and button padding/sizing globally. Buttons should have clearer labels — make it obvious what they do.
-
-### 7b. Settings link not discoverable
-
-Clicking your display name to go to Settings isn't obvious. Need a more explicit "Settings" link or gear icon in the toolbar.
-
-### 7c. "How to talk to me" info button too subtle
-
-The small "i" icon next to the other user's name in chat is hard to notice. Needs to be more prominent — larger icon, a label, or a different visual treatment to make it clear it shows the other person's communication guide.
-
-### 7d. Better use of top-of-page space (desktop focus)
-
-The StatusBar / toolbar area is too compact. We have plenty of horizontal space on desktop — spread things out, make icons and nav items bigger and more readable. Mobile optimization is secondary for now; prioritize desktop layout.
+**Fix:** Replaced tiny dropdown with prominent preset buttons. Bigger text, clearer color states (blue → amber@5min → red@1min). Visible on all pages.
 
 ---
 
-## 8. Session timer resets/stops unexpectedly (FIXED)
+## Settings Page
 
-**Status:** Fixed
-**Severity:** High
+### 9. Settings page difficult to navigate ✅
 
-**Root cause:** Timer lived only in dashboard page — navigating away unmounted the component and killed the interval.
+**Found:** Testing round 1 | **Fixed:** Mar 2026
 
-**Fix:** Timer moved to root layout via `SessionTimerProvider` context + `GlobalSessionTimer` component. Timer is now visible and running on every page. `startedAt` timestamp stored in localStorage — on remount/page navigation, remaining time is computed from the stored timestamp, so the countdown resumes seamlessly. If timer expires while on another page, break screen shows on return.
+Long scrolling page with individual save buttons. Overwhelming for users.
 
----
-
-## 9. Timer behavior after break screen — UX unclear (FIXED)
-
-**Status:** Fixed
-**Severity:** Medium
-
-**Decision:** After dismissing break screen, timer resets to Off. User sees the duration preset buttons again and consciously picks a new session. No auto-restart confusion.
+**Fix:** Accordion layout (collapse/expand sections), sticky sidebar navigation with jump links, "Save All" button in sticky header, custom unsaved-changes modal (Save & leave / Discard & leave / Stay). Only Profile section expanded on load.
 
 ---
 
-## 10. Message action buttons too crowded on hover
+## UI Readability & Discoverability
 
-**Status:** Open
-**Severity:** Low–Medium
+### 10. Fonts and buttons too small ✅
 
-The "Delete for me" and "Report message" links that appear on message bubble hover are too cramped and cluttered. Needs a cleaner approach — e.g. a single "..." menu that expands, or better spacing/positioning of the action buttons.
+**Found:** Testing round 1 | **Fixed:** Mar 2026
+
+**Fix:** `globals.css` base `font-size: 15px`, `cursor: pointer` on buttons/links, component-level sizing via Tailwind. Bigger energy dots, larger padding/spacing in StatusBar and ChatView.
+
+### 11. Settings link not discoverable ✅
+
+**Found:** Testing round 1 | **Fixed:** Mar 2026
+
+Clicking display name to reach settings wasn't obvious.
+
+**Fix:** Explicit gear icon (Cog6Tooth) Settings link in StatusBar. Display name is plain text.
+
+### 12. "How to talk to me" button too subtle ✅
+
+**Found:** Testing round 1 | **Fixed:** Mar 2026
+
+Small "i" icon next to user name in chat was easy to miss.
+
+**Fix:** Prominent blue button with icon + text label ("How to talk to [name]").
+
+### 13. StatusBar too compact on desktop ✅
+
+**Found:** Testing round 1 | **Fixed:** Mar 2026
+
+**Fix:** Bigger icons (h-5 w-5), larger nav button padding, `flex-wrap` on header, more spacing throughout.
+
+### 14. Message action buttons too crowded ✅
+
+**Found:** Testing round 1 | **Fixed:** Mar 2026
+
+"Delete for me" and "Report" links on hover were cramped.
+
+**Fix:** "..." dropdown menu replaces inline hover links. Click-outside and Escape handling.
 
 ---
+
+## Registration Flow
+
+### 15. Registration redirects to verify-email-sent during beta ✅
+
+**Found:** Mar 16, 2026 | **Fixed:** Mar 16, 2026
+
+Frontend always redirected to `/verify-email-sent` after registration, even though email was auto-verified.
+
+**Fix:** (a) Backend returns JWT tokens when email already verified (beta). (b) Frontend checks `emailVerified` — goes to `/accept-terms` if true, `/verify-email-sent` if false.
+
+---
+
+_Last updated: March 16, 2026_
