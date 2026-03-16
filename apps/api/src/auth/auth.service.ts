@@ -112,6 +112,21 @@ export class AuthService {
       return newAccount;
     });
 
+    // Beta: email is auto-verified, skip verification email and return tokens for auto-login
+    // Post-beta: revert to sending verification email and returning { accountId, verificationSent }
+    if (account.emailVerified) {
+      const payload = { sub: account.id, email: account.email };
+      return {
+        accessToken: this.jwtService.sign(payload),
+        refreshToken: this.jwtService.sign(payload, {
+          secret: this.configService.get('JWT_REFRESH_SECRET'),
+          expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
+        }),
+        accountId: account.id,
+        verificationSent: false,
+      };
+    }
+
     // Send verification email — non-fatal: account is created regardless
     let verificationSent = false;
     try {
