@@ -11,7 +11,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginData) => Promise<void>;
-  register: (data: RegisterData) => Promise<void>;
+  register: (data: RegisterData) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -89,10 +89,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (data: RegisterData) => {
+    async (data: RegisterData): Promise<User> => {
       const response = await authApi.register(data);
       storeTokens(response.accessToken, response.refreshToken);
-      // Don't fetch user after registration - they need to verify email first
+      const userData = await usersApi.getMe();
+      setUser(userData);
+      return userData;
     },
     [storeTokens]
   );
