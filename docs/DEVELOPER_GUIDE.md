@@ -178,10 +178,13 @@ otantist/
 │   │   ├── lib/
 │   │   └── public/
 │   │
-│   └── mobile/                 # React Native + Expo (Phase 2)
-│       ├── app/                # Expo router
-│       ├── components/
-│       └── lib/
+│   └── mobile/                 # React Native + Expo
+│       ├── navigation/         # React Navigation stacks & tabs
+│       ├── screens/            # Screen components (auth/, main/, onboarding/)
+│       ├── contexts/           # Auth & sensory contexts
+│       ├── components/         # Shared components (SessionTimer)
+│       ├── lib/                # API client, storage, i18n, types
+│       └── __mocks__/          # Jest mocks for native modules
 │
 ├── packages/
 │   ├── shared/                 # Shared types & constants
@@ -340,11 +343,14 @@ async getProfile(@Request() req) {
 ### Running Tests
 
 ```bash
-# All tests
+# All tests (API + mobile)
 npm test
 
-# API tests only
+# API tests only (107 tests)
 npm test -w @otantist/api
+
+# Mobile tests only (29 tests)
+npm test -w @otantist/mobile
 
 # Watch mode
 npm test -- --watch
@@ -360,10 +366,22 @@ apps/api/
 ├── src/
 │   └── auth/
 │       ├── auth.service.ts
-│       └── auth.service.spec.ts    # Unit test
+│       └── auth.service.spec.ts        # Unit test
 └── test/
-    ├── auth.e2e-spec.ts            # E2E test
+    ├── auth.e2e-spec.ts                # E2E test
     └── jest-e2e.json
+
+apps/mobile/
+├── lib/__tests__/
+│   ├── storage.spec.ts                 # SecureStore/AsyncStorage wrappers
+│   ├── api.spec.ts                     # API client, token refresh, error handling
+│   └── auth-helpers.spec.ts            # Bilingual error message resolution
+├── __mocks__/
+│   ├── expo-secure-store.ts            # SecureStore mock
+│   ├── expo-constants.ts               # Expo Constants mock
+│   └── @react-native-async-storage/
+│       └── async-storage.ts            # AsyncStorage mock
+└── jest.config.ts
 ```
 
 ### Writing Tests
@@ -551,6 +569,7 @@ nvm use 20
 npm run docker:up
 npm run dev:api      # Terminal 1
 npm run dev:web      # Terminal 2
+npx expo start       # Terminal 3 (mobile, from apps/mobile/)
 ```
 
 ### Database Commands
@@ -565,7 +584,9 @@ npm run db:seed      # Seed test data
 ### Testing Commands
 
 ```bash
-npm test             # Run all unit/integration tests
+npm test             # Run all unit/integration tests (136 total: 107 API + 29 mobile)
+npm test -w @otantist/api      # API tests only
+npm test -w @otantist/mobile   # Mobile tests only
 npm run lint         # Lint all code
 npm run verify       # Full local validation pipeline (Prisma → Prettier → builds → tests)
 npm run test:e2e     # Playwright E2E tests (requires running dev servers)
@@ -620,6 +641,6 @@ npm run build:api    # Build API only
 
 ---
 
-_Document Version: 2.0_  
-_Updated: February 2026_  
+_Document Version: 2.1_
+_Updated: March 2026_
 _Happy coding! 🚀_
