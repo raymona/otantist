@@ -1,0 +1,41 @@
+{
+  "title": "Parent Dashboard",
+  "back": "Back to dashboard",
+  "no_members": "No managed members",
+  "no_members_hint": "You don't have any managed members linked to your account.",
+  "member_list": {
+    "title": "Managed members",
+    "relationship_parent": "Parent",
+    "relationship_guardian": "Guardian",
+    "relationship_other": "Other",
+    "status_active": "Active",
+    "status_pending": "Pending",
+    "status_suspended": "Suspended"
+  },
+  "indicators": {
+    "title": "Activity (last 30 days)",
+    "energy_avg": "Average energy",
+    "calm_mode_minutes": "Calm mode (min)",
+    "messages_sent": "Messages sent",
+    "messages_received": "Messages received",
+    "no_indicators": "No activity data available",
+    "date": "Date"
+  },
+  "alerts": {
+    "title": "Alerts",
+    "severity_info": "Info",
+    "severity_warning": "Warning",
+    "severity_urgent": "Urgent",
+    "acknowledge": "Acknowledge",
+    "acknowledging": "Acknowledging...",
+    "acknowledged": "Acknowledged",
+    "acknowledged_at": "Acknowledged on {{date}}",
+    "no_alerts": "No alerts"
+  },
+  "errors": {
+    "load_members": "Failed to load managed members",
+    "load_indicators": "Failed to load activity data",
+    "load_alerts": "Failed to load alerts",
+    "acknowledge_alert": "Failed to acknowledge alert"
+  }
+}

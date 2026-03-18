@@ -1,0 +1,60 @@
+{
+  "title": "Gestion des utilisateurs",
+  "search_placeholder": "Rechercher par courriel ou nom...",
+  "table": {
+    "email": "Courriel",
+    "display_name": "Nom affiché",
+    "role": "Rôle",
+    "status": "Statut",
+    "verified": "Vérifié",
+    "onboarded": "Intégré",
+    "created": "Créé",
+    "actions": "Actions"
+  },
+  "roles": {
+    "adult": "Utilisateur",
+    "parent_managed": "Mineur",
+    "moderator": "Modérateur",
+    "super_admin": "Super admin"
+  },
+  "set_role": {
+    "to_moderator": "Modérateur",
+    "to_admin": "Admin",
+    "to_user": "Utilisateur",
+    "confirm_title": "Changer le rôle ?",
+    "confirm_message": "Changer {{name}} de {{from}} à {{to}} ?",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "success": "Rôle mis à jour avec succès",
+    "error": "Échec de la mise à jour du rôle"
+  },
+  "status": {
+    "active": "Actif",
+    "pending": "En attente",
+    "suspended": "Suspendu"
+  },
+  "yes": "Oui",
+  "no": "Non",
+  "no_results": "Aucun utilisateur trouvé",
+  "loading": "Chargement des utilisateurs...",
+  "error": "Échec du chargement des utilisateurs",
+  "total_users": "{{count}} utilisateurs",
+  "invite_codes": {
+    "title": "Codes d'invitation",
+    "create_new": "Créer un nouveau code d'invitation",
+    "code": "Code",
+    "max_uses": "Utilisations max",
+    "uses": "Utilisations",
+    "expires_at": "Expiration",
+    "created": "Créé",
+    "create": "Créer",
+    "loading": "Chargement des codes d'invitation...",
+    "none": "Aucun code d'invitation",
+    "no_expiry": "Sans expiration",
+    "copy": "Copier",
+    "copied": "Copié !",
+    "success": "Code d'invitation créé",
+    "error": "Échec de la création du code d'invitation",
+    "error_loading": "Échec du chargement des codes d'invitation"
+  }
+}

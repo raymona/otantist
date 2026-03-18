@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { clearThrottle } from './helpers';
 
 test.describe('Registration flow', () => {
-  test('should register a new account and reach verify-email-sent', async ({ page }) => {
+  test('should register a new account and reach accept-terms', async ({ page }) => {
     clearThrottle();
     // Generate unique email so test is repeatable
     const uniqueEmail = `e2e-${Date.now()}@test.com`;
@@ -18,9 +18,9 @@ test.describe('Registration flow', () => {
     // Submit
     await page.locator('button[type="submit"]').click();
 
-    // Should land on verify-email-sent page
-    // (Beta mode auto-verifies, but registration still redirects here)
-    await expect(page).toHaveURL(/\/verify-email-sent/, { timeout: 10000 });
+    // Beta mode auto-verifies email and returns tokens, so registration
+    // redirects straight to accept-terms (not verify-email-sent)
+    await expect(page).toHaveURL(/\/accept-terms/, { timeout: 10000 });
   });
 
   test('should show error for invalid invite code', async ({ page }) => {

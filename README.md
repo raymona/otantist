@@ -78,7 +78,7 @@ otantist/
 | Layer     | Technology                         |
 | --------- | ---------------------------------- |
 | Mobile    | React Native + Expo                |
-| Web       | Next.js 14                         |
+| Web       | Next.js 16                         |
 | API       | NestJS                             |
 | Database  | PostgreSQL                         |
 | Cache     | Redis                              |
