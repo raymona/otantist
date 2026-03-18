@@ -64,7 +64,6 @@ export default function LoginPage() {
       <div className="w-full max-w-md space-y-8">
         <div>
           <h1 className="text-center text-3xl font-bold text-gray-900">{t('common:app_name')}</h1>
-          <h2 className="mt-6 text-center text-xl text-gray-600">{t('welcome_back')}</h2>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
