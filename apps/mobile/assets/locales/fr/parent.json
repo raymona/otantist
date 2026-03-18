@@ -32,6 +32,12 @@
     "acknowledged_at": "Vu le {{date}}",
     "no_alerts": "Aucune alerte"
   },
+  "generate_code": {
+    "button": "Générer un code de liaison",
+    "title": "Code de liaison",
+    "expires": "Expire le : {{date}}",
+    "error": "Échec de la génération du code"
+  },
   "errors": {
     "load_members": "Échec du chargement des membres gérés",
     "load_indicators": "Échec du chargement des données d'activité",

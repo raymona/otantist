@@ -32,6 +32,12 @@
     "acknowledged_at": "Acknowledged on {{date}}",
     "no_alerts": "No alerts"
   },
+  "generate_code": {
+    "button": "Generate Linking Code",
+    "title": "Linking Code",
+    "expires": "Expires: {{date}}",
+    "error": "Failed to generate linking code"
+  },
   "errors": {
     "load_members": "Failed to load managed members",
     "load_indicators": "Failed to load activity data",
