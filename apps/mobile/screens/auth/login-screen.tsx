@@ -61,7 +61,7 @@ export function LoginScreen({ navigation }: AuthScreenProps<'Login'>) {
         </TouchableOpacity>
 
         <Text style={styles.title}>{t('common:app_name')}</Text>
-        <Text style={styles.subtitle}>{t('welcome_back')}</Text>
+        <Text style={styles.subtitle}>{t('common:tagline')}</Text>
 
         {!!error && (
           <View style={styles.errorBox} accessibilityRole="alert">

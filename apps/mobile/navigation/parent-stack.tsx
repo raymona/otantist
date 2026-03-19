@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { ParentStackParamList } from './types';
 import { ParentMembersScreen } from '../screens/parent/parent-members-screen';
 import { ParentMemberDetailScreen } from '../screens/parent/parent-member-detail-screen';
+import { HeaderMenu } from '../components/HeaderMenu';
 
 const Stack = createNativeStackNavigator<ParentStackParamList>();
 
@@ -15,7 +16,10 @@ export function ParentStack() {
       <Stack.Screen
         name="ParentMembers"
         component={ParentMembersScreen}
-        options={{ title: t('title') }}
+        options={{
+          title: t('title'),
+          headerRight: () => <HeaderMenu />,
+        }}
       />
       <Stack.Screen
         name="ParentMemberDetail"

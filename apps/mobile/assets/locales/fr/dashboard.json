@@ -44,6 +44,8 @@
   "conversations": {
     "title": "Conversations",
     "empty": "Aucune conversation",
+    "anonymous": "Anonyme",
+    "no_messages_preview": "Aucun message",
     "empty_hint": "Démarrez une nouvelle conversation pour commencer",
     "new": "Nouvelle conversation",
     "refresh": "Rafraîchir",
@@ -74,6 +76,13 @@
       "recipient_calm_mode": "Le destinataire est en mode calme",
       "outside_time_boundary": "En dehors des heures de disponibilité"
     },
+    "conversation_title": "Conversation",
+    "delete_title": "Supprimer le message",
+    "delete_confirm": "Voulez-vous vraiment supprimer ce message ?",
+    "how_to_talk_button": "Comment parler",
+    "report_button": "Signaler",
+    "block_button": "Bloquer",
+    "communication_prefs": "Préférences de communication",
     "delete": "Supprimer",
     "delete_for_me": "Supprimer pour moi",
     "deleted_message": "Message supprimé",
@@ -144,7 +153,9 @@
     "description_placeholder": "Dites-nous en plus sur ce qui s'est passé...",
     "submit": "Envoyer le signalement",
     "submitting": "Envoi en cours...",
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "submitted_title": "Signalement envoyé",
+    "submitted_message": "Merci pour votre signalement. Notre équipe l'examinera."
   },
   "blocked_users_modal": {
     "title": "Utilisateurs bloqués",

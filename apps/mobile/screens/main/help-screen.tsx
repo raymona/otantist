@@ -9,6 +9,7 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/auth-context';
 import { feedbackApi } from '../../lib/api/feedback';
@@ -61,74 +62,76 @@ export function HelpScreen() {
   };
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <Text style={styles.pageTitle}>{t('title')}</Text>
-      <Text style={styles.intro}>{t('intro')}</Text>
+    <SafeAreaView style={styles.flex} edges={['top']}>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
+        <Text style={styles.pageTitle}>{t('title')}</Text>
+        <Text style={styles.intro}>{t('intro')}</Text>
 
-      {/* Help sections */}
-      {sections.map(key => (
-        <View key={key} style={styles.section}>
+        {/* Help sections */}
+        {sections.map(key => (
+          <View key={key} style={styles.section}>
+            <TouchableOpacity
+              style={styles.sectionHeader}
+              onPress={() => toggleSection(key)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: expandedSection === key }}
+            >
+              <Text style={styles.sectionTitle}>{t(`sections.${key}.title`)}</Text>
+              <Text style={styles.chevron}>{expandedSection === key ? '▾' : '▸'}</Text>
+            </TouchableOpacity>
+
+            {expandedSection === key && (
+              <View style={styles.sectionContent}>
+                <Text style={styles.sectionBody}>{t(`sections.${key}.content`)}</Text>
+              </View>
+            )}
+          </View>
+        ))}
+
+        {/* Feedback section */}
+        <View style={styles.feedbackSection}>
+          <Text style={styles.feedbackTitle}>{t('sections.feedback.title')}</Text>
+          <Text style={styles.feedbackDesc}>{t('sections.feedback.content')}</Text>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('feedback_name')}</Text>
+            <TextInput
+              style={styles.input}
+              value={feedbackName}
+              onChangeText={setFeedbackName}
+              accessibilityLabel={t('feedback_name')}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('feedback_message')}</Text>
+            <TextInput
+              style={[styles.input, styles.textArea]}
+              value={feedbackMessage}
+              onChangeText={setFeedbackMessage}
+              multiline
+              numberOfLines={4}
+              textAlignVertical="top"
+              accessibilityLabel={t('feedback_message')}
+            />
+          </View>
+
           <TouchableOpacity
-            style={styles.sectionHeader}
-            onPress={() => toggleSection(key)}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: expandedSection === key }}
+            style={[styles.submitButton, isSending && styles.buttonDisabled]}
+            onPress={handleSubmitFeedback}
+            disabled={isSending}
           >
-            <Text style={styles.sectionTitle}>{t(`sections.${key}.title`)}</Text>
-            <Text style={styles.chevron}>{expandedSection === key ? '▾' : '▸'}</Text>
+            {isSending ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.submitText}>{t('feedback_submit')}</Text>
+            )}
           </TouchableOpacity>
-
-          {expandedSection === key && (
-            <View style={styles.sectionContent}>
-              <Text style={styles.sectionBody}>{t(`sections.${key}.body`)}</Text>
-            </View>
-          )}
-        </View>
-      ))}
-
-      {/* Feedback section */}
-      <View style={styles.feedbackSection}>
-        <Text style={styles.feedbackTitle}>{t('sections.feedback.title')}</Text>
-        <Text style={styles.feedbackDesc}>{t('sections.feedback.body')}</Text>
-
-        <View style={styles.field}>
-          <Text style={styles.label}>{t('feedback_name')}</Text>
-          <TextInput
-            style={styles.input}
-            value={feedbackName}
-            onChangeText={setFeedbackName}
-            accessibilityLabel={t('feedback_name')}
-          />
         </View>
 
-        <View style={styles.field}>
-          <Text style={styles.label}>{t('feedback_message')}</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            value={feedbackMessage}
-            onChangeText={setFeedbackMessage}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            accessibilityLabel={t('feedback_message')}
-          />
-        </View>
-
-        <TouchableOpacity
-          style={[styles.submitButton, isSending && styles.buttonDisabled]}
-          onPress={handleSubmitFeedback}
-          disabled={isSending}
-        >
-          {isSending ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.submitText}>{t('feedback_submit')}</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

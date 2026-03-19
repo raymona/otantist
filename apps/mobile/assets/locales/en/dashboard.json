@@ -44,6 +44,8 @@
   "conversations": {
     "title": "Conversations",
     "empty": "No conversations yet",
+    "anonymous": "Anonymous",
+    "no_messages_preview": "No messages yet",
     "empty_hint": "Start a new conversation to begin messaging",
     "new": "New conversation",
     "refresh": "Refresh",
@@ -74,6 +76,13 @@
       "recipient_calm_mode": "Recipient has calm mode on",
       "outside_time_boundary": "Outside recipient's availability"
     },
+    "conversation_title": "Conversation",
+    "delete_title": "Delete message",
+    "delete_confirm": "Are you sure you want to delete this message?",
+    "how_to_talk_button": "How to talk",
+    "report_button": "Report",
+    "block_button": "Block",
+    "communication_prefs": "Communication preferences",
     "delete": "Delete",
     "delete_for_me": "Delete for me",
     "deleted_message": "Message deleted",
@@ -144,7 +153,9 @@
     "description_placeholder": "Tell us more about what happened...",
     "submit": "Submit report",
     "submitting": "Submitting...",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "submitted_title": "Report submitted",
+    "submitted_message": "Thank you for your report. Our team will review it."
   },
   "blocked_users_modal": {
     "title": "Blocked users",

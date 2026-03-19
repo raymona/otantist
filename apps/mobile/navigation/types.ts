@@ -13,6 +13,9 @@ export type AuthStackParamList = {
 // Main tab navigator
 export type MainTabParamList = {
   Dashboard: undefined;
+  Moderation: NavigatorScreenParams<ModerationStackParamList>;
+  Admin: NavigatorScreenParams<AdminStackParamList>;
+  Parent: NavigatorScreenParams<ParentStackParamList>;
   Settings: undefined;
   Help: undefined;
 };
@@ -47,9 +50,6 @@ export type RootStackParamList = {
   AcceptTerms: undefined;
   Onboarding: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
-  Moderation: NavigatorScreenParams<ModerationStackParamList>;
-  Admin: NavigatorScreenParams<AdminStackParamList>;
-  Parent: NavigatorScreenParams<ParentStackParamList>;
 };
 
 // Screen prop types

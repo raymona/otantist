@@ -9,9 +9,6 @@ import { AuthStack } from './auth-stack';
 import { MainTabs } from './main-tabs';
 import { AcceptTermsScreen } from '../screens/auth/accept-terms-screen';
 import { OnboardingScreen } from '../screens/onboarding/onboarding-screen';
-import { ModerationStack } from './moderation-stack';
-import { AdminStack } from './admin-stack';
-import { ParentStack } from './parent-stack';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -43,8 +40,6 @@ export function RootNavigator() {
     );
   }
 
-  // Determine which screens to show based on auth/user state.
-  // The FIRST screen in each group becomes the default route.
   const renderScreens = () => {
     if (!isAuthenticated || !user) {
       return <Stack.Screen name="Auth" component={AuthStack} />;
@@ -63,34 +58,7 @@ export function RootNavigator() {
       );
     }
 
-    // Authenticated + terms accepted + onboarding done (or moderator/admin)
-    if (user.isModerator && !user.isSuperAdmin) {
-      return (
-        <>
-          <Stack.Screen name="Moderation" component={ModerationStack} />
-          <Stack.Screen name="Main" component={MainTabs} />
-        </>
-      );
-    }
-
-    if (user.isSuperAdmin) {
-      return (
-        <>
-          <Stack.Screen name="Admin" component={AdminStack} />
-          <Stack.Screen name="Main" component={MainTabs} />
-        </>
-      );
-    }
-
-    if (user.isParent) {
-      return (
-        <>
-          <Stack.Screen name="Parent" component={ParentStack} />
-          <Stack.Screen name="Main" component={MainTabs} />
-        </>
-      );
-    }
-
+    // Role-specific tabs are handled inside MainTabs
     return <Stack.Screen name="Main" component={MainTabs} />;
   };
 

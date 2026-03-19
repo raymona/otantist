@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/auth-context';
 import { authApi } from '../../lib/api/auth';
@@ -47,57 +48,59 @@ export function AcceptTermsScreen({ navigation }: RootStackScreenProps<'AcceptTe
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Otantist</Text>
-      <Text style={styles.subtitle}>{t('accept_terms_title')}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9fafb' }} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Otantist</Text>
+        <Text style={styles.subtitle}>{t('accept_terms_title')}</Text>
 
-      <View style={styles.card}>
-        <Text style={styles.description}>{t('accept_terms_message')}</Text>
+        <View style={styles.card}>
+          <Text style={styles.description}>{t('accept_terms_message')}</Text>
 
-        <View style={styles.termsBox}>
-          <ScrollView style={styles.termsScroll} nestedScrollEnabled>
-            <Text style={styles.termsHeading}>{t('terms_heading')}</Text>
-            <Text style={styles.termsText}>{t('terms_paragraph_1')}</Text>
-            <Text style={styles.termsText}>{t('terms_paragraph_2')}</Text>
-            <Text style={styles.termsText}>{t('terms_paragraph_3')}</Text>
-          </ScrollView>
+          <View style={styles.termsBox}>
+            <ScrollView style={styles.termsScroll} nestedScrollEnabled>
+              <Text style={styles.termsHeading}>{t('terms_heading')}</Text>
+              <Text style={styles.termsText}>{t('terms_paragraph_1')}</Text>
+              <Text style={styles.termsText}>{t('terms_paragraph_2')}</Text>
+              <Text style={styles.termsText}>{t('terms_paragraph_3')}</Text>
+            </ScrollView>
+          </View>
+
+          {!!error && (
+            <View style={styles.errorBox} accessibilityRole="alert">
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <TouchableOpacity
+            style={styles.checkboxRow}
+            onPress={() => setAccepted(!accepted)}
+            activeOpacity={0.7}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: accepted }}
+            accessibilityLabel={t('accept_terms_checkbox')}
+          >
+            <View style={[styles.checkbox, accepted && styles.checkboxChecked]}>
+              {accepted && <Text style={styles.checkmark}>✓</Text>}
+            </View>
+            <Text style={styles.checkboxLabel}>{t('accept_terms_checkbox')}</Text>
+          </TouchableOpacity>
         </View>
 
-        {!!error && (
-          <View style={styles.errorBox} accessibilityRole="alert">
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
         <TouchableOpacity
-          style={styles.checkboxRow}
-          onPress={() => setAccepted(!accepted)}
-          activeOpacity={0.7}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: accepted }}
-          accessibilityLabel={t('accept_terms_checkbox')}
+          style={[styles.button, (!accepted || isLoading) && styles.buttonDisabled]}
+          onPress={handleSubmit}
+          disabled={isLoading || !accepted}
+          accessibilityRole="button"
+          accessibilityState={{ busy: isLoading, disabled: !accepted }}
         >
-          <View style={[styles.checkbox, accepted && styles.checkboxChecked]}>
-            {accepted && <Text style={styles.checkmark}>✓</Text>}
-          </View>
-          <Text style={styles.checkboxLabel}>{t('accept_terms_checkbox')}</Text>
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>{t('accept_terms_button')}</Text>
+          )}
         </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.button, (!accepted || isLoading) && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={isLoading || !accepted}
-        accessibilityRole="button"
-        accessibilityState={{ busy: isLoading, disabled: !accepted }}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>{t('accept_terms_button')}</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

@@ -64,5 +64,10 @@
       "title": "Donner votre avis",
       "content": "En tant que testeur·euse précoce, votre avis est précieux. Si quelque chose vous semble confus, brisé ou manquant, veuillez en informer l'équipe. Il n'existe pas encore de formulaire officiel — contactez directement la personne qui vous a invité·e."
     }
-  }
+  },
+  "feedback_name": "Votre prénom",
+  "feedback_message": "Votre message",
+  "feedback_error_empty": "Veuillez entrer un message",
+  "feedback_success": "Merci pour vos commentaires !",
+  "feedback_submit": "Envoyer"
 }

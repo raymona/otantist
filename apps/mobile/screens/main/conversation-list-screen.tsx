@@ -10,6 +10,7 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/auth-context';
 import { messagingApi } from '../../lib/api/messaging';
@@ -155,10 +156,10 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return t('just_now');
-    if (diffMins < 60) return t('minutes_ago', { count: diffMins });
+    if (diffMins < 1) return t('common:time.just_now');
+    if (diffMins < 60) return t('common:time.minutes_ago', { count: diffMins });
     const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return t('hours_ago', { count: diffHours });
+    if (diffHours < 24) return t('common:time.hours_ago', { count: diffHours });
     return date.toLocaleDateString();
   };
 
@@ -172,8 +173,8 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
         })
       }
       accessibilityRole="button"
-      accessibilityLabel={`${item.otherUser.displayName || t('anonymous')}, ${
-        item.unreadCount > 0 ? t('unread_messages', { count: item.unreadCount }) : ''
+      accessibilityLabel={`${item.otherUser.displayName || t('conversations.anonymous')}, ${
+        item.unreadCount > 0 ? t('conversations.unread', { count: item.unreadCount }) : ''
       }`}
     >
       {/* Avatar / Online indicator */}
@@ -190,7 +191,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
       <View style={styles.conversationContent}>
         <View style={styles.conversationHeader}>
           <Text style={styles.displayName} numberOfLines={1}>
-            {item.otherUser.displayName || t('anonymous')}
+            {item.otherUser.displayName || t('conversations.anonymous')}
           </Text>
           {item.lastMessage && (
             <Text style={styles.timeText}>{formatTime(item.lastMessage.createdAt)}</Text>
@@ -198,7 +199,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
         </View>
         <View style={styles.conversationFooter}>
           <Text style={styles.lastMessage} numberOfLines={1}>
-            {item.lastMessage?.content || t('no_messages')}
+            {item.lastMessage?.content || t('conversations.no_messages_preview')}
           </Text>
           {item.unreadCount > 0 && (
             <View style={styles.unreadBadge}>
@@ -218,20 +219,20 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <ActivityIndicator size="large" color="#2563eb" />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.flex}>
+    <SafeAreaView style={styles.flex} edges={['top']}>
       {/* Status bar */}
       <View style={styles.statusBar}>
         {socialEnergy && (
           <View style={styles.energyIndicator}>
             <View style={[styles.energyDot, { backgroundColor: energyColors[socialEnergy] }]} />
-            <Text style={styles.energyText}>{t(`energy_${socialEnergy}`)}</Text>
+            <Text style={styles.energyText}>{t(`status_bar.energy_${socialEnergy}`)}</Text>
           </View>
         )}
         <TouchableOpacity
@@ -241,7 +242,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
           accessibilityState={{ selected: calmModeActive }}
         >
           <Text style={[styles.calmButtonText, calmModeActive && styles.calmButtonTextActive]}>
-            {t('calm_mode')}
+            {t('status_bar.calm_mode')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -249,7 +250,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
       {/* Calm mode banner */}
       {calmModeActive && (
         <View style={styles.calmBanner} accessibilityRole="alert">
-          <Text style={styles.calmBannerText}>{t('calm_mode_active')}</Text>
+          <Text style={styles.calmBannerText}>{t('calm_mode_banner.message')}</Text>
         </View>
       )}
 
@@ -260,7 +261,9 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
           style={styles.filterButton}
           accessibilityRole="button"
         >
-          <Text style={styles.filterText}>{showHidden ? t('show_active') : t('show_hidden')}</Text>
+          <Text style={styles.filterText}>
+            {showHidden ? t('conversations.show_active') : t('conversations.show_hidden')}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -273,7 +276,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
-              {showHidden ? t('no_hidden_conversations') : t('no_conversations')}
+              {showHidden ? t('conversations.hidden_empty') : t('conversations.empty')}
             </Text>
           </View>
         }
@@ -285,7 +288,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
         style={styles.fab}
         onPress={() => setShowNewConversation(true)}
         accessibilityRole="button"
-        accessibilityLabel={t('new_conversation')}
+        accessibilityLabel={t('conversations.new')}
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
@@ -299,7 +302,7 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('new_conversation')}</Text>
+            <Text style={styles.modalTitle}>{t('conversations.new')}</Text>
             <TouchableOpacity onPress={() => setShowNewConversation(false)}>
               <Text style={styles.modalClose}>✕</Text>
             </TouchableOpacity>
@@ -309,9 +312,9 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
             style={styles.searchInput}
             value={directorySearch}
             onChangeText={searchDirectory}
-            placeholder={t('search_users')}
+            placeholder={t('new_conversation_modal.search_placeholder')}
             placeholderTextColor="#9ca3af"
-            accessibilityLabel={t('search_users')}
+            accessibilityLabel={t('new_conversation_modal.search_placeholder')}
           />
 
           {isSearching && <ActivityIndicator style={{ marginTop: 16 }} />}
@@ -331,14 +334,18 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
                   </Text>
                 </View>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text style={styles.displayName}>{item.displayName || t('anonymous')}</Text>
-                  {item.isOnline && <Text style={styles.onlineText}>{t('online')}</Text>}
+                  <Text style={styles.displayName}>
+                    {item.displayName || t('conversations.anonymous')}
+                  </Text>
+                  {item.isOnline && (
+                    <Text style={styles.onlineText}>{t('conversations.online')}</Text>
+                  )}
                 </View>
               </TouchableOpacity>
             )}
             ListEmptyComponent={
               directorySearch.length >= 2 && !isSearching ? (
-                <Text style={styles.emptySearchText}>{t('no_users_found')}</Text>
+                <Text style={styles.emptySearchText}>{t('new_conversation_modal.no_results')}</Text>
               ) : null
             }
           />
@@ -354,8 +361,8 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
       >
         <View style={styles.checkInOverlay}>
           <View style={styles.checkInCard}>
-            <Text style={styles.checkInTitle}>{t('daily_checkin_title')}</Text>
-            <Text style={styles.checkInDesc}>{t('daily_checkin_message')}</Text>
+            <Text style={styles.checkInTitle}>{t('checkin.title')}</Text>
+            <Text style={styles.checkInDesc}>{t('checkin.subtitle')}</Text>
 
             <View style={styles.energyOptions}>
               {(['high', 'medium', 'low'] as SocialEnergyLevel[]).map(level => (
@@ -375,18 +382,18 @@ export function ConversationListScreen({ navigation }: DashboardScreenProps<'Con
                   <View
                     style={[styles.energyOptionDot, { backgroundColor: energyColors[level] }]}
                   />
-                  <Text style={styles.energyOptionText}>{t(`energy_${level}`)}</Text>
+                  <Text style={styles.energyOptionText}>{t(`status_bar.energy_${level}`)}</Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <TouchableOpacity style={styles.checkInButton} onPress={handleCheckIn}>
-              <Text style={styles.checkInButtonText}>{t('daily_checkin_submit')}</Text>
+              <Text style={styles.checkInButtonText}>{t('checkin.save')}</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 

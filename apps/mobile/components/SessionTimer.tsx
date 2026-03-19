@@ -144,10 +144,10 @@ export function SessionTimer({ userId }: SessionTimerProps) {
             <Text style={styles.breakIcon} accessibilityRole="image">
               ☕
             </Text>
-            <Text style={styles.breakTitle}>{t('session_break_title')}</Text>
-            <Text style={styles.breakMessage}>{t('session_break_message')}</Text>
+            <Text style={styles.breakTitle}>{t('timer.break_title')}</Text>
+            <Text style={styles.breakMessage}>{t('timer.break_body')}</Text>
             <TouchableOpacity style={styles.breakButton} onPress={handleDismissBreak}>
-              <Text style={styles.breakButtonText}>{t('session_break_dismiss')}</Text>
+              <Text style={styles.breakButtonText}>{t('timer.break_dismiss')}</Text>
             </TouchableOpacity>
           </View>
         </View>

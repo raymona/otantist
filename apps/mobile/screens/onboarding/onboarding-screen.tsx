@@ -12,6 +12,7 @@ import {
   Switch,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useApiError } from '../../contexts/auth-context';
 import { usersApi } from '../../lib/api/users';
@@ -691,143 +692,145 @@ export function OnboardingScreen({ navigation }: RootStackScreenProps<'Onboardin
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        {/* Cancel / Logout */}
-        <View style={styles.topBar}>
-          <View />
-          <TouchableOpacity onPress={logout} style={styles.cancelButton}>
-            <Text style={styles.cancelText}>{t('common:cancel')}</Text>
-          </TouchableOpacity>
-        </View>
+    <SafeAreaView style={styles.flex} edges={['top']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
+          {/* Cancel / Logout */}
+          <View style={styles.topBar}>
+            <View />
+            <TouchableOpacity onPress={logout} style={styles.cancelButton}>
+              <Text style={styles.cancelText}>{t('common:cancel')}</Text>
+            </TouchableOpacity>
+          </View>
 
-        {/* Header */}
-        <Text style={styles.title}>{t('common:app_name')}</Text>
-        <Text style={styles.headerSubtitle}>{t('title')}</Text>
-        {currentStep !== 'complete' && (
-          <Text style={styles.stepIndicator}>
-            {t('step', { current: currentStepIndex + 1, total: STEPS.length - 1 })}
-          </Text>
-        )}
+          {/* Header */}
+          <Text style={styles.title}>{t('common:app_name')}</Text>
+          <Text style={styles.headerSubtitle}>{t('title')}</Text>
+          {currentStep !== 'complete' && (
+            <Text style={styles.stepIndicator}>
+              {t('step', { current: currentStepIndex + 1, total: STEPS.length - 1 })}
+            </Text>
+          )}
 
-        {/* Progress bar */}
-        {currentStep !== 'complete' && (
-          <View style={styles.progressContainer}>
-            <View style={styles.stepsRow}>
-              {STEPS.slice(0, -1).map((step, index) => (
-                <View
-                  key={step}
-                  style={[styles.stepDot, index <= currentStepIndex && styles.stepDotActive]}
-                  accessibilityLabel={`${t('step', { current: index + 1, total: STEPS.length - 1 })}`}
-                >
-                  <Text
-                    style={[
-                      styles.stepDotText,
-                      index <= currentStepIndex && styles.stepDotTextActive,
-                    ]}
+          {/* Progress bar */}
+          {currentStep !== 'complete' && (
+            <View style={styles.progressContainer}>
+              <View style={styles.stepsRow}>
+                {STEPS.slice(0, -1).map((step, index) => (
+                  <View
+                    key={step}
+                    style={[styles.stepDot, index <= currentStepIndex && styles.stepDotActive]}
+                    accessibilityLabel={`${t('step', { current: index + 1, total: STEPS.length - 1 })}`}
                   >
-                    {index + 1}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.stepDotText,
+                        index <= currentStepIndex && styles.stepDotTextActive,
+                      ]}
+                    >
+                      {index + 1}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
+              </View>
+            </View>
+          )}
+
+          {/* Resumed notice */}
+          {resumed && (
+            <View style={styles.resumeBanner} accessibilityRole="alert">
+              <Text style={styles.resumeText}>{t('resume_message')}</Text>
+            </View>
+          )}
+
+          {/* Error */}
+          {!!error && (
+            <View style={styles.errorBox} accessibilityRole="alert">
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          {/* Step content */}
+          <View style={styles.card}>
+            {currentStep === 'profile' && !needsParentCode && renderProfileStep()}
+            {currentStep === 'profile' && needsParentCode && renderParentCodeStep()}
+            {currentStep === 'communication' && renderCommunicationStep()}
+            {currentStep === 'sensory' && renderSensoryStep()}
+            {currentStep === 'conversation' && renderConversationStep()}
+            {currentStep === 'complete' && renderCompleteStep()}
+
+            {/* Navigation buttons */}
+            {!needsParentCode && (
+              <View style={styles.navButtons}>
+                <View style={styles.navRow}>
+                  {currentStepIndex > 0 && currentStep !== 'complete' ? (
+                    <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                      <Text style={styles.backButtonText}>{t('back')}</Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <View />
+                  )}
+
+                  {currentStep === 'complete' ? (
+                    <TouchableOpacity
+                      onPress={handleFinish}
+                      disabled={isLoading}
+                      style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
+                      accessibilityState={{ busy: isLoading }}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={styles.primaryButtonText}>{t('go_to_app')}</Text>
+                      )}
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={handleNext}
+                      disabled={isLoading || isSavingAndExiting}
+                      style={[
+                        styles.primaryButton,
+                        (isLoading || isSavingAndExiting) && styles.buttonDisabled,
+                      ]}
+                      accessibilityState={{ busy: isLoading }}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#fff" size="small" />
+                      ) : (
+                        <Text style={styles.primaryButtonText}>
+                          {currentStepIndex === STEPS.length - 2 ? t('finish') : t('next')}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
-              ))}
-            </View>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progressPercent}%` }]} />
-            </View>
-          </View>
-        )}
 
-        {/* Resumed notice */}
-        {resumed && (
-          <View style={styles.resumeBanner} accessibilityRole="alert">
-            <Text style={styles.resumeText}>{t('resume_message')}</Text>
-          </View>
-        )}
-
-        {/* Error */}
-        {!!error && (
-          <View style={styles.errorBox} accessibilityRole="alert">
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        {/* Step content */}
-        <View style={styles.card}>
-          {currentStep === 'profile' && !needsParentCode && renderProfileStep()}
-          {currentStep === 'profile' && needsParentCode && renderParentCodeStep()}
-          {currentStep === 'communication' && renderCommunicationStep()}
-          {currentStep === 'sensory' && renderSensoryStep()}
-          {currentStep === 'conversation' && renderConversationStep()}
-          {currentStep === 'complete' && renderCompleteStep()}
-
-          {/* Navigation buttons */}
-          {!needsParentCode && (
-            <View style={styles.navButtons}>
-              <View style={styles.navRow}>
-                {currentStepIndex > 0 && currentStep !== 'complete' ? (
-                  <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-                    <Text style={styles.backButtonText}>{t('back')}</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <View />
-                )}
-
-                {currentStep === 'complete' ? (
+                {currentStep !== 'complete' && (
                   <TouchableOpacity
-                    onPress={handleFinish}
-                    disabled={isLoading}
-                    style={[styles.primaryButton, isLoading && styles.buttonDisabled]}
-                    accessibilityState={{ busy: isLoading }}
-                  >
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
-                    ) : (
-                      <Text style={styles.primaryButtonText}>{t('go_to_app')}</Text>
-                    )}
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity
-                    onPress={handleNext}
+                    onPress={handleSaveAndExit}
                     disabled={isLoading || isSavingAndExiting}
-                    style={[
-                      styles.primaryButton,
-                      (isLoading || isSavingAndExiting) && styles.buttonDisabled,
-                    ]}
-                    accessibilityState={{ busy: isLoading }}
+                    style={styles.saveExitButton}
+                    accessibilityState={{ busy: isSavingAndExiting }}
                   >
-                    {isLoading ? (
-                      <ActivityIndicator color="#fff" size="small" />
+                    {isSavingAndExiting ? (
+                      <ActivityIndicator color="#6b7280" size="small" />
                     ) : (
-                      <Text style={styles.primaryButtonText}>
-                        {currentStepIndex === STEPS.length - 2 ? t('finish') : t('next')}
-                      </Text>
+                      <Text style={styles.saveExitText}>{t('save_and_exit')}</Text>
                     )}
                   </TouchableOpacity>
                 )}
               </View>
-
-              {currentStep !== 'complete' && (
-                <TouchableOpacity
-                  onPress={handleSaveAndExit}
-                  disabled={isLoading || isSavingAndExiting}
-                  style={styles.saveExitButton}
-                  accessibilityState={{ busy: isSavingAndExiting }}
-                >
-                  {isSavingAndExiting ? (
-                    <ActivityIndicator color="#6b7280" size="small" />
-                  ) : (
-                    <Text style={styles.saveExitText}>{t('save_and_exit')}</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

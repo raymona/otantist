@@ -11,6 +11,7 @@ import {
   Alert,
 } from 'react-native';
 import Slider from '@react-native-community/slider';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useAuth, useApiError } from '../../contexts/auth-context';
 import { usersApi } from '../../lib/api/users';
@@ -184,7 +185,7 @@ export function SettingsScreen() {
         appStorage.set(STORAGE_KEYS.SESSION_TIMER, String(sessionDuration)),
       ]);
       await refreshUser();
-      Alert.alert(t('save_success'));
+      Alert.alert(t('saved'));
     } catch (err) {
       Alert.alert(t('common:error'), getErrorMessage(err));
     } finally {
@@ -240,9 +241,9 @@ export function SettingsScreen() {
 
   if (isLoading) {
     return (
-      <View style={styles.center}>
+      <SafeAreaView style={styles.center} edges={['top']}>
         <ActivityIndicator size="large" color="#2563eb" />
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -306,337 +307,343 @@ export function SettingsScreen() {
   );
 
   return (
-    <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
-      <Text style={styles.pageTitle}>{t('title')}</Text>
+    <SafeAreaView style={styles.flex} edges={['top']}>
+      <ScrollView style={styles.flex} contentContainerStyle={styles.container}>
+        <Text style={styles.pageTitle}>{t('title')}</Text>
 
-      {/* Save All */}
-      <TouchableOpacity
-        style={[styles.saveAllButton, isSaving && styles.buttonDisabled]}
-        onPress={saveAll}
-        disabled={isSaving}
-      >
-        {isSaving ? (
-          <ActivityIndicator color="#fff" size="small" />
-        ) : (
-          <Text style={styles.saveAllText}>{t('save_all')}</Text>
+        {/* Save All */}
+        <TouchableOpacity
+          style={[styles.saveAllButton, isSaving && styles.buttonDisabled]}
+          onPress={saveAll}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <Text style={styles.saveAllText}>{t('save_all')}</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Profile */}
+        {renderSectionHeader('profile', t('section_profile'))}
+        {openSection === 'profile' && (
+          <View style={styles.sectionContent}>
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('display_name')}</Text>
+              <TextInput
+                style={styles.input}
+                value={displayName}
+                onChangeText={setDisplayName}
+                accessibilityLabel={t('display_name')}
+              />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('age_group')}</Text>
+              {(['age_14_17', 'age_18_25', 'age_26_40', 'age_40_plus'] as AgeGroup[]).map(ag => (
+                <TouchableOpacity
+                  key={ag}
+                  style={[styles.radioRow, ageGroup === ag && styles.radioRowSelected]}
+                  onPress={() => setAgeGroup(ag)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: ageGroup === ag }}
+                >
+                  <View style={[styles.radio, ageGroup === ag && styles.radioSelected]}>
+                    {ageGroup === ag && <View style={styles.radioDot} />}
+                  </View>
+                  <Text style={styles.radioLabel}>{t(`onboarding:${ag}`)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('visibility')}</Text>
+              {(['visible', 'limited', 'hidden'] as ProfileVisibility[]).map(v => (
+                <TouchableOpacity
+                  key={v}
+                  style={[styles.radioRow, profileVisibility === v && styles.radioRowSelected]}
+                  onPress={() => setProfileVisibility(v)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: profileVisibility === v }}
+                >
+                  <View style={[styles.radio, profileVisibility === v && styles.radioSelected]}>
+                    {profileVisibility === v && <View style={styles.radioDot} />}
+                  </View>
+                  <Text style={styles.radioLabel}>{t(`onboarding:visibility_${v}`)}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         )}
-      </TouchableOpacity>
 
-      {/* Profile */}
-      {renderSectionHeader('profile', t('section_profile'))}
-      {openSection === 'profile' && (
-        <View style={styles.sectionContent}>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('display_name')}</Text>
-            <TextInput
-              style={styles.input}
-              value={displayName}
-              onChangeText={setDisplayName}
-              accessibilityLabel={t('display_name')}
-            />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('age_group')}</Text>
-            {(['age_14_17', 'age_18_25', 'age_26_40', 'age_40_plus'] as AgeGroup[]).map(ag => (
-              <TouchableOpacity
-                key={ag}
-                style={[styles.radioRow, ageGroup === ag && styles.radioRowSelected]}
-                onPress={() => setAgeGroup(ag)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: ageGroup === ag }}
-              >
-                <View style={[styles.radio, ageGroup === ag && styles.radioSelected]}>
-                  {ageGroup === ag && <View style={styles.radioDot} />}
-                </View>
-                <Text style={styles.radioLabel}>{t(`onboarding:${ag}`)}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('visibility')}</Text>
-            {(['visible', 'limited', 'hidden'] as ProfileVisibility[]).map(v => (
-              <TouchableOpacity
-                key={v}
-                style={[styles.radioRow, profileVisibility === v && styles.radioRowSelected]}
-                onPress={() => setProfileVisibility(v)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: profileVisibility === v }}
-              >
-                <View style={[styles.radio, profileVisibility === v && styles.radioSelected]}>
-                  {profileVisibility === v && <View style={styles.radioDot} />}
-                </View>
-                <Text style={styles.radioLabel}>{t(`onboarding:visibility_${v}`)}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-      )}
-
-      {/* Communication */}
-      {renderSectionHeader('communication', t('section_communication'))}
-      {openSection === 'communication' && (
-        <View style={styles.sectionContent}>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('preferred_tone')}</Text>
-            <View style={styles.chipRow}>
-              {TONES.map(tone => (
-                <TouchableOpacity
-                  key={tone}
-                  style={[styles.chip, preferredTone === tone && styles.chipSelected]}
-                  onPress={() => setPreferredTone(tone)}
-                >
-                  <Text
-                    style={[styles.chipText, preferredTone === tone && styles.chipTextSelected]}
+        {/* Communication */}
+        {renderSectionHeader('communication', t('section_communication'))}
+        {openSection === 'communication' && (
+          <View style={styles.sectionContent}>
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('preferred_tone')}</Text>
+              <View style={styles.chipRow}>
+                {TONES.map(tone => (
+                  <TouchableOpacity
+                    key={tone}
+                    style={[styles.chip, preferredTone === tone && styles.chipSelected]}
+                    onPress={() => setPreferredTone(tone)}
                   >
-                    {t(`onboarding:tone_${tone}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('comm_modes')}</Text>
-            <View style={styles.chipRow}>
-              {COMM_MODES.map(mode => (
-                <TouchableOpacity
-                  key={mode}
-                  style={[styles.chip, commModes.includes(mode) && styles.chipSelected]}
-                  onPress={() => toggleCommMode(mode)}
-                >
-                  <Text
-                    style={[styles.chipText, commModes.includes(mode) && styles.chipTextSelected]}
-                  >
-                    {t(`onboarding:comm_mode_${mode}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:slow_replies_ok')}</Text>
-            <Switch value={slowRepliesOk} onValueChange={setSlowRepliesOk} />
-          </View>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:one_message_at_time')}</Text>
-            <Switch value={oneMessageAtTime} onValueChange={setOneMessageAtTime} />
-          </View>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:read_without_reply')}</Text>
-            <Switch value={readWithoutReply} onValueChange={setReadWithoutReply} />
-          </View>
-        </View>
-      )}
-
-      {/* Sensory */}
-      {renderSectionHeader('sensory', t('section_sensory'))}
-      {openSection === 'sensory' && (
-        <View style={styles.sectionContent}>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:enable_animations')}</Text>
-            <Switch value={enableAnimations} onValueChange={setEnableAnimations} />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('onboarding:color_intensity')}</Text>
-            <View style={styles.chipRow}>
-              {INTENSITIES.map(i => (
-                <TouchableOpacity
-                  key={i}
-                  style={[styles.chip, colorIntensity === i && styles.chipSelected]}
-                  onPress={() => setColorIntensity(i)}
-                >
-                  <Text style={[styles.chipText, colorIntensity === i && styles.chipTextSelected]}>
-                    {t(`onboarding:color_${i}`)}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:sound_enabled')}</Text>
-            <Switch value={soundEnabled} onValueChange={setSoundEnabled} />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.label}>
-              {t('onboarding:notification_limit')}: {notificationLimit}
-            </Text>
-            <Slider
-              style={{ width: '100%', height: 40 }}
-              minimumValue={0}
-              maximumValue={20}
-              step={1}
-              value={notificationLimit}
-              onValueChange={setNotificationLimit}
-              minimumTrackTintColor="#2563eb"
-              maximumTrackTintColor="#d1d5db"
-              thumbTintColor="#2563eb"
-            />
-          </View>
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('onboarding:notification_grouped')}</Text>
-            <Switch value={notificationGrouped} onValueChange={setNotificationGrouped} />
-          </View>
-        </View>
-      )}
-
-      {/* Conversation Starters */}
-      {renderSectionHeader('conversation', t('section_conversation'))}
-      {openSection === 'conversation' && (
-        <View style={styles.sectionContent}>
-          {renderTagInput(
-            t('onboarding:good_topics'),
-            goodTopics,
-            'green',
-            goodTopicInput,
-            setGoodTopicInput,
-            () => addTag(goodTopicInput, setGoodTopics, setGoodTopicInput),
-            i => removeTag(i, setGoodTopics)
-          )}
-          {renderTagInput(
-            t('onboarding:avoid_topics'),
-            avoidTopics,
-            'red',
-            avoidTopicInput,
-            setAvoidTopicInput,
-            () => addTag(avoidTopicInput, setAvoidTopics, setAvoidTopicInput),
-            i => removeTag(i, setAvoidTopics)
-          )}
-          {renderTagInput(
-            t('onboarding:interaction_tips'),
-            interactionTips,
-            'blue',
-            tipInput,
-            setTipInput,
-            () => addTag(tipInput, setInteractionTips, setTipInput),
-            i => removeTag(i, setInteractionTips)
-          )}
-        </View>
-      )}
-
-      {/* Time Boundaries */}
-      {renderSectionHeader('timeBoundaries', t('section_time_boundaries'))}
-      {openSection === 'timeBoundaries' && (
-        <View style={styles.sectionContent}>
-          <Text style={styles.hintText}>{t('time_boundaries_hint')}</Text>
-          {boundaries.map((boundary, index) => (
-            <View key={boundary.dayOfWeek} style={styles.boundaryRow}>
-              <View style={styles.boundaryHeader}>
-                <Text style={styles.dayLabel}>{t(`common:${DAYS[boundary.dayOfWeek]}`)}</Text>
-                <Switch
-                  value={boundary.isActive}
-                  onValueChange={val => {
-                    setBoundaries(prev =>
-                      prev.map((b, i) => (i === index ? { ...b, isActive: val } : b))
-                    );
-                  }}
-                />
+                    <Text
+                      style={[styles.chipText, preferredTone === tone && styles.chipTextSelected]}
+                    >
+                      {t(`onboarding:tone_${tone}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              {boundary.isActive && (
-                <View style={styles.boundaryTimes}>
-                  <View style={styles.timeField}>
-                    <Text style={styles.timeLabel}>{t('available_start')}</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={boundary.availableStart}
-                      onChangeText={val => {
-                        setBoundaries(prev =>
-                          prev.map((b, i) => (i === index ? { ...b, availableStart: val } : b))
-                        );
-                      }}
-                      placeholder="09:00"
-                      keyboardType="numbers-and-punctuation"
-                    />
-                  </View>
-                  <View style={styles.timeField}>
-                    <Text style={styles.timeLabel}>{t('available_end')}</Text>
-                    <TextInput
-                      style={styles.timeInput}
-                      value={boundary.availableEnd}
-                      onChangeText={val => {
-                        setBoundaries(prev =>
-                          prev.map((b, i) => (i === index ? { ...b, availableEnd: val } : b))
-                        );
-                      }}
-                      placeholder="21:00"
-                      keyboardType="numbers-and-punctuation"
-                    />
-                  </View>
-                </View>
-              )}
             </View>
-          ))}
-        </View>
-      )}
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('comm_modes')}</Text>
+              <View style={styles.chipRow}>
+                {COMM_MODES.map(mode => (
+                  <TouchableOpacity
+                    key={mode}
+                    style={[styles.chip, commModes.includes(mode) && styles.chipSelected]}
+                    onPress={() => toggleCommMode(mode)}
+                  >
+                    <Text
+                      style={[styles.chipText, commModes.includes(mode) && styles.chipTextSelected]}
+                    >
+                      {t(`onboarding:comm_mode_${mode}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:slow_replies_ok')}</Text>
+              <Switch value={slowRepliesOk} onValueChange={setSlowRepliesOk} />
+            </View>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:one_message_at_time')}</Text>
+              <Switch value={oneMessageAtTime} onValueChange={setOneMessageAtTime} />
+            </View>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:read_without_reply')}</Text>
+              <Switch value={readWithoutReply} onValueChange={setReadWithoutReply} />
+            </View>
+          </View>
+        )}
 
-      {/* Account */}
-      {renderSectionHeader('account', t('section_account'))}
-      {openSection === 'account' && (
-        <View style={styles.sectionContent}>
-          {/* Language toggle */}
-          <View style={styles.toggleField}>
-            <Text style={styles.toggleLabel}>{t('language')}</Text>
-            <TouchableOpacity onPress={handleLanguageToggle} style={styles.langChip}>
-              <Text style={styles.langChipText}>
-                {i18n.language === 'fr' ? 'Français → EN' : 'English → FR'}
+        {/* Sensory */}
+        {renderSectionHeader('sensory', t('section_sensory'))}
+        {openSection === 'sensory' && (
+          <View style={styles.sectionContent}>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:enable_animations')}</Text>
+              <Switch value={enableAnimations} onValueChange={setEnableAnimations} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('onboarding:color_intensity')}</Text>
+              <View style={styles.chipRow}>
+                {INTENSITIES.map(i => (
+                  <TouchableOpacity
+                    key={i}
+                    style={[styles.chip, colorIntensity === i && styles.chipSelected]}
+                    onPress={() => setColorIntensity(i)}
+                  >
+                    <Text
+                      style={[styles.chipText, colorIntensity === i && styles.chipTextSelected]}
+                    >
+                      {t(`onboarding:color_${i}`)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:sound_enabled')}</Text>
+              <Switch value={soundEnabled} onValueChange={setSoundEnabled} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.label}>
+                {t('onboarding:notification_limit')}: {notificationLimit}
               </Text>
+              <Slider
+                style={{ width: '100%', height: 40 }}
+                minimumValue={0}
+                maximumValue={20}
+                step={1}
+                value={notificationLimit}
+                onValueChange={setNotificationLimit}
+                minimumTrackTintColor="#2563eb"
+                maximumTrackTintColor="#d1d5db"
+                thumbTintColor="#2563eb"
+              />
+            </View>
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('onboarding:notification_grouped')}</Text>
+              <Switch value={notificationGrouped} onValueChange={setNotificationGrouped} />
+            </View>
+          </View>
+        )}
+
+        {/* Conversation Starters */}
+        {renderSectionHeader('conversation', t('section_conversation'))}
+        {openSection === 'conversation' && (
+          <View style={styles.sectionContent}>
+            {renderTagInput(
+              t('onboarding:good_topics'),
+              goodTopics,
+              'green',
+              goodTopicInput,
+              setGoodTopicInput,
+              () => addTag(goodTopicInput, setGoodTopics, setGoodTopicInput),
+              i => removeTag(i, setGoodTopics)
+            )}
+            {renderTagInput(
+              t('onboarding:avoid_topics'),
+              avoidTopics,
+              'red',
+              avoidTopicInput,
+              setAvoidTopicInput,
+              () => addTag(avoidTopicInput, setAvoidTopics, setAvoidTopicInput),
+              i => removeTag(i, setAvoidTopics)
+            )}
+            {renderTagInput(
+              t('onboarding:interaction_tips'),
+              interactionTips,
+              'blue',
+              tipInput,
+              setTipInput,
+              () => addTag(tipInput, setInteractionTips, setTipInput),
+              i => removeTag(i, setInteractionTips)
+            )}
+          </View>
+        )}
+
+        {/* Time Boundaries */}
+        {renderSectionHeader('timeBoundaries', t('section_time_boundaries'))}
+        {openSection === 'timeBoundaries' && (
+          <View style={styles.sectionContent}>
+            <Text style={styles.hintText}>{t('time_boundaries_description')}</Text>
+            {boundaries.map((boundary, index) => (
+              <View key={boundary.dayOfWeek} style={styles.boundaryRow}>
+                <View style={styles.boundaryHeader}>
+                  <Text style={styles.dayLabel}>{t(`common:${DAYS[boundary.dayOfWeek]}`)}</Text>
+                  <Switch
+                    value={boundary.isActive}
+                    onValueChange={val => {
+                      setBoundaries(prev =>
+                        prev.map((b, i) => (i === index ? { ...b, isActive: val } : b))
+                      );
+                    }}
+                  />
+                </View>
+                {boundary.isActive && (
+                  <View style={styles.boundaryTimes}>
+                    <View style={styles.timeField}>
+                      <Text style={styles.timeLabel}>{t('start_time')}</Text>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={boundary.availableStart}
+                        onChangeText={val => {
+                          setBoundaries(prev =>
+                            prev.map((b, i) => (i === index ? { ...b, availableStart: val } : b))
+                          );
+                        }}
+                        placeholder="09:00"
+                        keyboardType="numbers-and-punctuation"
+                      />
+                    </View>
+                    <View style={styles.timeField}>
+                      <Text style={styles.timeLabel}>{t('end_time')}</Text>
+                      <TextInput
+                        style={styles.timeInput}
+                        value={boundary.availableEnd}
+                        onChangeText={val => {
+                          setBoundaries(prev =>
+                            prev.map((b, i) => (i === index ? { ...b, availableEnd: val } : b))
+                          );
+                        }}
+                        placeholder="21:00"
+                        keyboardType="numbers-and-punctuation"
+                      />
+                    </View>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Account */}
+        {renderSectionHeader('account', t('section_account'))}
+        {openSection === 'account' && (
+          <View style={styles.sectionContent}>
+            {/* Language toggle */}
+            <View style={styles.toggleField}>
+              <Text style={styles.toggleLabel}>{t('section_language')}</Text>
+              <TouchableOpacity onPress={handleLanguageToggle} style={styles.langChip}>
+                <Text style={styles.langChipText}>
+                  {i18n.language === 'fr' ? 'Français → EN' : 'English → FR'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Session timer */}
+            <View style={styles.field}>
+              <Text style={styles.label}>{t('session_timer')}</Text>
+              <Text style={styles.hintText}>{t('session_timer_hint')}</Text>
+              <View style={styles.chipRow}>
+                {SESSION_OPTIONS.map(mins => (
+                  <TouchableOpacity
+                    key={mins}
+                    style={[styles.chip, sessionDuration === mins && styles.chipSelected]}
+                    onPress={() => setSessionDuration(mins)}
+                  >
+                    <Text
+                      style={[styles.chipText, sessionDuration === mins && styles.chipTextSelected]}
+                    >
+                      {mins === 0 ? t('off') : `${mins}m`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Blocked users */}
+            <TouchableOpacity
+              style={styles.blockedToggle}
+              onPress={() => setShowBlocked(!showBlocked)}
+            >
+              <Text style={styles.label}>
+                {t('blocked_users')} ({blockedUsers.length})
+              </Text>
+              <Text style={styles.chevron}>{showBlocked ? '▾' : '▸'}</Text>
+            </TouchableOpacity>
+            {showBlocked && blockedUsers.length > 0 && (
+              <View style={styles.blockedList}>
+                {blockedUsers.map(bu => (
+                  <View key={bu.id} style={styles.blockedRow}>
+                    <Text style={styles.blockedName}>
+                      {bu.displayName || t('common:anonymous')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => handleUnblock(bu.id)}
+                      style={styles.unblockButton}
+                    >
+                      <Text style={styles.unblockText}>{t('unblock')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            {/* Logout */}
+            <TouchableOpacity style={styles.logoutButton} onPress={logout}>
+              <Text style={styles.logoutText}>{t('logout')}</Text>
             </TouchableOpacity>
           </View>
+        )}
 
-          {/* Session timer */}
-          <View style={styles.field}>
-            <Text style={styles.label}>{t('session_timer')}</Text>
-            <Text style={styles.hintText}>{t('session_timer_hint')}</Text>
-            <View style={styles.chipRow}>
-              {SESSION_OPTIONS.map(mins => (
-                <TouchableOpacity
-                  key={mins}
-                  style={[styles.chip, sessionDuration === mins && styles.chipSelected]}
-                  onPress={() => setSessionDuration(mins)}
-                >
-                  <Text
-                    style={[styles.chipText, sessionDuration === mins && styles.chipTextSelected]}
-                  >
-                    {mins === 0 ? t('off') : `${mins}m`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-
-          {/* Blocked users */}
-          <TouchableOpacity
-            style={styles.blockedToggle}
-            onPress={() => setShowBlocked(!showBlocked)}
-          >
-            <Text style={styles.label}>
-              {t('blocked_users')} ({blockedUsers.length})
-            </Text>
-            <Text style={styles.chevron}>{showBlocked ? '▾' : '▸'}</Text>
-          </TouchableOpacity>
-          {showBlocked && blockedUsers.length > 0 && (
-            <View style={styles.blockedList}>
-              {blockedUsers.map(bu => (
-                <View key={bu.id} style={styles.blockedRow}>
-                  <Text style={styles.blockedName}>{bu.displayName || t('common:anonymous')}</Text>
-                  <TouchableOpacity
-                    onPress={() => handleUnblock(bu.id)}
-                    style={styles.unblockButton}
-                  >
-                    <Text style={styles.unblockText}>{t('unblock')}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {/* Logout */}
-          <TouchableOpacity style={styles.logoutButton} onPress={logout}>
-            <Text style={styles.logoutText}>{t('logout')}</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      <View style={{ height: 40 }} />
-    </ScrollView>
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 

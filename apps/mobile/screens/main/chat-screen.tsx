@@ -149,8 +149,8 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
   useEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTitle: displayName || t('conversation'),
-      headerBackTitle: t('back'),
+      headerTitle: displayName || t('chat.conversation_title'),
+      headerBackTitle: t('chat.back'),
     });
   }, [navigation, displayName, t]);
 
@@ -213,7 +213,7 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
   };
 
   const handleDeleteMessage = (messageId: string) => {
-    Alert.alert(t('delete_message_title'), t('delete_message_confirm'), [
+    Alert.alert(t('chat.delete_title'), t('chat.delete_confirm'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
         text: t('common:delete'),
@@ -255,7 +255,7 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
       setShowReportModal(false);
       setReportDescription('');
       setReportMessageId(null);
-      Alert.alert(t('report_submitted_title'), t('report_submitted_message'));
+      Alert.alert(t('report_modal.submitted_title'), t('report_modal.submitted_message'));
     } catch {
       // silent
     }
@@ -264,10 +264,10 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
   const handleBlockUser = () => {
     const otherMsg = messages.find(m => !m.isOwnMessage);
     if (!otherMsg) return;
-    Alert.alert(t('block_user_title'), t('block_user_confirm'), [
+    Alert.alert(t('block_modal.title', { name: displayName || '' }), t('block_modal.description'), [
       { text: t('common:cancel'), style: 'cancel' },
       {
-        text: t('block'),
+        text: t('block_modal.confirm'),
         style: 'destructive',
         onPress: async () => {
           try {
@@ -335,14 +335,14 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
       {/* Options bar */}
       <View style={styles.optionsBar}>
         <TouchableOpacity onPress={openHowToTalk} style={styles.optionButton}>
-          <Text style={styles.optionText}>{t('how_to_talk')}</Text>
+          <Text style={styles.optionText}>{t('chat.how_to_talk_button')}</Text>
         </TouchableOpacity>
         <View style={styles.optionSpacer} />
         <TouchableOpacity onPress={() => setShowReportModal(true)} style={styles.optionButton}>
-          <Text style={styles.optionText}>{t('report')}</Text>
+          <Text style={styles.optionText}>{t('chat.report_button')}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={handleBlockUser} style={styles.optionButton}>
-          <Text style={[styles.optionText, { color: '#ef4444' }]}>{t('block')}</Text>
+          <Text style={[styles.optionText, { color: '#ef4444' }]}>{t('chat.block_button')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -364,7 +364,7 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
           }
           ListEmptyComponent={
             <View style={styles.emptyChat}>
-              <Text style={styles.emptyChatText}>{t('no_messages_yet')}</Text>
+              <Text style={styles.emptyChatText}>{t('chat.no_messages')}</Text>
             </View>
           }
           contentContainerStyle={messages.length === 0 && { flex: 1 }}
@@ -375,7 +375,7 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
       {/* Typing indicator */}
       {otherUserTyping && (
         <View style={styles.typingIndicator}>
-          <Text style={styles.typingText}>{t('typing')}</Text>
+          <Text style={styles.typingText}>{t('chat.typing_short')}</Text>
         </View>
       )}
 
@@ -388,17 +388,17 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
             setMessageText(text);
             emitTyping();
           }}
-          placeholder={t('type_message')}
+          placeholder={t('chat.placeholder')}
           placeholderTextColor="#9ca3af"
           multiline
           maxLength={2000}
-          accessibilityLabel={t('type_message')}
+          accessibilityLabel={t('chat.placeholder')}
         />
         <TouchableOpacity
           style={[styles.sendButton, !messageText.trim() && styles.sendButtonDisabled]}
           onPress={sendMessage}
           disabled={!messageText.trim() || isSending}
-          accessibilityLabel={t('send')}
+          accessibilityLabel={t('chat.send')}
         >
           <Text style={styles.sendButtonText}>↑</Text>
         </TouchableOpacity>
@@ -413,7 +413,9 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('how_to_talk_to_me')}</Text>
+            <Text style={styles.modalTitle}>
+              {t('how_to_talk.title', { name: displayName || '' })}
+            </Text>
             <TouchableOpacity onPress={() => setShowHowToTalk(false)}>
               <Text style={styles.modalCloseText}>✕</Text>
             </TouchableOpacity>
@@ -422,46 +424,48 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
             <View style={styles.howToTalkContent}>
               {howToTalkData.preferredTone && (
                 <View style={styles.httSection}>
-                  <Text style={styles.httLabel}>{t('preferred_tone')}</Text>
-                  <Text style={styles.httValue}>{t(`tone_${howToTalkData.preferredTone}`)}</Text>
+                  <Text style={styles.httLabel}>{t('how_to_talk.preferred_tone')}</Text>
+                  <Text style={styles.httValue}>
+                    {t(`onboarding:tone_${howToTalkData.preferredTone}`)}
+                  </Text>
                 </View>
               )}
               {howToTalkData.commModes.length > 0 && (
                 <View style={styles.httSection}>
-                  <Text style={styles.httLabel}>{t('comm_modes')}</Text>
+                  <Text style={styles.httLabel}>{t('how_to_talk.comm_modes')}</Text>
                   <Text style={styles.httValue}>
-                    {howToTalkData.commModes.map(m => t(`comm_mode_${m}`)).join(', ')}
+                    {howToTalkData.commModes.map(m => t(`onboarding:comm_mode_${m}`)).join(', ')}
                   </Text>
                 </View>
               )}
               {howToTalkData.goodTopics.length > 0 && (
                 <View style={styles.httSection}>
-                  <Text style={styles.httLabel}>{t('good_topics')}</Text>
+                  <Text style={styles.httLabel}>{t('how_to_talk.good_topics')}</Text>
                   <Text style={styles.httValue}>{howToTalkData.goodTopics.join(', ')}</Text>
                 </View>
               )}
               {howToTalkData.avoidTopics.length > 0 && (
                 <View style={styles.httSection}>
-                  <Text style={styles.httLabel}>{t('avoid_topics')}</Text>
+                  <Text style={styles.httLabel}>{t('how_to_talk.avoid_topics')}</Text>
                   <Text style={styles.httValue}>{howToTalkData.avoidTopics.join(', ')}</Text>
                 </View>
               )}
               {howToTalkData.interactionTips.length > 0 && (
                 <View style={styles.httSection}>
-                  <Text style={styles.httLabel}>{t('interaction_tips')}</Text>
+                  <Text style={styles.httLabel}>{t('how_to_talk.interaction_tips')}</Text>
                   <Text style={styles.httValue}>{howToTalkData.interactionTips.join(', ')}</Text>
                 </View>
               )}
               <View style={styles.httSection}>
-                <Text style={styles.httLabel}>{t('communication_prefs')}</Text>
+                <Text style={styles.httLabel}>{t('chat.communication_prefs')}</Text>
                 {howToTalkData.slowRepliesOk && (
-                  <Text style={styles.httValue}>{t('slow_replies_ok')}</Text>
+                  <Text style={styles.httValue}>{t('how_to_talk.slow_replies_ok')}</Text>
                 )}
                 {howToTalkData.oneMessageAtTime && (
-                  <Text style={styles.httValue}>{t('one_message_at_time')}</Text>
+                  <Text style={styles.httValue}>{t('how_to_talk.one_message_at_time')}</Text>
                 )}
                 {howToTalkData.readWithoutReply && (
-                  <Text style={styles.httValue}>{t('read_without_reply')}</Text>
+                  <Text style={styles.httValue}>{t('how_to_talk.read_without_reply')}</Text>
                 )}
               </View>
             </View>
@@ -478,13 +482,13 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{t('report_title')}</Text>
+            <Text style={styles.modalTitle}>{t('report_modal.title_user')}</Text>
             <TouchableOpacity onPress={() => setShowReportModal(false)}>
               <Text style={styles.modalCloseText}>✕</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.reportContent}>
-            <Text style={styles.reportLabel}>{t('report_reason')}</Text>
+            <Text style={styles.reportLabel}>{t('report_modal.reason_label')}</Text>
             {REPORT_REASONS.map(reason => (
               <TouchableOpacity
                 key={reason}
@@ -496,23 +500,25 @@ export function ChatScreen({ route, navigation }: DashboardScreenProps<'Chat'>) 
                 accessibilityRole="radio"
                 accessibilityState={{ selected: reportReason === reason }}
               >
-                <Text style={styles.reportReasonText}>{t(`report_reason_${reason}`)}</Text>
+                <Text style={styles.reportReasonText}>{t(`report_modal.reason_${reason}`)}</Text>
               </TouchableOpacity>
             ))}
 
-            <Text style={[styles.reportLabel, { marginTop: 16 }]}>{t('report_description')}</Text>
+            <Text style={[styles.reportLabel, { marginTop: 16 }]}>
+              {t('report_modal.description_label')}
+            </Text>
             <TextInput
               style={styles.reportInput}
               value={reportDescription}
               onChangeText={setReportDescription}
               multiline
               numberOfLines={4}
-              placeholder={t('report_description_placeholder')}
+              placeholder={t('report_modal.description_placeholder')}
               placeholderTextColor="#9ca3af"
             />
 
             <TouchableOpacity style={styles.reportSubmitButton} onPress={submitReport}>
-              <Text style={styles.reportSubmitText}>{t('submit_report')}</Text>
+              <Text style={styles.reportSubmitText}>{t('report_modal.submit')}</Text>
             </TouchableOpacity>
           </View>
         </View>

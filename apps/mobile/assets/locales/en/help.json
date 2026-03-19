@@ -64,5 +64,10 @@
       "title": "Giving feedback",
       "content": "As an early tester, your feedback is valuable. If something is confusing, broken, or missing, please let the team know. There is no formal feedback form yet — reach out directly to the person who invited you."
     }
-  }
+  },
+  "feedback_name": "Your name",
+  "feedback_message": "Your message",
+  "feedback_error_empty": "Please enter a message",
+  "feedback_success": "Thank you for your feedback!",
+  "feedback_submit": "Send feedback"
 }
