@@ -53,7 +53,7 @@ La configuration comporte 5 courtes étapes. Prenez votre temps — il n'y a pas
 
 - **Ton préféré** (obligatoire) — comment vous aimez qu'on vous parle (décontracté, doux, direct, etc.)
 - **Modes de communication** (obligatoire, choisissez au moins un) — texte, notes vocales, images, etc.
-- **Préférences de rythme** — si les réponses lentes sont acceptables, un message à la fois, et si lire sans répondre est correct.
+- **Préférences de rythme** — si les réponses lentes sont acceptables, un seul message suffit, et si lire sans répondre est correct.
 
 ### Étape 3c : Préférences sensorielles
 
