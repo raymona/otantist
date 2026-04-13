@@ -119,6 +119,7 @@ describe('AuthService', () => {
         email: 'test@example.com',
         passwordHash: 'hashed-password',
         status: 'active',
+        emailVerified: true,
         preferredLanguage: 'en',
         user: {
           id: 'user-id',
@@ -134,6 +135,21 @@ describe('AuthService', () => {
       expect(result.accessToken).toBe('mock-token');
       expect(result.refreshToken).toBe('mock-token');
       expect(result.user.email).toBe('test@example.com');
+    });
+
+    it('should throw if email is not verified', async () => {
+      prisma.account.findUnique.mockResolvedValue({
+        id: 'account-id',
+        email: 'test@example.com',
+        passwordHash: 'hashed-password',
+        status: 'active',
+        emailVerified: false,
+      });
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+
+      await expect(service.login('test@example.com', 'password')).rejects.toThrow(
+        UnauthorizedException
+      );
     });
 
     it('should throw on invalid email', async () => {

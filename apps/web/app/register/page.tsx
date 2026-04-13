@@ -44,20 +44,14 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const newUser = await register({
+      await register({
         email,
         password,
         inviteCode,
         language,
       });
-      // Beta: email is auto-verified, go straight to accept-terms
-      // Post-beta: email not yet verified, go to verify-email-sent
-      if (newUser.emailVerified) {
-        router.push('/accept-terms');
-      } else {
-        sessionStorage.setItem('otantist-pending-email', email);
-        router.push('/verify-email-sent');
-      }
+      sessionStorage.setItem('otantist-pending-email', email);
+      router.push('/verify-email-sent');
     } catch (err) {
       const lang = i18n.language as 'fr' | 'en';
       if (err instanceof ApiException) {

@@ -2,7 +2,15 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { authApi, usersApi, RegisterData, LoginData, User, ApiException } from './api';
+import {
+  authApi,
+  usersApi,
+  RegisterData,
+  RegisterResponse,
+  LoginData,
+  User,
+  ApiException,
+} from './api';
 import { STORAGE_KEYS } from './constants';
 
 interface AuthContextType {
@@ -11,7 +19,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (data: LoginData) => Promise<void>;
-  register: (data: RegisterData) => Promise<User>;
+  register: (data: RegisterData) => Promise<RegisterResponse>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -88,16 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [storeTokens, fetchUser]
   );
 
-  const register = useCallback(
-    async (data: RegisterData): Promise<User> => {
-      const response = await authApi.register(data);
-      storeTokens(response.accessToken, response.refreshToken);
-      const userData = await usersApi.getMe();
-      setUser(userData);
-      return userData;
-    },
-    [storeTokens]
-  );
+  const register = useCallback(async (data: RegisterData): Promise<RegisterResponse> => {
+    return await authApi.register(data);
+  }, []);
 
   const logout = useCallback(() => {
     clearAuth();

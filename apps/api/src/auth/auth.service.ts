@@ -84,8 +84,6 @@ export class AuthService {
           accountType: 'adult',
           preferredLanguage: data.language,
           inviteCodeUsed: data.inviteCode,
-          emailVerified: true, // Auto-verify for beta testing (skip email verification step)
-          status: 'active',
         },
       });
 
@@ -111,21 +109,6 @@ export class AuthService {
 
       return newAccount;
     });
-
-    // Beta: email is auto-verified, skip verification email and return tokens for auto-login
-    // Post-beta: revert to sending verification email and returning { accountId, verificationSent }
-    if (account.emailVerified) {
-      const payload = { sub: account.id, email: account.email };
-      return {
-        accessToken: this.jwtService.sign(payload),
-        refreshToken: this.jwtService.sign(payload, {
-          secret: this.configService.get('JWT_REFRESH_SECRET'),
-          expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN', '7d'),
-        }),
-        accountId: account.id,
-        verificationSent: false,
-      };
-    }
 
     // Send verification email — non-fatal: account is created regardless
     let verificationSent = false;
@@ -429,6 +412,14 @@ export class AuthService {
         code: 'ACCOUNT_SUSPENDED',
         message_en: 'Account is suspended',
         message_fr: 'Le compte est suspendu',
+      });
+    }
+
+    if (!account.emailVerified) {
+      throw new UnauthorizedException({
+        code: 'EMAIL_NOT_VERIFIED',
+        message_en: 'Please verify your email address before logging in',
+        message_fr: 'Veuillez vérifier votre adresse courriel avant de vous connecter',
       });
     }
 

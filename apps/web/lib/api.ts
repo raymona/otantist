@@ -150,6 +150,11 @@ export interface AuthResponse {
   expiresIn: number;
 }
 
+export interface RegisterResponse {
+  accountId: string;
+  verificationSent: boolean;
+}
+
 export interface User {
   id: string;
   accountId: string;
@@ -171,7 +176,7 @@ export interface User {
 // Auth API
 export const authApi = {
   register: (data: RegisterData) =>
-    request<AuthResponse>('/api/auth/register', {
+    request<RegisterResponse>('/api/auth/register', {
       method: 'POST',
       body: data,
     }),
