@@ -216,11 +216,6 @@ This project targets WCAG 2.1 AA. The existing components demonstrate all patter
 
 ## Known Issues & Important Behaviors
 
-### Beta-specific (must revert post-beta)
-
-- **Email verification bypassed:** Registration auto-sets `emailVerified: true` + `status: 'active'` + returns JWT tokens. No verification email sent. Revert in `auth.service.ts` once Resend domain verified.
-- **Resend shared domain:** Can only send to `raydickman@gmail.com`. Switch to `noreply@otantist.com` once domain access restored.
-
 ### Auth & Session
 
 - **Client-side only route guards:** No Next.js middleware — useEffect-based. Deferred to future enhancement.
