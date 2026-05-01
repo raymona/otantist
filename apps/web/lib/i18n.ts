@@ -26,6 +26,7 @@ i18n
       'moderation',
       'help',
       'admin',
+      'invite-request',
     ],
 
     detection: {

@@ -177,6 +177,44 @@ export class EmailService {
     });
   }
 
+  async sendInviteCodeEmail(to: string, code: string, language: 'fr' | 'en'): Promise<void> {
+    const baseUrl = this.configService.get('WEB_URL', 'http://localhost:3000');
+    const registerUrl = `${baseUrl}/register`;
+
+    const content = {
+      fr: {
+        subject: "Votre code d'invitation Otantist",
+        heading: 'Bienvenue !',
+        body: `Votre demande d'invitation a été approuvée. Utilisez le code ci-dessous pour créer votre compte\u00a0:<br><br><strong style="font-size:20px;letter-spacing:2px">${this.escapeHtml(code)}</strong>`,
+        button: 'Créer mon compte',
+        footer:
+          "Ce code est à usage unique et expirera dans 30 jours.<br><br>Si vous n'avez pas fait cette demande, ignorez ce courriel.",
+      },
+      en: {
+        subject: 'Your Otantist Invite Code',
+        heading: 'Welcome!',
+        body: `Your invite request has been approved. Use the code below to create your account:<br><br><strong style="font-size:20px;letter-spacing:2px">${this.escapeHtml(code)}</strong>`,
+        button: 'Create my account',
+        footer:
+          "This code is single-use and will expire in 30 days.<br><br>If you didn't request this, you can ignore this email.",
+      },
+    };
+
+    const c = content[language];
+
+    await this.sendEmail({
+      to,
+      subject: c.subject,
+      html: this.emailTemplate({
+        heading: c.heading,
+        body: c.body,
+        buttonText: c.button,
+        buttonUrl: registerUrl,
+        footer: c.footer,
+      }),
+    });
+  }
+
   async sendFeedbackEmail(opts: {
     name: string;
     message: string;

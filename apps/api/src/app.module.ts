@@ -21,6 +21,7 @@ import { GatewayModule } from './gateway/gateway.module';
 import { FeedbackModule } from './feedback/feedback.module';
 import { HealthModule } from './health/health.module';
 import { AdminModule } from './admin/admin.module';
+import { InviteRequestModule } from './invite-request/invite-request.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { AdminModule } from './admin/admin.module';
     FeedbackModule,
     HealthModule,
     AdminModule,
+    InviteRequestModule,
   ],
   providers: [
     {

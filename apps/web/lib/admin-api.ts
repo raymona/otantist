@@ -20,6 +20,19 @@ export interface InviteCode {
   createdAt: string;
 }
 
+export interface InviteRequest {
+  id: string;
+  name: string;
+  email: string;
+  context: string;
+  message: string | null;
+  language: string;
+  status: string;
+  createdAt: string;
+  reviewedAt: string | null;
+  inviteCode?: string | null;
+}
+
 export const adminApi = {
   listUsers: (search?: string) => {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
@@ -38,5 +51,19 @@ export const adminApi = {
     request<InviteCode>('/api/admin/invite-codes', {
       method: 'POST',
       body: { code, ...(maxUses !== undefined && { maxUses }), ...(expiresAt && { expiresAt }) },
+    }),
+
+  listInviteRequests: (status?: string) => {
+    const params = status ? `?status=${encodeURIComponent(status)}` : '';
+    return request<InviteRequest[]>(`/api/invite-request${params}`, { method: 'GET' });
+  },
+
+  countPendingRequests: () =>
+    request<{ count: number }>('/api/invite-request/count', { method: 'GET' }),
+
+  reviewInviteRequest: (requestId: string, decision: 'approved' | 'rejected') =>
+    request<InviteRequest>('/api/invite-request/review', {
+      method: 'POST',
+      body: { requestId, decision },
     }),
 };

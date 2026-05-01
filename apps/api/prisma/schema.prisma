@@ -152,6 +152,18 @@ enum AuthTokenType {
   password_reset
 }
 
+enum InviteRequestStatus {
+  pending
+  approved
+  rejected
+}
+
+enum RequesterContext {
+  parent
+  adult
+  organization
+}
+
 // ===========================================
 // Core Models
 // ===========================================
@@ -228,9 +240,29 @@ model InviteCode {
   createdAt   DateTime  @default(now()) @map("created_at")
 
   // Relations
-  createdBy Account? @relation("CreatedBy", fields: [createdById], references: [id])
+  createdBy      Account?        @relation("CreatedBy", fields: [createdById], references: [id])
+  inviteRequest  InviteRequest?
 
   @@map("invite_codes")
+}
+
+model InviteRequest {
+  id           String              @id @default(uuid())
+  name         String              @db.VarChar(100)
+  email        String              @db.VarChar(255)
+  context      RequesterContext
+  message      String?             @db.VarChar(1000)
+  language     LanguageCode        @default(fr)
+  status       InviteRequestStatus @default(pending)
+  inviteCodeId String?             @unique @map("invite_code_id")
+  reviewedAt   DateTime?           @map("reviewed_at")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  // Relations
+  inviteCode InviteCode? @relation(fields: [inviteCodeId], references: [id])
+
+  @@index([status, createdAt])
+  @@map("invite_requests")
 }
 
 model AuthToken {

@@ -362,6 +362,20 @@ export interface TimeBoundariesResponse {
 }
 
 // Feedback API
+export const inviteRequestApi = {
+  submit: (data: {
+    name: string;
+    email: string;
+    context: string;
+    message?: string;
+    language?: string;
+  }) =>
+    request<{ submitted: boolean }>('/api/invite-request', {
+      method: 'POST',
+      body: data,
+    }),
+};
+
 export const feedbackApi = {
   submit: (data: { name: string; message: string; category?: string }) =>
     request<{ sent: boolean }>('/api/feedback', {

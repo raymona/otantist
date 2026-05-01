@@ -1,0 +1,22 @@
+{
+  "title": "Demander une invitation",
+  "subtitle": "Otantist est en version b\u00eata ferm\u00e9e. Remplissez ce formulaire pour demander l'acc\u00e8s.",
+  "name": "Votre nom",
+  "name_placeholder": "Pr\u00e9nom ou pseudonyme",
+  "email": "Adresse courriel",
+  "context": "Je suis...",
+  "context_parent": "Parent d'une personne neurodivergente",
+  "context_adult": "Une personne neurodivergente adulte",
+  "context_organization": "Repr\u00e9sentant d'une organisation",
+  "message": "Quelque chose \u00e0 partager (optionnel)",
+  "message_placeholder": "Pourquoi Otantist vous int\u00e9resse, votre situation, etc.",
+  "submit": "Demander une invitation",
+  "submitting": "Envoi en cours...",
+  "name_required": "Veuillez entrer votre nom.",
+  "email_required": "Veuillez entrer votre courriel.",
+  "email_invalid": "Veuillez entrer une adresse courriel valide.",
+  "context_required": "Veuillez s\u00e9lectionner qui vous \u00eates.",
+  "success_title": "Demande re\u00e7ue\u00a0!",
+  "success_message": "Nous examinerons votre demande et vous enverrons un code d'invitation par courriel si approuv\u00e9e. Cela prend habituellement 1 \u00e0 2 jours ouvrables.",
+  "back_to_site": "Retour \u00e0 otantist.com"
+}

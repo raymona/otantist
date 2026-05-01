@@ -90,7 +90,8 @@ All 48 features are implemented. Key ones to know about:
 - **Safety:** Block/unblock, report (user or message), moderation queue auto-created on report
 - **Moderation:** AI flagging queue, 4 resolution actions (dismissed/warned/removed/suspended), system messages, parent alerts, original content preservation
 - **Parent dashboard:** Managed members, activity indicators, alerts (moderation + flagged messages)
-- **Admin:** User management, role changes, invite code management (super_admin only)
+- **Admin:** User management, role changes, invite code management (super_admin only), invite request review (approve/reject)
+- **Invite requests:** Public form at `/request-invite`, admin review in admin panel, auto-generates invite code + emails on approval
 - **Session timer:** Preset durations, persists across navigation, break screen overlay
 - **Daily mood check-in:** Once per calendar day, sets energy + calm mode
 - **Sensory preferences:** CSS body classes for animations/saturation, cached in localStorage
@@ -125,6 +126,7 @@ Each controller file (`*.controller.ts`) has the full endpoint list. Swagger doc
 - **Moderation** (`/moderation/`) — queue (list/get/resolve), stats
 - **Parent** (`/parent/`) — generate-code, link, members, indicators, alerts
 - **Admin** (`/admin/`) — users (list/set-role), invite-codes (list/create)
+- **Invite Request** (`/api/invite-request/`) — submit (public), list, count, review (admin)
 
 ---
 
@@ -280,19 +282,19 @@ npm run test:e2e            # Playwright E2E (14 tests, requires running dev ser
 | Service | URL                                             |
 | ------- | ----------------------------------------------- |
 | **API** | https://otantist-repo-production.up.railway.app |
-| **Web** | https://otantist-web.vercel.app                 |
+| **Web** | https://otantist.app (custom domain via Vercel) |
 
 ### Infrastructure
 
-| Service          | Provider                                       |
-| ---------------- | ---------------------------------------------- |
-| API + DB + Redis | Railway                                        |
-| Web app          | Vercel (root dir: `apps/web`)                  |
-| Email            | Resend (shared domain `onboarding@resend.dev`) |
+| Service          | Provider                                     |
+| ---------------- | -------------------------------------------- |
+| API + DB + Redis | Railway                                      |
+| Web app          | Vercel (root dir: `apps/web`)                |
+| Email            | Resend (sending from `noreply@otantist.com`) |
 
 ### Key Env Vars
 
-**Railway:** `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, SMTP vars (Resend), `WEB_URL` (no trailing slash!), `FEEDBACK_EMAIL=info@otantist.com`
+**Railway:** `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `RESEND_API_KEY`, `WEB_URL` (no trailing slash!), `CORS_ORIGINS=https://otantist.app`, `FEEDBACK_EMAIL=info@otantist.com`
 
 **Vercel:** `NEXT_PUBLIC_API_URL=https://otantist-repo-production.up.railway.app`
 
@@ -332,4 +334,4 @@ Use **public** `DATABASE_PUBLIC_URL` from Railway Postgres service, not the inte
 
 ---
 
-_Last updated: March 16, 2026 (slimmed down from 966 to ~250 lines; verbose sections replaced with source-of-truth pointers)_
+_Last updated: May 1, 2026 — added invite request feature, updated deployment URLs and env vars_

@@ -1,0 +1,22 @@
+{
+  "title": "Request an Invite",
+  "subtitle": "Otantist is currently in closed beta. Fill out this form to request access.",
+  "name": "Your name",
+  "name_placeholder": "First name or pseudonym",
+  "email": "Email address",
+  "context": "I am...",
+  "context_parent": "A parent of a neurodivergent person",
+  "context_adult": "A neurodivergent adult",
+  "context_organization": "Representing an organization",
+  "message": "Anything you'd like to share (optional)",
+  "message_placeholder": "Why you're interested in Otantist, your situation, etc.",
+  "submit": "Request an invite",
+  "submitting": "Submitting...",
+  "name_required": "Please enter your name.",
+  "email_required": "Please enter your email.",
+  "email_invalid": "Please enter a valid email address.",
+  "context_required": "Please select who you are.",
+  "success_title": "Request received!",
+  "success_message": "We'll review your request and send an invite code to your email if approved. This usually takes 1\u20132 business days.",
+  "back_to_site": "Back to otantist.com"
+}
