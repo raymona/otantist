@@ -1,4 +1,10 @@
 {
+  "page_title": "Administration",
+  "tabs": {
+    "users": "Users",
+    "requests": "Invite Requests",
+    "codes": "Invite Codes"
+  },
   "title": "User Management",
   "search_placeholder": "Search by email or name...",
   "table": {

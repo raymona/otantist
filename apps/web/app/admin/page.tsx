@@ -54,6 +54,9 @@ export default function AdminPage() {
   const [reviewing, setReviewing] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState('');
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'codes'>('requests');
+
   const fetchUsers = useCallback(
     async (query?: string) => {
       if (!user?.isSuperAdmin) return;
@@ -232,11 +235,17 @@ export default function AdminPage() {
     );
   }
 
+  const tabs = [
+    { key: 'requests' as const, label: t('tabs.requests'), badge: pendingCount },
+    { key: 'users' as const, label: t('tabs.users') },
+    { key: 'codes' as const, label: t('tabs.codes') },
+  ];
+
   return (
     <main className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('page_title')}</h1>
           <div className="flex items-center gap-3">
             <a
               href="/dashboard"
@@ -253,141 +262,466 @@ export default function AdminPage() {
           </div>
         </header>
 
-        {/* Search */}
-        <div className="mb-4">
-          <label htmlFor="admin-search" className="sr-only">
-            {t('search_placeholder')}
-          </label>
-          <input
-            id="admin-search"
-            type="search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={t('search_placeholder')}
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none sm:max-w-md"
-          />
-        </div>
-
-        {/* Success/error messages */}
-        {successMsg && (
-          <p role="status" className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
-            {successMsg}
-          </p>
-        )}
-        {error && (
-          <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
-            {error}
-          </p>
-        )}
-
-        {/* User count */}
-        {!loading && (
-          <p className="mb-2 text-sm text-gray-500">{t('total_users', { count: users.length })}</p>
-        )}
-
-        {/* Loading */}
-        {loading && (
-          <p role="status" className="py-8 text-center text-gray-500">
-            {t('loading')}
-          </p>
-        )}
-
-        {/* Table */}
-        {!loading && users.length === 0 && (
-          <p className="py-8 text-center text-gray-500">{t('no_results')}</p>
-        )}
-
-        {!loading && users.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 font-medium text-gray-700">{t('table.email')}</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">{t('table.display_name')}</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">{t('table.role')}</th>
-                  <th className="px-4 py-3 font-medium text-gray-700">{t('table.status')}</th>
-                  <th className="hidden px-4 py-3 font-medium text-gray-700 md:table-cell">
-                    {t('table.verified')}
-                  </th>
-                  <th className="px-4 py-3 font-medium text-gray-700">{t('table.actions')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {users.map(u => (
-                  <tr key={u.accountId} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-900">{u.email}</td>
-                    <td className="px-4 py-3 text-gray-700">{u.displayName || '—'}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                          u.accountType === 'super_admin'
-                            ? 'bg-purple-100 text-purple-700'
-                            : u.accountType === 'moderator'
-                              ? 'bg-blue-100 text-blue-700'
-                              : u.accountType === 'parent_managed'
-                                ? 'bg-amber-100 text-amber-700'
-                                : 'bg-gray-100 text-gray-700'
-                        }`}
-                      >
-                        {t(`roles.${u.accountType}`)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs ${
-                          u.status === 'active'
-                            ? 'text-green-600'
-                            : u.status === 'suspended'
-                              ? 'text-red-600'
-                              : 'text-amber-600'
-                        }`}
-                      >
-                        {t(`status.${u.status}`)}
-                      </span>
-                    </td>
-                    <td className="hidden px-4 py-3 md:table-cell">
-                      {u.emailVerified ? t('yes') : t('no')}
-                    </td>
-                    <td className="px-4 py-3">
-                      {u.accountType === 'parent_managed' ? (
-                        <span className="text-xs text-gray-400">—</span>
-                      ) : (
-                        <div className="flex flex-wrap gap-1">
-                          {ROLE_OPTIONS.filter(r => r !== u.accountType).map(role => (
-                            <button
-                              key={role}
-                              onClick={() =>
-                                setConfirm({
-                                  accountId: u.accountId,
-                                  name: u.displayName || u.email,
-                                  from: t(`roles.${u.accountType}`),
-                                  to: role,
-                                })
-                              }
-                              className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
-                                role === 'super_admin'
-                                  ? 'border border-purple-200 text-purple-600 hover:bg-purple-50'
-                                  : role === 'moderator'
-                                    ? 'border border-blue-200 text-blue-600 hover:bg-blue-50'
-                                    : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
-                              }`}
-                            >
-                              {t(
-                                `set_role.to_${role === 'super_admin' ? 'admin' : role === 'moderator' ? 'moderator' : 'user'}`
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Tab navigation */}
+        <nav aria-label={t('page_title')} className="mb-6 border-b border-gray-200">
+          <div className="flex gap-0" role="tablist">
+            {tabs.map(tab => (
+              <button
+                key={tab.key}
+                role="tab"
+                aria-selected={activeTab === tab.key}
+                aria-controls={`panel-${tab.key}`}
+                onClick={() => setActiveTab(tab.key)}
+                className={`relative px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === tab.key
+                    ? 'text-blue-600 after:absolute after:right-0 after:bottom-0 after:left-0 after:h-0.5 after:bg-blue-600'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                {tab.label}
+                {tab.badge ? (
+                  <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                    {tab.badge}
+                  </span>
+                ) : null}
+              </button>
+            ))}
           </div>
+        </nav>
+
+        {/* ── Users Tab ── */}
+        {activeTab === 'users' && (
+          <section id="panel-users" role="tabpanel" aria-labelledby="tab-users">
+            {/* Search */}
+            <div className="mb-4">
+              <label htmlFor="admin-search" className="sr-only">
+                {t('search_placeholder')}
+              </label>
+              <input
+                id="admin-search"
+                type="search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder={t('search_placeholder')}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none sm:max-w-md"
+              />
+            </div>
+
+            {/* Success/error messages */}
+            {successMsg && (
+              <p
+                role="status"
+                className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700"
+              >
+                {successMsg}
+              </p>
+            )}
+            {error && (
+              <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+                {error}
+              </p>
+            )}
+
+            {/* User count */}
+            {!loading && (
+              <p className="mb-2 text-sm text-gray-500">
+                {t('total_users', { count: users.length })}
+              </p>
+            )}
+
+            {/* Loading */}
+            {loading && (
+              <p role="status" className="py-8 text-center text-gray-500">
+                {t('loading')}
+              </p>
+            )}
+
+            {/* Table */}
+            {!loading && users.length === 0 && (
+              <p className="py-8 text-center text-gray-500">{t('no_results')}</p>
+            )}
+
+            {!loading && users.length > 0 && (
+              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-gray-200 bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-gray-700">{t('table.email')}</th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('table.display_name')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">{t('table.role')}</th>
+                      <th className="px-4 py-3 font-medium text-gray-700">{t('table.status')}</th>
+                      <th className="hidden px-4 py-3 font-medium text-gray-700 md:table-cell">
+                        {t('table.verified')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">{t('table.actions')}</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {users.map(u => (
+                      <tr key={u.accountId} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-900">{u.email}</td>
+                        <td className="px-4 py-3 text-gray-700">{u.displayName || '—'}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                              u.accountType === 'super_admin'
+                                ? 'bg-purple-100 text-purple-700'
+                                : u.accountType === 'moderator'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : u.accountType === 'parent_managed'
+                                    ? 'bg-amber-100 text-amber-700'
+                                    : 'bg-gray-100 text-gray-700'
+                            }`}
+                          >
+                            {t(`roles.${u.accountType}`)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-xs ${
+                              u.status === 'active'
+                                ? 'text-green-600'
+                                : u.status === 'suspended'
+                                  ? 'text-red-600'
+                                  : 'text-amber-600'
+                            }`}
+                          >
+                            {t(`status.${u.status}`)}
+                          </span>
+                        </td>
+                        <td className="hidden px-4 py-3 md:table-cell">
+                          {u.emailVerified ? t('yes') : t('no')}
+                        </td>
+                        <td className="px-4 py-3">
+                          {u.accountType === 'parent_managed' ? (
+                            <span className="text-xs text-gray-400">—</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {ROLE_OPTIONS.filter(r => r !== u.accountType).map(role => (
+                                <button
+                                  key={role}
+                                  onClick={() =>
+                                    setConfirm({
+                                      accountId: u.accountId,
+                                      name: u.displayName || u.email,
+                                      from: t(`roles.${u.accountType}`),
+                                      to: role,
+                                    })
+                                  }
+                                  className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+                                    role === 'super_admin'
+                                      ? 'border border-purple-200 text-purple-600 hover:bg-purple-50'
+                                      : role === 'moderator'
+                                        ? 'border border-blue-200 text-blue-600 hover:bg-blue-50'
+                                        : 'border border-gray-200 text-gray-600 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  {t(
+                                    `set_role.to_${role === 'super_admin' ? 'admin' : role === 'moderator' ? 'moderator' : 'user'}`
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
         )}
 
-        {/* Confirm dialog */}
+        {/* ── Invite Requests Tab ── */}
+        {activeTab === 'requests' && (
+          <section id="panel-requests" role="tabpanel" aria-labelledby="tab-requests">
+            {/* Filters */}
+            <div className="mb-4 flex gap-2">
+              {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setRequestFilter(f)}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
+                    requestFilter === f
+                      ? 'bg-blue-600 text-white'
+                      : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  {t(`invite_requests.filter_${f}`)}
+                </button>
+              ))}
+            </div>
+
+            {/* Success/error */}
+            {requestSuccess && (
+              <p
+                role="status"
+                className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700"
+              >
+                {requestSuccess}
+              </p>
+            )}
+            {requestsError && (
+              <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
+                {requestsError}
+              </p>
+            )}
+
+            {/* Table */}
+            {requestsLoading ? (
+              <p role="status" className="py-4 text-center text-gray-500">
+                {t('invite_requests.loading')}
+              </p>
+            ) : inviteRequests.length === 0 ? (
+              <p className="py-4 text-center text-gray-500">{t('invite_requests.none')}</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-gray-200 bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.name')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.email')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.context')}
+                      </th>
+                      <th className="hidden px-4 py-3 font-medium text-gray-700 md:table-cell">
+                        {t('invite_requests.message')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.status')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.date')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_requests.actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {inviteRequests.map(req => (
+                      <tr key={req.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 text-gray-900">{req.name}</td>
+                        <td className="px-4 py-3 text-gray-700">{req.email}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+                            {t(`invite_requests.context_${req.context}`)}
+                          </span>
+                        </td>
+                        <td
+                          className="hidden max-w-[200px] truncate px-4 py-3 text-gray-500 md:table-cell"
+                          title={req.message || ''}
+                        >
+                          {req.message || t('invite_requests.no_message')}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`text-xs font-medium ${
+                              req.status === 'approved'
+                                ? 'text-green-600'
+                                : req.status === 'rejected'
+                                  ? 'text-red-600'
+                                  : 'text-amber-600'
+                            }`}
+                          >
+                            {t(`invite_requests.status_${req.status}`)}
+                          </span>
+                          {req.inviteCode && (
+                            <span className="ml-2 font-mono text-xs text-gray-400">
+                              {req.inviteCode}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">
+                          {new Date(req.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          {req.status === 'pending' ? (
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() =>
+                                  setReviewConfirm({
+                                    id: req.id,
+                                    name: req.name,
+                                    email: req.email,
+                                    decision: 'approved',
+                                  })
+                                }
+                                className="rounded border border-green-200 px-2 py-0.5 text-xs font-medium text-green-600 hover:bg-green-50"
+                              >
+                                {t('invite_requests.approve')}
+                              </button>
+                              <button
+                                onClick={() =>
+                                  setReviewConfirm({
+                                    id: req.id,
+                                    name: req.name,
+                                    email: req.email,
+                                    decision: 'rejected',
+                                  })
+                                }
+                                className="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                              >
+                                {t('invite_requests.reject')}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">
+                              {t('invite_requests.no_message')}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* ── Invite Codes Tab ── */}
+        {activeTab === 'codes' && (
+          <section id="panel-codes" role="tabpanel" aria-labelledby="tab-codes">
+            {/* Create form */}
+            <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
+              <h3 className="mb-3 text-sm font-semibold text-gray-700">
+                {t('invite_codes.create_new')}
+              </h3>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <div className="flex-1">
+                  <label htmlFor="new-invite-code" className="mb-1 block text-xs text-gray-600">
+                    {t('invite_codes.code')}
+                  </label>
+                  <input
+                    id="new-invite-code"
+                    type="text"
+                    value={newCode}
+                    onChange={e => setNewCode(e.target.value.toUpperCase())}
+                    placeholder="BETA2025"
+                    className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div className="w-24">
+                  <label htmlFor="new-max-uses" className="mb-1 block text-xs text-gray-600">
+                    {t('invite_codes.max_uses')}
+                  </label>
+                  <input
+                    id="new-max-uses"
+                    type="number"
+                    min={1}
+                    value={newMaxUses}
+                    onChange={e => setNewMaxUses(parseInt(e.target.value) || 1)}
+                    className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <div className="w-40">
+                  <label htmlFor="new-expires" className="mb-1 block text-xs text-gray-600">
+                    {t('invite_codes.expires_at')}
+                  </label>
+                  <input
+                    id="new-expires"
+                    type="date"
+                    value={newExpiresAt}
+                    onChange={e => setNewExpiresAt(e.target.value)}
+                    className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+                <button
+                  onClick={handleCreateInviteCode}
+                  disabled={creating || !newCode.trim()}
+                  className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                >
+                  {creating ? '...' : t('invite_codes.create')}
+                </button>
+              </div>
+              {inviteSuccess && (
+                <p role="status" className="mt-2 text-sm text-green-600">
+                  {inviteSuccess}
+                </p>
+              )}
+              {inviteError && (
+                <p role="alert" className="mt-2 text-sm text-red-600">
+                  {inviteError}
+                </p>
+              )}
+            </div>
+
+            {/* Invite codes table */}
+            {inviteLoading ? (
+              <p role="status" className="py-4 text-center text-gray-500">
+                {t('invite_codes.loading')}
+              </p>
+            ) : inviteCodes.length === 0 ? (
+              <p className="py-4 text-center text-gray-500">{t('invite_codes.none')}</p>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-gray-200 bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_codes.code')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_codes.uses')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_codes.expires_at')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700">
+                        {t('invite_codes.created')}
+                      </th>
+                      <th className="px-4 py-3 font-medium text-gray-700"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {inviteCodes.map(ic => (
+                      <tr key={ic.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 font-mono text-gray-900">{ic.code}</td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={
+                              ic.currentUses >= ic.maxUses ? 'text-red-600' : 'text-gray-700'
+                            }
+                          >
+                            {ic.currentUses}/{ic.maxUses}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-700">
+                          {ic.expiresAt
+                            ? new Date(ic.expiresAt).toLocaleDateString()
+                            : t('invite_codes.no_expiry')}
+                        </td>
+                        <td className="px-4 py-3 text-gray-500">
+                          {new Date(ic.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={() => handleCopyInviteCode(ic.code)}
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                          >
+                            {copiedCode === ic.code
+                              ? t('invite_codes.copied')
+                              : t('invite_codes.copy')}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Confirm dialog (role change) */}
         {confirm && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -430,168 +764,7 @@ export default function AdminPage() {
           </div>
         )}
 
-        {/* Invite Requests Section */}
-        <section aria-labelledby="invite-requests-title" className="mt-10">
-          <div className="mb-4 flex items-center gap-3">
-            <h2 id="invite-requests-title" className="text-xl font-bold text-gray-900">
-              {t('invite_requests.title')}
-            </h2>
-            {pendingCount > 0 && (
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
-                {t('invite_requests.pending_badge', { count: pendingCount })}
-              </span>
-            )}
-          </div>
-
-          {/* Filters */}
-          <div className="mb-4 flex gap-2">
-            {(['all', 'pending', 'approved', 'rejected'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setRequestFilter(f)}
-                className={`rounded-lg px-3 py-1 text-sm font-medium transition-colors ${
-                  requestFilter === f
-                    ? 'bg-blue-600 text-white'
-                    : 'border border-gray-300 text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                {t(`invite_requests.filter_${f}`)}
-              </button>
-            ))}
-          </div>
-
-          {/* Success/error */}
-          {requestSuccess && (
-            <p
-              role="status"
-              className="mb-4 rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700"
-            >
-              {requestSuccess}
-            </p>
-          )}
-          {requestsError && (
-            <p role="alert" className="mb-4 rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700">
-              {requestsError}
-            </p>
-          )}
-
-          {/* Table */}
-          {requestsLoading ? (
-            <p role="status" className="py-4 text-center text-gray-500">
-              {t('invite_requests.loading')}
-            </p>
-          ) : inviteRequests.length === 0 ? (
-            <p className="py-4 text-center text-gray-500">{t('invite_requests.none')}</p>
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.name')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.email')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.context')}
-                    </th>
-                    <th className="hidden px-4 py-3 font-medium text-gray-700 md:table-cell">
-                      {t('invite_requests.message')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.status')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.date')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_requests.actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {inviteRequests.map(req => (
-                    <tr key={req.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-900">{req.name}</td>
-                      <td className="px-4 py-3 text-gray-700">{req.email}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
-                          {t(`invite_requests.context_${req.context}`)}
-                        </span>
-                      </td>
-                      <td
-                        className="hidden max-w-[200px] truncate px-4 py-3 text-gray-500 md:table-cell"
-                        title={req.message || ''}
-                      >
-                        {req.message || t('invite_requests.no_message')}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`text-xs font-medium ${
-                            req.status === 'approved'
-                              ? 'text-green-600'
-                              : req.status === 'rejected'
-                                ? 'text-red-600'
-                                : 'text-amber-600'
-                          }`}
-                        >
-                          {t(`invite_requests.status_${req.status}`)}
-                        </span>
-                        {req.inviteCode && (
-                          <span className="ml-2 font-mono text-xs text-gray-400">
-                            {req.inviteCode}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {new Date(req.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        {req.status === 'pending' ? (
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() =>
-                                setReviewConfirm({
-                                  id: req.id,
-                                  name: req.name,
-                                  email: req.email,
-                                  decision: 'approved',
-                                })
-                              }
-                              className="rounded border border-green-200 px-2 py-0.5 text-xs font-medium text-green-600 hover:bg-green-50"
-                            >
-                              {t('invite_requests.approve')}
-                            </button>
-                            <button
-                              onClick={() =>
-                                setReviewConfirm({
-                                  id: req.id,
-                                  name: req.name,
-                                  email: req.email,
-                                  decision: 'rejected',
-                                })
-                              }
-                              className="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                            >
-                              {t('invite_requests.reject')}
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">
-                            {t('invite_requests.no_message')}
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
-        {/* Review confirm dialog */}
+        {/* Review confirm dialog (invite request) */}
         {reviewConfirm && (
           <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -637,142 +810,6 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-
-        {/* Invite Codes Section */}
-        <section aria-labelledby="invite-codes-title" className="mt-10">
-          <h2 id="invite-codes-title" className="mb-4 text-xl font-bold text-gray-900">
-            {t('invite_codes.title')}
-          </h2>
-
-          {/* Create form */}
-          <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">
-              {t('invite_codes.create_new')}
-            </h3>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <div className="flex-1">
-                <label htmlFor="new-invite-code" className="mb-1 block text-xs text-gray-600">
-                  {t('invite_codes.code')}
-                </label>
-                <input
-                  id="new-invite-code"
-                  type="text"
-                  value={newCode}
-                  onChange={e => setNewCode(e.target.value.toUpperCase())}
-                  placeholder="BETA2025"
-                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              <div className="w-24">
-                <label htmlFor="new-max-uses" className="mb-1 block text-xs text-gray-600">
-                  {t('invite_codes.max_uses')}
-                </label>
-                <input
-                  id="new-max-uses"
-                  type="number"
-                  min={1}
-                  value={newMaxUses}
-                  onChange={e => setNewMaxUses(parseInt(e.target.value) || 1)}
-                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              <div className="w-40">
-                <label htmlFor="new-expires" className="mb-1 block text-xs text-gray-600">
-                  {t('invite_codes.expires_at')}
-                </label>
-                <input
-                  id="new-expires"
-                  type="date"
-                  value={newExpiresAt}
-                  onChange={e => setNewExpiresAt(e.target.value)}
-                  className="w-full rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
-                />
-              </div>
-              <button
-                onClick={handleCreateInviteCode}
-                disabled={creating || !newCode.trim()}
-                className="rounded-lg bg-green-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-              >
-                {creating ? '...' : t('invite_codes.create')}
-              </button>
-            </div>
-            {inviteSuccess && (
-              <p role="status" className="mt-2 text-sm text-green-600">
-                {inviteSuccess}
-              </p>
-            )}
-            {inviteError && (
-              <p role="alert" className="mt-2 text-sm text-red-600">
-                {inviteError}
-              </p>
-            )}
-          </div>
-
-          {/* Invite codes table */}
-          {inviteLoading ? (
-            <p role="status" className="py-4 text-center text-gray-500">
-              {t('invite_codes.loading')}
-            </p>
-          ) : inviteCodes.length === 0 ? (
-            <p className="py-4 text-center text-gray-500">{t('invite_codes.none')}</p>
-          ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-gray-200 bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_codes.code')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_codes.uses')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_codes.expires_at')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700">
-                      {t('invite_codes.created')}
-                    </th>
-                    <th className="px-4 py-3 font-medium text-gray-700"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {inviteCodes.map(ic => (
-                    <tr key={ic.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-mono text-gray-900">{ic.code}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={
-                            ic.currentUses >= ic.maxUses ? 'text-red-600' : 'text-gray-700'
-                          }
-                        >
-                          {ic.currentUses}/{ic.maxUses}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700">
-                        {ic.expiresAt
-                          ? new Date(ic.expiresAt).toLocaleDateString()
-                          : t('invite_codes.no_expiry')}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {new Date(ic.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => handleCopyInviteCode(ic.code)}
-                          className="text-xs text-blue-600 hover:text-blue-800"
-                        >
-                          {copiedCode === ic.code
-                            ? t('invite_codes.copied')
-                            : t('invite_codes.copy')}
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
       </div>
     </main>
   );
