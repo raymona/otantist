@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Body, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/decorators';
@@ -29,6 +40,17 @@ export class AdminController {
   @ApiResponse({ status: 404, description: 'Account not found' })
   async setRole(@Body() dto: SetRoleDto): Promise<AdminUserResponse> {
     return this.adminService.setRole(dto);
+  }
+
+  @Delete('users/:id')
+  @ApiOperation({ summary: 'Delete a user account and all associated data (admin)' })
+  @ApiResponse({ status: 200, description: 'Account deleted' })
+  @ApiResponse({ status: 400, description: 'Cannot delete self' })
+  @ApiResponse({ status: 403, description: 'Cannot delete super admin' })
+  @ApiResponse({ status: 404, description: 'Account not found' })
+  async deleteUser(@Param('id') id: string, @Req() req: any): Promise<{ deleted: true }> {
+    await this.adminService.deleteUser(id, req.user.accountId);
+    return { deleted: true };
   }
 
   @Get('invite-codes')

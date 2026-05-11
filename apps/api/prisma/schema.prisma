@@ -162,6 +162,7 @@ enum RequesterContext {
   parent
   adult
   organization
+  other
 }
 
 // ===========================================

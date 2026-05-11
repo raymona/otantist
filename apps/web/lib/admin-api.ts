@@ -45,6 +45,9 @@ export const adminApi = {
       body: { accountId, role },
     }),
 
+  deleteUser: (accountId: string) =>
+    request<{ deleted: true }>(`/api/admin/users/${accountId}`, { method: 'DELETE' }),
+
   listInviteCodes: () => request<InviteCode[]>('/api/admin/invite-codes', { method: 'GET' }),
 
   createInviteCode: (code: string, maxUses?: number, expiresAt?: string) =>

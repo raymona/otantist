@@ -12,10 +12,13 @@ export class SubmitInviteRequestDto {
   @IsEmail()
   email!: string;
 
-  @ApiProperty({ description: 'Requester context', enum: ['parent', 'adult', 'organization'] })
+  @ApiProperty({
+    description: 'Requester context',
+    enum: ['parent', 'adult', 'organization', 'other'],
+  })
   @IsString()
-  @IsIn(['parent', 'adult', 'organization'])
-  context!: 'parent' | 'adult' | 'organization';
+  @IsIn(['parent', 'adult', 'organization', 'other'])
+  context!: 'parent' | 'adult' | 'organization' | 'other';
 
   @ApiPropertyOptional({ description: 'Optional message' })
   @IsOptional()

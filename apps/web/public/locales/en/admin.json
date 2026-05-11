@@ -34,6 +34,13 @@
     "success": "Role updated successfully",
     "error": "Failed to update role"
   },
+  "delete_user": {
+    "button": "Remove",
+    "confirm_title": "Remove user?",
+    "confirm_message": "Permanently remove {{name}} ({{email}})? This deletes all their data including conversations and messages. This cannot be undone.",
+    "success": "User removed successfully",
+    "error": "Failed to remove user"
+  },
   "status": {
     "active": "Active",
     "pending": "Pending",
@@ -81,6 +88,7 @@
     "context_parent": "Parent",
     "context_adult": "Adult",
     "context_organization": "Organization",
+    "context_other": "Other",
     "status_pending": "Pending",
     "status_approved": "Approved",
     "status_rejected": "Rejected",

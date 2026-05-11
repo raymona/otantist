@@ -8,6 +8,8 @@
   "context_parent": "A parent of a neurodivergent person",
   "context_adult": "A neurodivergent adult",
   "context_organization": "Representing an organization",
+  "context_other": "Other",
+  "context_other_placeholder": "Describe your connection to Otantist...",
   "message": "Anything you'd like to share (optional)",
   "message_placeholder": "Why you're interested in Otantist, your situation, etc.",
   "submit": "Request an invite",

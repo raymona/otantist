@@ -10,6 +10,7 @@ export default function RequestInvitePage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [context, setContext] = useState('');
+  const [contextOther, setContextOther] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -40,11 +41,15 @@ export default function RequestInvitePage() {
 
     setIsLoading(true);
     try {
+      const otherDetail = context === 'other' && contextOther.trim() ? contextOther.trim() : '';
+      const fullMessage = [otherDetail ? `[Other: ${otherDetail}]` : '', message.trim()]
+        .filter(Boolean)
+        .join('\n');
       await inviteRequestApi.submit({
         name: name.trim(),
         email: email.trim(),
         context,
-        message: message.trim() || undefined,
+        message: fullMessage || undefined,
         language: i18n.language as 'fr' | 'en',
       });
       setIsSubmitted(true);
@@ -87,6 +92,7 @@ export default function RequestInvitePage() {
     { value: 'adult', label: t('context_adult') },
     { value: 'parent', label: t('context_parent') },
     { value: 'organization', label: t('context_organization') },
+    { value: 'other', label: t('context_other') },
   ];
 
   return (
@@ -173,6 +179,21 @@ export default function RequestInvitePage() {
                   </label>
                 ))}
               </div>
+              {context === 'other' && (
+                <div className="mt-2">
+                  <label htmlFor="context-other" className="sr-only">
+                    {t('context_other_placeholder')}
+                  </label>
+                  <input
+                    id="context-other"
+                    type="text"
+                    value={contextOther}
+                    onChange={e => setContextOther(e.target.value)}
+                    placeholder={t('context_other_placeholder')}
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 focus:outline-none"
+                  />
+                </div>
+              )}
             </fieldset>
 
             {/* Message */}

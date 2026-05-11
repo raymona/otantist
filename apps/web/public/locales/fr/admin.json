@@ -34,6 +34,13 @@
     "success": "Rôle mis à jour avec succès",
     "error": "Échec de la mise à jour du rôle"
   },
+  "delete_user": {
+    "button": "Supprimer",
+    "confirm_title": "Supprimer l'utilisateur ?",
+    "confirm_message": "Supprimer définitivement {{name}} ({{email}}) ? Toutes les données, y compris les conversations et les messages, seront supprimées. Cette action est irréversible.",
+    "success": "Utilisateur supprimé avec succès",
+    "error": "Échec de la suppression de l'utilisateur"
+  },
   "status": {
     "active": "Actif",
     "pending": "En attente",
@@ -81,6 +88,7 @@
     "context_parent": "Parent",
     "context_adult": "Adulte",
     "context_organization": "Organisation",
+    "context_other": "Autre",
     "status_pending": "En attente",
     "status_approved": "Approuv\u00e9e",
     "status_rejected": "Refus\u00e9e",

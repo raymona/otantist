@@ -92,7 +92,7 @@ All 48 features are implemented. Key ones to know about:
 - **Parent dashboard:** Managed members, activity indicators, alerts (moderation + flagged messages)
 - **Admin:** User management, role changes, invite code management (super_admin only), invite request review (approve/reject)
 - **Invite requests:** Public form at `/request-invite`, admin review in admin panel, auto-generates invite code + emails on approval
-- **Session timer:** Preset durations, persists across navigation, break screen overlay
+- **Session timer:** Preset durations, persists across navigation, break screen overlay, hidden on public/pre-auth pages
 - **Daily mood check-in:** Once per calendar day, sets energy + calm mode
 - **Sensory preferences:** CSS body classes for animations/saturation, cached in localStorage
 - **Settings:** Accordion layout, sticky sidebar nav, Save All, unsaved-changes modal

@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AdminUserResponse, SetRoleDto, CreateInviteCodeDto, InviteCodeResponse } from './dto';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async listUsers(search?: string): Promise<AdminUserResponse[]> {
@@ -119,5 +127,93 @@ export class AdminService {
       expiresAt: code.expiresAt,
       createdAt: code.createdAt,
     }));
+  }
+
+  async deleteUser(accountId: string, requestingAccountId: string): Promise<void> {
+    if (accountId === requestingAccountId) {
+      throw new BadRequestException({
+        code: 'CANNOT_DELETE_SELF',
+        message_en: 'You cannot delete your own account',
+        message_fr: 'Vous ne pouvez pas supprimer votre propre compte',
+      });
+    }
+
+    const account = await this.prisma.account.findUnique({
+      where: { id: accountId },
+      include: { user: true },
+    });
+
+    if (!account) {
+      throw new NotFoundException({
+        code: 'ACCOUNT_NOT_FOUND',
+        message_en: 'Account not found',
+        message_fr: 'Compte non trouvé',
+      });
+    }
+
+    if (account.accountType === 'super_admin') {
+      throw new ForbiddenException({
+        code: 'CANNOT_DELETE_ADMIN',
+        message_en: 'Cannot delete a super admin account',
+        message_fr: 'Impossible de supprimer un compte super admin',
+      });
+    }
+
+    const userId = account.user?.id;
+
+    await this.prisma.$transaction(async tx => {
+      if (userId) {
+        // Delete conversations and their cascaded children (messages, hidden, deletions)
+        await tx.conversation.deleteMany({
+          where: { OR: [{ userAId: userId }, { userBId: userId }] },
+        });
+
+        // Delete block relationships
+        await tx.blockedUser.deleteMany({
+          where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+        });
+
+        // Delete reports (as reporter or reported)
+        await tx.userReport.deleteMany({
+          where: { OR: [{ reporterId: userId }, { reportedUserId: userId }] },
+        });
+
+        // Delete parent alerts (as member)
+        await tx.parentAlert.deleteMany({
+          where: { memberUserId: userId },
+        });
+      }
+
+      // Delete parent alerts (as parent account)
+      await tx.parentAlert.deleteMany({
+        where: { parentAccountId: accountId },
+      });
+
+      // Delete parent-managed relationships
+      await tx.parentManagedAccount.deleteMany({
+        where: { OR: [{ parentAccountId: accountId }, { memberAccountId: accountId }] },
+      });
+
+      // Delete parent linking codes
+      await tx.parentLinkingCode.deleteMany({
+        where: { parentAccountId: accountId },
+      });
+
+      // Nullify references in invite codes and moderation queue
+      await tx.inviteCode.updateMany({
+        where: { createdById: accountId },
+        data: { createdById: null },
+      });
+
+      await tx.moderationQueue.updateMany({
+        where: { reviewedById: accountId },
+        data: { reviewedById: null },
+      });
+
+      // Delete the account (cascades to user → preferences, state, etc.)
+      await tx.account.delete({ where: { id: accountId } });
+    });
+
+    this.logger.log(`Account ${accountId} (${account.email}) deleted by ${requestingAccountId}`);
   }
 }

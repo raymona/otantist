@@ -18,7 +18,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Confirm dialog state
+  // Confirm dialog state (role change)
   const [confirm, setConfirm] = useState<{
     accountId: string;
     name: string;
@@ -27,6 +27,14 @@ export default function AdminPage() {
   } | null>(null);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
+
+  // Delete confirm dialog state
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    accountId: string;
+    name: string;
+    email: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Invite code state
   const [inviteCodes, setInviteCodes] = useState<InviteCode[]>([]);
@@ -156,6 +164,23 @@ export default function AdminPage() {
     } finally {
       setSaving(false);
       setConfirm(null);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!deleteConfirm) return;
+    setDeleting(true);
+    setSuccessMsg('');
+    try {
+      await adminApi.deleteUser(deleteConfirm.accountId);
+      setUsers(prev => prev.filter(u => u.accountId !== deleteConfirm.accountId));
+      setSuccessMsg(t('delete_user.success'));
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch {
+      setError(t('delete_user.error'));
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
     }
   };
 
@@ -395,11 +420,9 @@ export default function AdminPage() {
                           {u.emailVerified ? t('yes') : t('no')}
                         </td>
                         <td className="px-4 py-3">
-                          {u.accountType === 'parent_managed' ? (
-                            <span className="text-xs text-gray-400">—</span>
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {ROLE_OPTIONS.filter(r => r !== u.accountType).map(role => (
+                          <div className="flex flex-wrap gap-1">
+                            {u.accountType !== 'parent_managed' &&
+                              ROLE_OPTIONS.filter(r => r !== u.accountType).map(role => (
                                 <button
                                   key={role}
                                   onClick={() =>
@@ -423,8 +446,21 @@ export default function AdminPage() {
                                   )}
                                 </button>
                               ))}
-                            </div>
-                          )}
+                            {u.accountType !== 'super_admin' && (
+                              <button
+                                onClick={() =>
+                                  setDeleteConfirm({
+                                    accountId: u.accountId,
+                                    name: u.displayName || u.email,
+                                    email: u.email,
+                                  })
+                                }
+                                className="rounded border border-red-200 px-2 py-0.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                              >
+                                {t('delete_user.button')}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -758,6 +794,48 @@ export default function AdminPage() {
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {saving ? '...' : t('set_role.confirm')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete confirm dialog */}
+        {deleteConfirm && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+            onClick={() => !deleting && setDeleteConfirm(null)}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="delete-confirm-title"
+              className="mx-4 w-full max-w-sm rounded-lg bg-white p-6 shadow-xl"
+              onClick={e => e.stopPropagation()}
+            >
+              <h2 id="delete-confirm-title" className="mb-3 text-lg font-semibold text-gray-900">
+                {t('delete_user.confirm_title')}
+              </h2>
+              <p className="mb-5 text-sm text-gray-600">
+                {t('delete_user.confirm_message', {
+                  name: deleteConfirm.name,
+                  email: deleteConfirm.email,
+                })}
+              </p>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteConfirm(null)}
+                  disabled={deleting}
+                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  {t('set_role.cancel')}
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  disabled={deleting}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleting ? '...' : t('delete_user.button')}
                 </button>
               </div>
             </div>
