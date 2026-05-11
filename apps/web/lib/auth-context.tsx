@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import i18n from './i18n';
 import {
   authApi,
   usersApi,
@@ -27,7 +27,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { i18n } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         clearAuth();
       }
     }
-  }, [clearAuth, storeTokens, i18n]);
+  }, [clearAuth, storeTokens]);
 
   // Initialize auth state on mount
   useEffect(() => {
