@@ -49,7 +49,7 @@ export class AdminController {
   @ApiResponse({ status: 403, description: 'Cannot delete super admin' })
   @ApiResponse({ status: 404, description: 'Account not found' })
   async deleteUser(@Param('id') id: string, @Req() req: any): Promise<{ deleted: true }> {
-    await this.adminService.deleteUser(id, req.user.accountId);
+    await this.adminService.deleteUser(id, req.user.id);
     return { deleted: true };
   }
 

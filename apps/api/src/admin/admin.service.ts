@@ -163,9 +163,31 @@ export class AdminService {
 
     await this.prisma.$transaction(async tx => {
       if (userId) {
+        // Find all conversation IDs for this user
+        const conversations = await tx.conversation.findMany({
+          where: { OR: [{ userAId: userId }, { userBId: userId }] },
+          select: { id: true },
+        });
+        const conversationIds = conversations.map(c => c.id);
+
+        // Nullify report references to messages in these conversations before deleting them
+        if (conversationIds.length > 0) {
+          const messages = await tx.message.findMany({
+            where: { conversationId: { in: conversationIds } },
+            select: { id: true },
+          });
+          const messageIds = messages.map(m => m.id);
+          if (messageIds.length > 0) {
+            await tx.userReport.updateMany({
+              where: { reportedMessageId: { in: messageIds } },
+              data: { reportedMessageId: null },
+            });
+          }
+        }
+
         // Delete conversations and their cascaded children (messages, hidden, deletions)
         await tx.conversation.deleteMany({
-          where: { OR: [{ userAId: userId }, { userBId: userId }] },
+          where: { id: { in: conversationIds } },
         });
 
         // Delete block relationships
@@ -173,9 +195,13 @@ export class AdminService {
           where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
         });
 
-        // Delete reports (as reporter or reported)
+        // Nullify reports filed against this user by others, then delete this user's own reports
+        await tx.userReport.updateMany({
+          where: { reportedUserId: userId },
+          data: { reportedUserId: null },
+        });
         await tx.userReport.deleteMany({
-          where: { OR: [{ reporterId: userId }, { reportedUserId: userId }] },
+          where: { reporterId: userId },
         });
 
         // Delete parent alerts (as member)
