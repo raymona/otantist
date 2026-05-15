@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next';
 import Link from 'next/link';
 import { useAuthGuard } from '@/lib/use-auth-guard';
 import { useAuth } from '@/lib/auth-context';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
-
 export default function HelpPage() {
   const { t, ready: i18nReady } = useTranslation('help');
   const { isReady, isLoading: authLoading } = useAuthGuard('onboarded');
@@ -47,7 +45,6 @@ export default function HelpPage() {
             </Link>
             <h1 className="text-lg font-semibold text-gray-900">{t('title')}</h1>
           </div>
-          <LanguageSwitcher />
         </div>
       </header>
 

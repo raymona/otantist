@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
 import type { SocialEnergyLevel } from '@/lib/types';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { moderationApi } from '@/lib/moderation-api';
 
 const ENERGY_LEVELS: SocialEnergyLevel[] = ['high', 'medium', 'low'];
@@ -35,8 +33,7 @@ export default function StatusBar({
   onEnergyChange,
 }: StatusBarProps) {
   const { t } = useTranslation('dashboard');
-  const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const moreButtonRef = useRef<HTMLButtonElement>(null);
@@ -56,11 +53,6 @@ export default function StatusBar({
     const interval = setInterval(fetchCount, 60_000);
     return () => clearInterval(interval);
   }, [user?.isModerator, user?.isSuperAdmin]);
-
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
 
   const energyLabel = socialEnergy ? t(`status_bar.energy_${socialEnergy}`) : '—';
 
@@ -373,15 +365,6 @@ export default function StatusBar({
             />
             {isConnected ? t('status_bar.connected') : t('status_bar.reconnecting')}
           </span>
-
-          <LanguageSwitcher />
-
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-red-300 px-3 py-1 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-          >
-            {t('common:logout')}
-          </button>
         </div>
 
         {/* Mobile More button — hidden on desktop */}
@@ -614,27 +597,6 @@ export default function StatusBar({
                 />
                 {isConnected ? t('status_bar.connected') : t('status_bar.reconnecting')}
               </div>
-
-              <hr className="my-1 border-gray-100" />
-
-              {/* Language switcher */}
-              <div className="px-4 py-2">
-                <LanguageSwitcher />
-              </div>
-
-              <hr className="my-1 border-gray-100" />
-
-              {/* Logout */}
-              <button
-                role="menuitem"
-                onClick={() => {
-                  setMoreMenuOpen(false);
-                  handleLogout();
-                }}
-                className="flex w-full items-center gap-2.5 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
-              >
-                {t('common:logout')}
-              </button>
             </div>
           )}
         </div>

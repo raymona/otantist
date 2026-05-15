@@ -61,6 +61,7 @@ export default function AdminPage() {
   } | null>(null);
   const [reviewing, setReviewing] = useState(false);
   const [requestSuccess, setRequestSuccess] = useState('');
+  const [expandedMessageId, setExpandedMessageId] = useState<string | null>(null);
 
   // Tab state
   const [activeTab, setActiveTab] = useState<'users' | 'requests' | 'codes'>('requests');
@@ -551,11 +552,28 @@ export default function AdminPage() {
                             {t(`invite_requests.context_${req.context}`)}
                           </span>
                         </td>
-                        <td
-                          className="hidden max-w-[200px] truncate px-4 py-3 text-gray-500 md:table-cell"
-                          title={req.message || ''}
-                        >
-                          {req.message || t('invite_requests.no_message')}
+                        <td className="hidden max-w-[300px] px-4 py-3 text-gray-500 md:table-cell">
+                          {req.message ? (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setExpandedMessageId(expandedMessageId === req.id ? null : req.id)
+                              }
+                              className="w-full text-left"
+                            >
+                              <span
+                                className={
+                                  expandedMessageId === req.id
+                                    ? 'break-words whitespace-pre-wrap'
+                                    : 'block truncate'
+                                }
+                              >
+                                {req.message}
+                              </span>
+                            </button>
+                          ) : (
+                            t('invite_requests.no_message')
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <span

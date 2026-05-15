@@ -2,6 +2,7 @@
 
 import { useTranslation } from 'react-i18next';
 import type { TimerDuration, TimerStatus } from '@/lib/use-session-timer';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 interface SessionTimerBarProps {
   duration: TimerDuration;
@@ -9,6 +10,7 @@ interface SessionTimerBarProps {
   secondsLeft: number;
   onSelectDuration: (d: TimerDuration) => void;
   onDismissBreak: () => void;
+  onLogout: () => void;
 }
 
 const DURATIONS: TimerDuration[] = [15, 20, 25, 30];
@@ -19,12 +21,28 @@ function formatTime(seconds: number): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+function GlobalActions({ onLogout }: { onLogout: () => void }) {
+  const { t } = useTranslation('common');
+  return (
+    <div className="flex items-center gap-2">
+      <LanguageSwitcher />
+      <button
+        onClick={onLogout}
+        className="rounded-lg border border-red-300 px-3 py-1 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+      >
+        {t('logout')}
+      </button>
+    </div>
+  );
+}
+
 export default function SessionTimerBar({
   duration,
   status,
   secondsLeft,
   onSelectDuration,
   onDismissBreak,
+  onLogout,
 }: SessionTimerBarProps) {
   const { t } = useTranslation('dashboard');
 
@@ -59,6 +77,9 @@ export default function SessionTimerBar({
             </button>
           ))}
         </div>
+        <div className="ml-auto">
+          <GlobalActions onLogout={onLogout} />
+        </div>
       </div>
     );
   }
@@ -87,6 +108,9 @@ export default function SessionTimerBar({
         </svg>
         <span className="text-sm font-semibold text-red-700">{t('timer.expired')}</span>
         <span className="text-sm text-red-600">{t('timer.take_a_break')}</span>
+        <div className="ml-auto">
+          <GlobalActions onLogout={onLogout} />
+        </div>
       </div>
     );
   }
@@ -170,6 +194,10 @@ export default function SessionTimerBar({
         >
           {t('timer.stop')}
         </button>
+
+        <div className="mx-1 h-5 w-px bg-gray-300" aria-hidden="true" />
+
+        <GlobalActions onLogout={onLogout} />
       </div>
     </div>
   );

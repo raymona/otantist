@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslation } from 'react-i18next';
-import LanguageSwitcher from '@/components/LanguageSwitcher';
 import { useAuthGuard } from '@/lib/use-auth-guard';
 
 export default function Home() {
@@ -23,9 +22,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <header className="flex items-center justify-end gap-4 p-4">
-        <LanguageSwitcher />
-      </header>
       <main className="flex flex-1 items-center justify-center">
         <div className="p-8 text-center">
           <h1 className="mb-4 text-4xl font-bold text-gray-900">{t('app_name')}</h1>

@@ -16,11 +16,6 @@ export default function RequestInvitePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const toggleLanguage = () => {
-    const next = i18n.language === 'fr' ? 'en' : 'fr';
-    i18n.changeLanguage(next);
-  };
-
   const validateForm = (): string | null => {
     if (!name.trim()) return t('name_required');
     if (!email.trim()) return t('email_required');
@@ -98,20 +93,10 @@ export default function RequestInvitePage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="w-full max-w-md space-y-8">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Otantist</h1>
-            <h2 className="mt-2 text-xl text-gray-600">{t('title')}</h2>
-            <p className="mt-2 text-sm text-gray-500">{t('subtitle')}</p>
-          </div>
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-100"
-            aria-label={i18n.language === 'fr' ? 'Switch to English' : 'Passer au français'}
-          >
-            {i18n.language === 'fr' ? 'EN' : 'FR'}
-          </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Otantist</h1>
+          <h2 className="mt-2 text-xl text-gray-600">{t('title')}</h2>
+          <p className="mt-2 text-sm text-gray-500">{t('subtitle')}</p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
