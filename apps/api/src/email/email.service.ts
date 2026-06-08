@@ -4,6 +4,7 @@ import * as nodemailer from 'nodemailer';
 
 interface EmailOptions {
   to: string;
+  cc?: string;
   subject: string;
   html: string;
   text?: string;
@@ -51,6 +52,7 @@ export class EmailService {
           await this.transporter!.sendMail({
             from: `"${fromName}" <${fromEmail}>`,
             to: options.to,
+            ...(options.cc && { cc: options.cc }),
             subject: options.subject,
             html: options.html,
             text: options.text,
@@ -85,6 +87,7 @@ export class EmailService {
       body: JSON.stringify({
         from,
         to: [options.to],
+        ...(options.cc && { cc: [options.cc] }),
         subject: options.subject,
         html: options.html,
         ...(options.text && { text: options.text }),
@@ -222,6 +225,7 @@ export class EmailService {
     fromEmail: string;
   }): Promise<void> {
     const to = this.configService.get('FEEDBACK_EMAIL', 'info@otantist.com');
+    const cc = this.configService.get('FEEDBACK_CC');
     const safeName = this.escapeHtml(opts.name);
     const safeEmail = this.escapeHtml(opts.fromEmail);
     const safeCategory = this.escapeHtml(opts.category);
@@ -230,6 +234,7 @@ export class EmailService {
     const safeSubject = `[Feedback] ${opts.category} — from ${opts.name}`.replace(/[\r\n]/g, ' ');
     await this.sendEmail({
       to,
+      ...(cc && { cc }),
       subject: safeSubject,
       html: `
         <p><strong>From:</strong> ${safeName} (${safeEmail})</p>

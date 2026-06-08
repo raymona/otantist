@@ -113,6 +113,52 @@ For the complete numbered feature list with implementation details, see `git log
 
 ---
 
+## Beta Phase Responsibilities (Lead Developer)
+
+**Context:** Following the app owner's direction (email, June 2026), the project
+is moving into a structured pre-launch phase targeting an **official launch around
+August 2026**. The decision is to proceed toward launch regardless of funding status.
+Progress is tracked in a shared To-Do List Sheet, with a virtual sync every 2–3 weeks.
+
+The four developer responsibilities below cluster into three _ongoing_ tracks during
+Beta and one _post-Beta_ build track.
+
+### ⏳ ONGOING — Stabilize
+
+Keep current Beta functionality working properly. No new features; the goal is a
+stable, dependable Beta experience.
+
+### ⏳ ONGOING — Monitor
+
+Watch for bugs and technical issues throughout the Beta phase. Catch and document
+problems as they surface rather than waiting for them to be reported.
+
+### ⏳ ONGOING — Capture Feedback
+
+Take note of relevant tester feedback as it comes in. Maintain a running log so the
+post-Beta build track is driven by real data, not memory.
+
+### 📋 POST-BETA — Improve
+
+After the Beta testing period ends, adapt or improve the app based on the **most
+important and recurring** feedback. Sequenced deliberately _after_ Beta closes, and
+scoped by frequency + severity rather than a predetermined list.
+
+> **Triage note:** "Most important and recurring" is the scope guardrail. Before
+> building, score logged feedback by severity, frequency, and effort. This keeps
+> pre-August work inside Phase 1 and prevents drift into deferred (Phase 2 / mobile)
+> features. Worth confirming the triage approach at the first sync.
+
+### Coordination
+
+| Item              | Detail                                    |
+| ----------------- | ----------------------------------------- |
+| **Launch target** | ~August 2026                              |
+| **Tracking**      | Shared To-Do List Sheet (weekly progress) |
+| **Sync cadence**  | Virtual meeting every 2–3 weeks           |
+
+---
+
 ## API Modules Reference
 
 Each controller file (`*.controller.ts`) has the full endpoint list. Swagger docs available at `/api/docs` in dev. Quick summary:
@@ -334,4 +380,4 @@ Use **public** `DATABASE_PUBLIC_URL` from Railway Postgres service, not the inte
 
 ---
 
-_Last updated: May 1, 2026 — added invite request feature, updated deployment URLs and env vars_
+_Last updated: June 8, 2026 — added Beta Phase Responsibilities section (August 2026 launch target)_
