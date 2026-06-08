@@ -273,8 +273,12 @@ This project targets WCAG 2.1 AA. The existing components demonstrate all patter
 ### Moderation
 
 - **Resolution actions:** Dismissed (no impact), Warned (warningCount++, system message, parent alert), Removed (preserves original, replaces content, auto-warns, system message, parent alert), Suspended (disables account, system message to ALL conversations, parent alert)
+- **Detail panel (enriched):** `getQueueItem()` returns full context via `getRelatedContentDetailed()`. For messages: sender profile (account type, warnings), conversation context (5 msgs before/after), other participant, linked reports. For users: full profile, reports, moderation history. List endpoint (`getQueue()`) stays lightweight.
+- **Minor alert banner:** Shown in detail panel when sender or reported user has `accountType === 'parent_managed'`
 - **System messages:** Translation keys stored in `message.content`, rendered as centered amber notices in `MessageBubble`
 - **Parent alerts:** Created on moderation actions affecting minors AND when reports filed against minors
+- **Feedback email CC:** `FEEDBACK_CC` env var sends developer a copy of tester feedback emails
+- **AI moderation:** Code is wired but disabled in prod (`ANTHROPIC_API_KEY` not set). Seed data includes AI detection items — these are test data only.
 - **Pending policy decisions:** See `docs/PROJECT_OWNER_QUESTIONS.md`
 
 ### Messaging
@@ -380,4 +384,4 @@ Use **public** `DATABASE_PUBLIC_URL` from Railway Postgres service, not the inte
 
 ---
 
-_Last updated: June 8, 2026 — added Beta Phase Responsibilities section (August 2026 launch target)_
+_Last updated: June 8, 2026 — added Beta Phase Responsibilities, enriched moderation detail panel, added FEEDBACK_CC support_
