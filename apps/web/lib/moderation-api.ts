@@ -1,5 +1,63 @@
 import { request } from './api';
 
+export interface MessageRelatedContent {
+  content: string;
+  sentAt: string;
+  sender: {
+    id: string;
+    displayName: string | null;
+    accountType: string;
+    warningCount: number;
+  };
+  conversation: {
+    id: string;
+    otherParticipant: {
+      id: string;
+      displayName: string | null;
+      accountType: string;
+    };
+  };
+  surroundingMessages: Array<{
+    id: string;
+    senderId: string;
+    senderName: string | null;
+    content: string;
+    createdAt: string;
+    isFlagged: boolean;
+  }>;
+  reports: Array<{
+    id: string;
+    reporterName: string | null;
+    reason: string;
+    description: string | null;
+    createdAt: string;
+  }>;
+}
+
+export interface UserRelatedContent {
+  displayName: string | null;
+  email: string;
+  accountType: string;
+  accountStatus: string;
+  warningCount: number;
+  memberSince: string;
+  reports: Array<{
+    id: string;
+    reporterName: string | null;
+    reason: string;
+    description: string | null;
+    createdAt: string;
+  }>;
+  moderationHistory: Array<{
+    id: string;
+    itemType: string;
+    actionTaken: string | null;
+    flagReason: string | null;
+    createdAt: string;
+    resolvedAt: string | null;
+  }>;
+}
+
 export interface ModerationQueueItem {
   id: string;
   itemType: string; // 'message' | 'user'
@@ -14,7 +72,8 @@ export interface ModerationQueueItem {
   originalContent?: string | null;
   createdAt: string;
   resolvedAt?: string | null;
-  relatedContent?: Record<string, unknown> | null;
+  reviewerEmail?: string | null;
+  relatedContent?: MessageRelatedContent | UserRelatedContent | Record<string, unknown> | null;
 }
 
 export interface ModerationStats {

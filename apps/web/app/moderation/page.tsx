@@ -65,8 +65,14 @@ export default function ModerationPage() {
     setSelectedItem(null);
   };
 
-  const handleSelectItem = (item: ModerationQueueItem) => {
-    setSelectedItem(item);
+  const handleSelectItem = async (item: ModerationQueueItem) => {
+    setSelectedItem(item); // Show immediately with list data
+    try {
+      const detailed = await moderationApi.getQueueItem(item.id);
+      setSelectedItem(detailed); // Enrich with full detail
+    } catch {
+      // Keep the list version if detail fetch fails
+    }
   };
 
   const handleResolved = (updated: ModerationQueueItem) => {

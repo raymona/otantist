@@ -56,7 +56,38 @@
     "user_info": "User information",
     "action_taken": "Action taken",
     "resolution_notes": "Resolution notes",
-    "original_content": "Original content"
+    "original_content": "Original content",
+    "account_type": "Account type",
+    "warning_count": "Warnings",
+    "conversation_context": "Conversation context",
+    "other_participant": "Other participant",
+    "flagged_message": "Flagged message",
+    "reports": "Reports",
+    "reporter": "Reported by",
+    "report_reason": "Reason",
+    "report_description": "Details",
+    "report_date": "Reported",
+    "no_reports": "No user reports linked to this item",
+    "moderation_history": "Moderation history",
+    "no_history": "No prior moderation history",
+    "member_since": "Member since",
+    "email": "Email",
+    "account_status": "Account status",
+    "reviewed_by": "Reviewed by",
+    "is_minor": "Minor (parent-managed account)"
+  },
+  "report_reason": {
+    "harassment": "Harassment",
+    "inappropriate": "Inappropriate content",
+    "spam": "Spam",
+    "safety_concern": "Safety concern",
+    "other": "Other"
+  },
+  "account_type": {
+    "adult": "Adult",
+    "parent_managed": "Minor (parent-managed)",
+    "moderator": "Moderator",
+    "super_admin": "Super admin"
   },
   "resolve": {
     "title": "Resolve item",

@@ -56,7 +56,38 @@
     "user_info": "Informations utilisateur",
     "action_taken": "Action prise",
     "resolution_notes": "Notes de résolution",
-    "original_content": "Contenu original"
+    "original_content": "Contenu original",
+    "account_type": "Type de compte",
+    "warning_count": "Avertissements",
+    "conversation_context": "Contexte de conversation",
+    "other_participant": "Autre participant",
+    "flagged_message": "Message signalé",
+    "reports": "Signalements",
+    "reporter": "Signalé par",
+    "report_reason": "Raison",
+    "report_description": "Détails",
+    "report_date": "Signalé",
+    "no_reports": "Aucun signalement utilisateur lié à cet élément",
+    "moderation_history": "Historique de modération",
+    "no_history": "Aucun historique de modération",
+    "member_since": "Membre depuis",
+    "email": "Courriel",
+    "account_status": "Statut du compte",
+    "reviewed_by": "Examiné par",
+    "is_minor": "Mineur (compte supervisé)"
+  },
+  "report_reason": {
+    "harassment": "Harcèlement",
+    "inappropriate": "Contenu inapproprié",
+    "spam": "Pourriel",
+    "safety_concern": "Préoccupation de sécurité",
+    "other": "Autre"
+  },
+  "account_type": {
+    "adult": "Adulte",
+    "parent_managed": "Mineur (compte supervisé)",
+    "moderator": "Modérateur",
+    "super_admin": "Super administrateur"
   },
   "resolve": {
     "title": "Résoudre l'élément",

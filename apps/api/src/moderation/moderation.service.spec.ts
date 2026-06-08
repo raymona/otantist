@@ -89,20 +89,34 @@ describe('ModerationService', () => {
   describe('resolveQueueItem', () => {
     it('should resolve a queue item with dismiss action', async () => {
       prisma.moderationQueue.findUnique
-        .mockResolvedValueOnce(mockQueueItem) // first call
+        .mockResolvedValueOnce(mockQueueItem) // first call in resolveQueueItem
         .mockResolvedValueOnce({
           // second call in getQueueItem
           ...mockQueueItem,
           status: 'resolved',
           actionTaken: 'dismissed',
+          reviewedBy: { email: 'mod@test.com' },
         });
       prisma.moderationQueue.update.mockResolvedValue({});
       prisma.message.findUnique.mockResolvedValue({
         content: 'Message',
-        sender: { id: 's', displayName: 'S' },
-        conversation: { id: 'c', userAId: 'a', userBId: 'b' },
+        senderId: 's',
+        conversationId: 'c',
+        sender: {
+          id: 's',
+          displayName: 'S',
+          warningCount: 0,
+          account: { accountType: 'adult' },
+        },
+        conversation: {
+          id: 'c',
+          userA: { id: 's', displayName: 'S', account: { accountType: 'adult' } },
+          userB: { id: 'b', displayName: 'B', account: { accountType: 'adult' } },
+        },
         createdAt: new Date(),
       });
+      prisma.message.findMany.mockResolvedValue([]);
+      prisma.userReport.findMany.mockResolvedValue([]);
 
       await service.resolveQueueItem('queue-id', 'reviewer-account-id', {
         action: 'dismissed' as any,
@@ -120,11 +134,34 @@ describe('ModerationService', () => {
     });
 
     it('should remove message content and preserve original when action is removed', async () => {
+      const mockMessageDetailed = {
+        id: 'msg-id',
+        content: 'Bad message',
+        senderId: 's',
+        conversationId: 'c',
+        sender: {
+          id: 's',
+          displayName: 'S',
+          accountId: 'acct-s',
+          warningCount: 0,
+          account: { id: 'acct-s', accountType: 'adult' },
+        },
+        conversation: {
+          id: 'c',
+          userA: { id: 's', displayName: 'S', account: { accountType: 'adult' } },
+          userB: { id: 'b', displayName: 'B', account: { accountType: 'adult' } },
+          userAId: 'a',
+          userBId: 'b',
+        },
+        createdAt: new Date(),
+      };
+
       prisma.moderationQueue.findUnique.mockResolvedValueOnce(mockQueueItem).mockResolvedValueOnce({
         ...mockQueueItem,
         status: 'resolved',
         actionTaken: 'removed',
         originalContent: 'Bad message',
+        reviewedBy: { email: 'mod@test.com' },
       });
       prisma.message.update.mockResolvedValue({});
       prisma.user.update.mockResolvedValue({});
@@ -139,15 +176,9 @@ describe('ModerationService', () => {
         createdAt: new Date(),
       });
       prisma.parentManagedAccount.findFirst.mockResolvedValue(null);
-      prisma.message.findUnique.mockResolvedValue({
-        id: 'msg-id',
-        content: 'Bad message',
-        senderId: 's',
-        conversationId: 'c',
-        sender: { id: 's', displayName: 'S', accountId: 'acct-s', account: { id: 'acct-s' } },
-        conversation: { id: 'c', userAId: 'a', userBId: 'b' },
-        createdAt: new Date(),
-      });
+      prisma.message.findUnique.mockResolvedValue(mockMessageDetailed);
+      prisma.message.findMany.mockResolvedValue([]);
+      prisma.userReport.findMany.mockResolvedValue([]);
 
       await service.resolveQueueItem('queue-id', 'reviewer-id', {
         action: 'removed' as any,

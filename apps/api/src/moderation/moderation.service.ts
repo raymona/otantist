@@ -52,6 +52,9 @@ export class ModerationService {
   async getQueueItem(id: string): Promise<ModerationQueueItemResponse> {
     const item = await this.prisma.moderationQueue.findUnique({
       where: { id },
+      include: {
+        reviewedBy: { select: { email: true } },
+      },
     });
 
     if (!item) {
@@ -62,7 +65,7 @@ export class ModerationService {
       });
     }
 
-    const relatedContent = await this.getRelatedContent(item.itemType, item.itemId);
+    const relatedContent = await this.getRelatedContentDetailed(item.itemType, item.itemId);
 
     return {
       id: item.id,
@@ -75,8 +78,10 @@ export class ModerationService {
       priority: item.priority,
       actionTaken: item.actionTaken,
       resolutionNotes: item.resolutionNotes,
+      originalContent: item.originalContent,
       createdAt: item.createdAt,
       resolvedAt: item.resolvedAt,
+      reviewerEmail: item.reviewedBy?.email ?? null,
       relatedContent,
     };
   }
@@ -382,6 +387,9 @@ export class ModerationService {
     };
   }
 
+  /**
+   * Lightweight related content for the queue list view.
+   */
   private async getRelatedContent(itemType: string, itemId: string): Promise<any> {
     if (itemType === 'message') {
       const message = await this.prisma.message.findUnique({
@@ -420,6 +428,189 @@ export class ModerationService {
             memberSince: user.account.createdAt,
           }
         : null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Enriched related content for the single-item detail view.
+   * Includes conversation context, reports, user profiles, and moderation history.
+   */
+  private async getRelatedContentDetailed(itemType: string, itemId: string): Promise<any> {
+    if (itemType === 'message') {
+      const message = await this.prisma.message.findUnique({
+        where: { id: itemId },
+        include: {
+          sender: {
+            select: {
+              id: true,
+              displayName: true,
+              warningCount: true,
+              account: { select: { accountType: true } },
+            },
+          },
+          conversation: {
+            select: {
+              id: true,
+              userA: {
+                select: {
+                  id: true,
+                  displayName: true,
+                  account: { select: { accountType: true } },
+                },
+              },
+              userB: {
+                select: {
+                  id: true,
+                  displayName: true,
+                  account: { select: { accountType: true } },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!message) return null;
+
+      // Fetch surrounding messages (5 before + 5 after)
+      const [messagesBefore, messagesAfter] = await Promise.all([
+        this.prisma.message.findMany({
+          where: {
+            conversationId: message.conversationId,
+            createdAt: { lt: message.createdAt },
+          },
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          take: 5,
+          include: { sender: { select: { displayName: true } } },
+        }),
+        this.prisma.message.findMany({
+          where: {
+            conversationId: message.conversationId,
+            createdAt: { gt: message.createdAt },
+          },
+          orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+          take: 5,
+          include: { sender: { select: { displayName: true } } },
+        }),
+      ]);
+
+      // Fetch linked user reports
+      const reports = await this.prisma.userReport.findMany({
+        where: { reportedMessageId: itemId },
+        include: { reporter: { select: { displayName: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      // Determine the other participant
+      const conv = message.conversation;
+      const otherParticipant = message.senderId === conv.userA.id ? conv.userB : conv.userA;
+
+      return {
+        content: message.content,
+        sentAt: message.createdAt,
+        sender: {
+          id: message.sender.id,
+          displayName: message.sender.displayName,
+          accountType: message.sender.account.accountType,
+          warningCount: message.sender.warningCount,
+        },
+        conversation: {
+          id: message.conversationId,
+          otherParticipant: {
+            id: otherParticipant.id,
+            displayName: otherParticipant.displayName,
+            accountType: otherParticipant.account.accountType,
+          },
+        },
+        surroundingMessages: [
+          ...messagesBefore.reverse().map(m => ({
+            id: m.id,
+            senderId: m.senderId,
+            senderName: m.sender.displayName,
+            content: m.content,
+            createdAt: m.createdAt,
+            isFlagged: m.flagged,
+          })),
+          ...messagesAfter.map(m => ({
+            id: m.id,
+            senderId: m.senderId,
+            senderName: m.sender.displayName,
+            content: m.content,
+            createdAt: m.createdAt,
+            isFlagged: m.flagged,
+          })),
+        ],
+        reports: reports.map(r => ({
+          id: r.id,
+          reporterName: r.reporter.displayName,
+          reason: r.reason,
+          description: r.description,
+          createdAt: r.createdAt,
+        })),
+      };
+    }
+
+    if (itemType === 'user') {
+      const user = await this.prisma.user.findUnique({
+        where: { id: itemId },
+        include: {
+          account: {
+            select: {
+              email: true,
+              accountType: true,
+              status: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      if (!user) return null;
+
+      // Fetch reports against this user
+      const reports = await this.prisma.userReport.findMany({
+        where: { reportedUserId: itemId },
+        include: { reporter: { select: { displayName: true } } },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      // Fetch past moderation queue items for this user
+      const moderationHistory = await this.prisma.moderationQueue.findMany({
+        where: {
+          itemId,
+          status: 'resolved',
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      return {
+        displayName: user.displayName,
+        email: user.account.email,
+        accountType: user.account.accountType,
+        accountStatus: user.account.status,
+        warningCount: user.warningCount,
+        memberSince: user.account.createdAt,
+        reports: reports.map(r => ({
+          id: r.id,
+          reporterName: r.reporter.displayName,
+          reason: r.reason,
+          description: r.description,
+          createdAt: r.createdAt,
+        })),
+        moderationHistory: moderationHistory.map(h => ({
+          id: h.id,
+          itemType: h.itemType,
+          actionTaken: h.actionTaken,
+          flagReason: h.flagReason,
+          createdAt: h.createdAt,
+          resolvedAt: h.resolvedAt,
+        })),
+      };
     }
 
     return null;

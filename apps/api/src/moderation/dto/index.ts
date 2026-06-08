@@ -62,6 +62,9 @@ export class ModerationQueueItemResponse {
   @ApiPropertyOptional()
   resolvedAt?: Date | null;
 
+  @ApiPropertyOptional({ description: 'Email of the moderator who resolved this item' })
+  reviewerEmail?: string | null;
+
   @ApiPropertyOptional({ description: 'Related content (message text, user info, etc.)' })
   relatedContent?: any;
 }
