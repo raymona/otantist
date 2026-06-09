@@ -272,11 +272,12 @@ This document contains the full content for generating bilingual (EN/FR) pitch d
 
 - **Heading:** Where We Are Today
 - **Points:**
-  - ✅ Full platform built and deployed (web app live, API live)
-  - ✅ Invite-only beta testing in progress
+  - ✅ Full platform built and deployed (web app live at otantist.app, API live on Railway)
+  - ✅ Invite-only beta testing in progress with real users — targeting official launch ~August 2026
   - ✅ 48 features implemented across messaging, safety, moderation, parenting tools, and accessibility
   - ✅ Complete bilingual support (French & English)
-  - ✅ Automated testing suite (107 unit tests, 14 end-to-end tests)
+  - ✅ Automated testing suite (108 unit tests, 14 end-to-end tests, CI/CD pipeline)
+  - ✅ Enriched moderation tools — conversation context, user profiles, report details for informed decisions
   - 🔜 Native mobile apps (iOS + Android) — next phase
   - 🔜 Community features (groups, interests) — planned post-MVP
   - 🔜 AI-powered communication coaching — future roadmap
@@ -285,16 +286,17 @@ This document contains the full content for generating bilingual (EN/FR) pitch d
 
 - **Heading:** Où nous en sommes aujourd'hui
 - **Points:**
-  - ✅ Plateforme complète construite et déployée (application web en ligne, API en ligne)
-  - ✅ Beta test sur invitation en cours
+  - ✅ Plateforme complète construite et déployée (application web en ligne sur otantist.app, API sur Railway)
+  - ✅ Beta test sur invitation en cours avec de vrais utilisateurs — lancement officiel visé pour ~août 2026
   - ✅ 48 fonctionnalités implémentées dans la messagerie, la sécurité, la modération, les outils parentaux et l'accessibilité
   - ✅ Support bilingue complet (français et anglais)
-  - ✅ Suite de tests automatisés (107 tests unitaires, 14 tests de bout en bout)
+  - ✅ Suite de tests automatisés (108 tests unitaires, 14 tests de bout en bout, pipeline CI/CD)
+  - ✅ Outils de modération enrichis — contexte de conversation, profils utilisateurs, détails des signalements pour des décisions éclairées
   - 🔜 Applications mobiles natives (iOS + Android) — prochaine phase
   - 🔜 Fonctionnalités communautaires (groupes, intérêts) — planifiées post-MVP
   - 🔜 Coaching de communication assisté par IA — feuille de route future
 
-**Speaker notes:** We're past the idea stage. The product exists. People are using it. We're collecting feedback from real neurodivergent testers. The beta is invite-only because we want to get the experience right before scaling. What we need now is the resources to take it to the next level — mobile apps, community features, and growth.
+**Speaker notes:** We're past the idea stage. The product exists. People are using it right now. We're in a structured beta phase with real testers, targeting an official launch around August 2026. The beta is invite-only because we want to get the experience right before scaling. We're actively collecting and triaging feedback to drive improvements. What we need now is the resources to take it to the next level — mobile apps, community features, and growth.
 
 ---
 
